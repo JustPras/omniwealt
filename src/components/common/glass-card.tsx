@@ -1,0 +1,69 @@
+import React, { ReactNode } from 'react';
+import { View, StyleSheet, ViewStyle, StyleProp, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+
+interface GlassCardProps {
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
+  intensity?: number;
+  borderTint?: string;
+  gradientColors?: [string, string, ...string[]];
+  noPadding?: boolean;
+}
+
+export const GlassCard: React.FC<GlassCardProps> = ({
+  children,
+  style,
+  intensity = 40,
+  borderTint = 'rgba(255, 255, 255, 0.12)',
+  gradientColors = ['rgba(255, 255, 255, 0.08)', 'rgba(255, 255, 255, 0.02)'],
+  noPadding = false,
+}) => {
+  return (
+    <View style={[styles.outerContainer, { borderColor: borderTint }, style]}>
+      {/* Frosted Blur Surface */}
+      {Platform.OS === 'web' ? (
+        <View style={[StyleSheet.absoluteFill, styles.webBackdrop]} />
+      ) : (
+        <BlurView intensity={intensity} tint="dark" style={StyleSheet.absoluteFill} />
+      )}
+
+      {/* Surface Light Gradient Reflection */}
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+
+      {/* Card Content */}
+      <View style={[styles.innerContent, noPadding && styles.noPadding]}>
+        {children}
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  outerContainer: {
+    borderRadius: 24,
+    borderWidth: 1,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+  },
+  webBackdrop: {
+    backgroundColor: 'rgba(12, 18, 30, 0.70)',
+    // @ts-ignore - Web-specific CSS backdrop-filter
+    backdropFilter: 'blur(24px)',
+  },
+  innerContent: {
+    padding: 18,
+    position: 'relative',
+    zIndex: 1,
+  },
+  noPadding: {
+    padding: 0,
+  },
+});

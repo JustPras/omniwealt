@@ -1,0 +1,51 @@
+name: Build Native Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    name: Build True Native APK (Hermes + New Arch)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 3. Setup Java JDK 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 4. Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 5. Install Node Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: 6. Expo Prebuild Android (Generate True Native Android Project)
+        run: npx expo prebuild --platform android --no-install
+
+      - name: 7. Build Debug APK with Gradle
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - name: 8. Upload True Native APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OmniWealth-TrueNative-Android-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

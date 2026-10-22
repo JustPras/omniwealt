@@ -28,7 +28,7 @@ Anda dapat langsung mengunduh file `.apk` yang dikompilasi secara otomatis oleh 
 2. Klik run alur kerja terbaru (**Build Native Android APK**).
 3. Gulir ke bawah ke bagian **Artifacts**.
 4. Klik dan unduh file **`OmniWealth-TrueNative-Android-APK`** (berupa file zip).
-5. Ekstrak zip untuk mendapatkan file **`app-debug.apk`**.
+5. Ekstrak zip untuk mendapatkan file **`app-release.apk`**.
 6. Transfer file ke HP Android Anda (melalui USB, WhatsApp, Telegram, atau Google Drive).
 7. Di HP Android: Buka file `.apk` &rarr; jika diminta, aktifkan **"Izinkan instalasi dari sumber tidak dikenal"** (*Allow install from unknown sources*) &rarr; ketuk **Install**.
 

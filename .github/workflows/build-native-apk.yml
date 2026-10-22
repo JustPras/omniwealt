@@ -47,16 +47,16 @@ jobs:
         working-directory: android
         run: chmod +x gradlew
 
-      - name: 8. Build Debug APK with Gradle
+      - name: 8. Build Standalone Release APK with Embedded JS Bundle
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
         env:
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
-      - name: 9. Upload True Native APK Artifact
+      - name: 9. Upload Standalone Native APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OmniWealth-TrueNative-Android-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error

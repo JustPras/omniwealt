@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { X, Sparkles, CheckCircle2, Zap } from 'lucide-react-native';
+import { Icon } from '../common/icon';
 import { GlassCard } from '../common/glass-card';
 import { useWealth } from '../../store/wealth-context';
 import { formatIDR } from '../../utils/format';
@@ -69,7 +69,7 @@ export const NotificationSimulatorModal: React.FC<NotificationSimulatorModalProp
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
-                <Sparkles size={18} color="#38BDF8" />
+                <Icon name="Sparkles" size={18} color="#38BDF8" />
                 <Text style={styles.title}>Smart Bank & QRIS Parser</Text>
               </View>
               <TouchableOpacity
@@ -79,7 +79,7 @@ export const NotificationSimulatorModal: React.FC<NotificationSimulatorModalProp
                 }}
                 style={styles.closeBtn}
               >
-                <X size={20} color="#94A3B8" />
+                <Icon name="X" size={20} color="#94A3B8" />
               </TouchableOpacity>
             </View>
 
@@ -96,7 +96,7 @@ export const NotificationSimulatorModal: React.FC<NotificationSimulatorModalProp
                   style={styles.presetChip}
                   activeOpacity={0.7}
                 >
-                  <Zap size={12} color="#F59E0B" />
+                  <Icon name="Zap" size={12} color="#F59E0B" />
                   <Text style={styles.presetChipText}>{p.title}</Text>
                 </TouchableOpacity>
               ))}
@@ -119,7 +119,7 @@ export const NotificationSimulatorModal: React.FC<NotificationSimulatorModalProp
             {/* Result Preview Banner */}
             {lastResult && (
               <View style={styles.resultBanner}>
-                <CheckCircle2 size={18} color="#10B981" />
+                <Icon name="CheckCircle2" size={18} color="#10B981" />
                 <View style={styles.resultContent}>
                   <Text style={styles.resultTitle}>
                     {lastResult.type}: {formatIDR(lastResult.amount)}

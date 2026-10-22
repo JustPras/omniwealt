@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity } from 'react-native';
-import { X, TrendingUp } from 'lucide-react-native';
+import { Icon } from '../common/icon';
 import { GlassCard } from '../common/glass-card';
 import { StockAsset } from '../../types';
 import { useWealth } from '../../store/wealth-context';
@@ -80,7 +80,7 @@ export const StockModal: React.FC<StockModalProps> = ({ visible, onClose, stockT
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
-                <TrendingUp size={18} color="#38BDF8" />
+                <Icon name="TrendingUp" size={18} color="#38BDF8" />
                 <Text style={styles.title}>{stockToEdit ? 'Edit Saham IDX' : 'Tambah Saham IDX'}</Text>
               </View>
               <TouchableOpacity
@@ -90,7 +90,7 @@ export const StockModal: React.FC<StockModalProps> = ({ visible, onClose, stockT
                 }}
                 style={styles.closeBtn}
               >
-                <X size={20} color="#94A3B8" />
+                <Icon name="X" size={20} color="#94A3B8" />
               </TouchableOpacity>
             </View>
 

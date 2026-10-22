@@ -9,7 +9,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { router } from 'expo-router';
-import { TrendingUp, ArrowUpRight, ArrowDownRight, Wallet, Plus, RefreshCw, Sparkles } from 'lucide-react-native';
+import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
@@ -92,9 +92,9 @@ export default function OverviewScreen() {
             <Text style={styles.heroLabel}>TOTAL NET WORTH</Text>
             <View style={[styles.dailyBadge, isDailyProfit ? styles.badgeGreen : styles.badgeRed]}>
               {isDailyProfit ? (
-                <ArrowUpRight size={13} color="#10B981" />
+                <Icon name="ArrowUpRight" size={13} color="#10B981" />
               ) : (
-                <ArrowDownRight size={13} color="#F43F5E" />
+                <Icon name="ArrowDownRight" size={13} color="#F43F5E" />
               )}
               <Text style={[styles.dailyBadgeText, isDailyProfit ? styles.textGreen : styles.textRed]}>
                 {formatPercent(dailyChangePercent)} (hari ini)
@@ -140,7 +140,7 @@ export default function OverviewScreen() {
               borderTint="rgba(255, 255, 255, 0.12)"
             >
               <View style={styles.podIconBadge}>
-                <TrendingUp size={16} color="#38BDF8" />
+                <Icon name="TrendingUp" size={16} color="#38BDF8" />
               </View>
               <Text style={styles.podLabel}>Investasi Aktif</Text>
               <PrivacyValue value={totalInvestments} style={styles.podMainValue} />
@@ -169,7 +169,7 @@ export default function OverviewScreen() {
                 activeOpacity={0.8}
               >
                 <Text style={styles.inspectBtnText}>Lihat Portofolio</Text>
-                <ArrowUpRight size={13} color="#38BDF8" />
+                <Icon name="ArrowUpRight" size={13} color="#38BDF8" />
               </TouchableOpacity>
             </GlassCard>
           </View>
@@ -182,7 +182,7 @@ export default function OverviewScreen() {
               borderTint="rgba(16, 185, 129, 0.2)"
             >
               <View style={styles.cashHeader}>
-                <Wallet size={15} color="#10B981" />
+                <Icon name="Wallet" size={15} color="#10B981" />
                 <Text style={styles.podLabel}>Kas & RDN</Text>
               </View>
               <PrivacyValue value={totalCash} style={styles.cashAmount} />
@@ -202,7 +202,7 @@ export default function OverviewScreen() {
                 style={styles.quickActionBtn}
                 activeOpacity={0.7}
               >
-                <Plus size={14} color="#10B981" />
+                <Icon name="Plus" size={14} color="#10B981" />
                 <Text style={styles.quickActionText}>+ Catat Mutasi</Text>
               </TouchableOpacity>
 
@@ -214,7 +214,7 @@ export default function OverviewScreen() {
                 style={[styles.quickActionBtn, styles.syncQuickBtn]}
                 activeOpacity={0.7}
               >
-                <RefreshCw size={13} color="#F59E0B" />
+                <Icon name="RefreshCw" size={13} color="#F59E0B" />
                 <Text style={[styles.quickActionText, { color: '#F59E0B' }]}>Sync SoA</Text>
               </TouchableOpacity>
             </GlassCard>
@@ -224,7 +224,7 @@ export default function OverviewScreen() {
         {/* HIGH-DENSITY TOP MOVERS */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleRow}>
-            <Sparkles size={16} color="#F59E0B" />
+            <Icon name="Sparkles" size={16} color="#F59E0B" />
             <Text style={styles.sectionTitle}>Top Movers Hari Ini</Text>
           </View>
           <TouchableOpacity

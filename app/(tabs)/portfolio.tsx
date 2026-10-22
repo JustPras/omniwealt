@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
-import { TrendingUp, Coins, Plus, ArrowUpRight, ArrowDownRight, Edit2 } from 'lucide-react-native';
+import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
@@ -79,7 +79,7 @@ export default function PortfolioScreen() {
                 style={styles.addBtnSky}
                 activeOpacity={0.8}
               >
-                <Plus size={13} color="#080C14" />
+                <Icon name="Plus" size={13} color="#080C14" />
                 <Text style={styles.addBtnText}>+ Saham</Text>
               </TouchableOpacity>
 
@@ -92,7 +92,7 @@ export default function PortfolioScreen() {
                 style={styles.addBtnAmber}
                 activeOpacity={0.8}
               >
-                <Plus size={13} color="#080C14" />
+                <Icon name="Plus" size={13} color="#080C14" />
                 <Text style={styles.addBtnText}>+ Kripto</Text>
               </TouchableOpacity>
             </View>
@@ -109,9 +109,9 @@ export default function PortfolioScreen() {
               />
               <View style={[styles.pnlChip, isOverallProfit ? styles.chipGreen : styles.chipRed]}>
                 {isOverallProfit ? (
-                  <ArrowUpRight size={13} color="#10B981" />
+                  <Icon name="ArrowUpRight" size={13} color="#10B981" />
                 ) : (
-                  <ArrowDownRight size={13} color="#F43F5E" />
+                  <Icon name="ArrowDownRight" size={13} color="#F43F5E" />
                 )}
                 <Text style={[styles.pnlChipText, isOverallProfit ? styles.textGreen : styles.textRed]}>
                   {formatPercent(totalUnrealizedPnLPercent)}
@@ -145,7 +145,7 @@ export default function PortfolioScreen() {
           <View style={styles.sectionBlock}>
             <View style={styles.sectionTitleRow}>
               <View style={styles.titleWithIcon}>
-                <TrendingUp size={16} color="#38BDF8" />
+                <Icon name="TrendingUp" size={16} color="#38BDF8" />
                 <Text style={styles.sectionTitle}>Portofolio Saham Indonesia (IDX)</Text>
               </View>
               <PrivacyValue value={totalStocks} style={styles.sectionTotalVal} />
@@ -188,7 +188,7 @@ export default function PortfolioScreen() {
                           }}
                           style={styles.editIconBtn}
                         >
-                          <Edit2 size={13} color="#94A3B8" />
+                          <Icon name="Edit2" size={13} color="#94A3B8" />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -240,7 +240,7 @@ export default function PortfolioScreen() {
           <View style={styles.sectionBlock}>
             <View style={styles.sectionTitleRow}>
               <View style={styles.titleWithIcon}>
-                <Coins size={16} color="#F59E0B" />
+                <Icon name="Coins" size={16} color="#F59E0B" />
                 <Text style={styles.sectionTitle}>Portofolio Aset Kripto</Text>
               </View>
               <PrivacyValue value={totalCryptos} style={styles.sectionTotalVal} />
@@ -281,7 +281,7 @@ export default function PortfolioScreen() {
                           }}
                           style={styles.editIconBtn}
                         >
-                          <Edit2 size={13} color="#94A3B8" />
+                          <Icon name="Edit2" size={13} color="#94A3B8" />
                         </TouchableOpacity>
                       </View>
                     </View>

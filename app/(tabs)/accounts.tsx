@@ -8,19 +8,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import {
-  Landmark,
-  Smartphone,
-  TrendingUp,
-  Plus,
-  ArrowUpRight,
-  ArrowDownLeft,
-  Sparkles,
-  Zap,
-  CheckCircle2,
-  BellRing,
-  History,
-} from 'lucide-react-native';
+import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
@@ -126,7 +114,7 @@ export default function AccountsScreen() {
               style={styles.addAccountBtn}
               activeOpacity={0.8}
             >
-              <Plus size={14} color="#080C14" />
+              <Icon name="Plus" size={14} color="#080C14" />
               <Text style={styles.addAccountBtnText}>Tambah Rekening</Text>
             </TouchableOpacity>
           </View>
@@ -144,9 +132,9 @@ export default function AccountsScreen() {
               <View style={styles.accountTopRow}>
                 <View style={styles.accountLeft}>
                   <View style={[styles.accountIconBadge, { backgroundColor: 'rgba(56, 189, 248, 0.12)' }]}>
-                    {acc.type === 'BANK' && <Landmark size={18} color="#38BDF8" />}
-                    {acc.type === 'RDN' && <TrendingUp size={18} color="#10B981" />}
-                    {acc.type === 'E-WALLET' && <Smartphone size={18} color="#06B6D4" />}
+                    {acc.type === 'BANK' && <Icon name="Landmark" size={18} color="#38BDF8" />}
+                    {acc.type === 'RDN' && <Icon name="TrendingUp" size={18} color="#10B981" />}
+                    {acc.type === 'E-WALLET' && <Icon name="Smartphone" size={18} color="#06B6D4" />}
                   </View>
                   <View>
                     <Text style={styles.accountName}>{acc.name}</Text>
@@ -168,7 +156,7 @@ export default function AccountsScreen() {
                   style={[styles.smallAdjustBtn, styles.incomeAdjustBtn]}
                   activeOpacity={0.7}
                 >
-                  <ArrowDownLeft size={12} color="#10B981" />
+                  <Icon name="ArrowDownLeft" size={12} color="#10B981" />
                   <Text style={[styles.smallAdjustText, { color: '#10B981' }]}>+ Pemasukan</Text>
                 </TouchableOpacity>
 
@@ -177,7 +165,7 @@ export default function AccountsScreen() {
                   style={[styles.smallAdjustBtn, styles.expenseAdjustBtn]}
                   activeOpacity={0.7}
                 >
-                  <ArrowUpRight size={12} color="#F43F5E" />
+                  <Icon name="ArrowUpRight" size={12} color="#F43F5E" />
                   <Text style={[styles.smallAdjustText, { color: '#F43F5E' }]}>- Pengeluaran</Text>
                 </TouchableOpacity>
               </View>
@@ -189,7 +177,7 @@ export default function AccountsScreen() {
         <GlassCard style={styles.aiParserCard} borderTint="rgba(56, 189, 248, 0.25)">
           <View style={styles.aiParserHeader}>
             <View style={styles.aiHeaderTitle}>
-              <Sparkles size={18} color="#38BDF8" />
+              <Icon name="Sparkles" size={18} color="#38BDF8" />
               <Text style={styles.aiTitle}>Smart Android Mutasi & QRIS Parser</Text>
             </View>
             <View style={styles.aiEngineTag}>
@@ -214,7 +202,7 @@ export default function AccountsScreen() {
                 style={styles.presetChip}
                 activeOpacity={0.7}
               >
-                <Zap size={11} color="#F59E0B" />
+                <Icon name="Zap" size={11} color="#F59E0B" />
                 <Text style={styles.presetChipText}>{p.title}</Text>
               </TouchableOpacity>
             ))}
@@ -237,7 +225,7 @@ export default function AccountsScreen() {
           {/* Parse Result Feedback Banner */}
           {parseResult && (
             <View style={styles.resultBanner}>
-              <CheckCircle2 size={16} color="#10B981" />
+              <Icon name="CheckCircle2" size={16} color="#10B981" />
               <View style={{ flex: 1 }}>
                 <Text style={styles.resultTitle}>
                   {parseResult.type}: {formatIDR(parseResult.amount)}
@@ -268,7 +256,7 @@ export default function AccountsScreen() {
         <GlassCard style={styles.listenerCard} borderTint="rgba(245, 158, 11, 0.25)">
           <View style={styles.listenerHeader}>
             <View style={styles.listenerIcon}>
-              <BellRing size={16} color="#F59E0B" />
+              <Icon name="BellRing" size={16} color="#F59E0B" />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.listenerTitle}>Android Notification Interceptor</Text>
@@ -289,7 +277,7 @@ export default function AccountsScreen() {
             style={styles.simulateActionBtn}
             activeOpacity={0.8}
           >
-            <Zap size={14} color="#080C14" />
+            <Icon name="Zap" size={14} color="#080C14" />
             <Text style={styles.simulateActionBtnText}>Simulasi Notifikasi QRIS Masuk</Text>
           </TouchableOpacity>
         </GlassCard>
@@ -297,7 +285,7 @@ export default function AccountsScreen() {
         {/* RECENT TRANSACTIONS HISTORY */}
         <View style={styles.sectionTitleRow}>
           <View style={styles.historyTitleRow}>
-            <History size={16} color="#94A3B8" />
+            <Icon name="History" size={16} color="#94A3B8" />
             <Text style={styles.sectionTitle}>Riwayat Transaksi Terbaru</Text>
           </View>
         </View>
@@ -316,11 +304,11 @@ export default function AccountsScreen() {
                     ]}
                   >
                     {isInc ? (
-                      <ArrowDownLeft size={14} color="#10B981" />
+                      <Icon name="ArrowDownLeft" size={14} color="#10B981" />
                     ) : isTrans ? (
-                      <TrendingUp size={14} color="#38BDF8" />
+                      <Icon name="TrendingUp" size={14} color="#38BDF8" />
                     ) : (
-                      <ArrowUpRight size={14} color="#F43F5E" />
+                      <Icon name="ArrowUpRight" size={14} color="#F43F5E" />
                     )}
                   </View>
                   <View style={{ flex: 1 }}>

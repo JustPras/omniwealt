@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity } from 'react-native';
-import { X, Coins } from 'lucide-react-native';
+import { Icon } from '../common/icon';
 import { GlassCard } from '../common/glass-card';
 import { CryptoAsset } from '../../types';
 import { useWealth } from '../../store/wealth-context';
@@ -79,7 +79,7 @@ export const CryptoModal: React.FC<CryptoModalProps> = ({ visible, onClose, cryp
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
-                <Coins size={18} color="#F59E0B" />
+                <Icon name="Coins" size={18} color="#F59E0B" />
                 <Text style={styles.title}>{cryptoToEdit ? 'Edit Aset Kripto' : 'Tambah Aset Kripto'}</Text>
               </View>
               <TouchableOpacity
@@ -89,7 +89,7 @@ export const CryptoModal: React.FC<CryptoModalProps> = ({ visible, onClose, cryp
                 }}
                 style={styles.closeBtn}
               >
-                <X size={20} color="#94A3B8" />
+                <Icon name="X" size={20} color="#94A3B8" />
               </TouchableOpacity>
             </View>
 

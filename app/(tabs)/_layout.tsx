@@ -2,7 +2,7 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { StyleSheet, View, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { LayoutDashboard, Landmark, TrendingUp, RefreshCw } from 'lucide-react-native';
+import { Icon } from '../../src/components/common/icon';
 import { triggerHaptic } from '../../src/utils/haptics';
 
 export default function TabsLayout() {
@@ -32,28 +32,28 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Overview',
-          tabBarIcon: ({ color, size }) => <LayoutDashboard size={size || 20} color={color} />,
+          tabBarIcon: ({ color, size }) => <Icon name="LayoutDashboard" size={size || 20} color={color} />,
         }}
       />
       <Tabs.Screen
         name="accounts"
         options={{
           title: 'Accounts',
-          tabBarIcon: ({ color, size }) => <Landmark size={size || 20} color={color} />,
+          tabBarIcon: ({ color, size }) => <Icon name="Landmark" size={size || 20} color={color} />,
         }}
       />
       <Tabs.Screen
         name="portfolio"
         options={{
           title: 'Portfolio',
-          tabBarIcon: ({ color, size }) => <TrendingUp size={size || 20} color={color} />,
+          tabBarIcon: ({ color, size }) => <Icon name="TrendingUp" size={size || 20} color={color} />,
         }}
       />
       <Tabs.Screen
         name="sync"
         options={{
           title: 'Sync SoA',
-          tabBarIcon: ({ color, size }) => <RefreshCw size={size || 20} color={color} />,
+          tabBarIcon: ({ color, size }) => <Icon name="RefreshCw" size={size || 20} color={color} />,
         }}
       />
     </Tabs>

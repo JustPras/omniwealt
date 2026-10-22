@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity } from 'react-native';
-import { X, ArrowDownLeft, ArrowUpRight } from 'lucide-react-native';
+import { Icon } from '../common/icon';
 import { GlassCard } from '../common/glass-card';
 import { useWealth } from '../../store/wealth-context';
 import { triggerHaptic } from '../../utils/haptics';
@@ -59,7 +59,7 @@ export const CashMutationModal: React.FC<CashMutationModalProps> = ({
                 }}
                 style={styles.closeBtn}
               >
-                <X size={20} color="#94A3B8" />
+                <Icon name="X" size={20} color="#94A3B8" />
               </TouchableOpacity>
             </View>
 
@@ -72,7 +72,7 @@ export const CashMutationModal: React.FC<CashMutationModalProps> = ({
                 }}
                 style={[styles.typeButton, type === 'EXPENSE' && styles.expenseActive]}
               >
-                <ArrowUpRight size={16} color={type === 'EXPENSE' ? '#F43F5E' : '#64748B'} />
+                <Icon name="ArrowUpRight" size={16} color={type === 'EXPENSE' ? '#F43F5E' : '#64748B'} />
                 <Text style={[styles.typeText, type === 'EXPENSE' && styles.expenseTextActive]}>
                   Pengeluaran
                 </Text>
@@ -85,7 +85,7 @@ export const CashMutationModal: React.FC<CashMutationModalProps> = ({
                 }}
                 style={[styles.typeButton, type === 'INCOME' && styles.incomeActive]}
               >
-                <ArrowDownLeft size={16} color={type === 'INCOME' ? '#10B981' : '#64748B'} />
+                <Icon name="ArrowDownLeft" size={16} color={type === 'INCOME' ? '#10B981' : '#64748B'} />
                 <Text style={[styles.typeText, type === 'INCOME' && styles.incomeTextActive]}>
                   Pemasukan
                 </Text>

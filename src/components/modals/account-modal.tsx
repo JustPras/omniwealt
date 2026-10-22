@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity } from 'react-native';
-import { X, Landmark, Smartphone, TrendingUp } from 'lucide-react-native';
+import { Icon } from '../common/icon';
 import { GlassCard } from '../common/glass-card';
 import { AccountType } from '../../types';
 import { useWealth } from '../../store/wealth-context';
@@ -53,7 +53,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({ visible, onClose }) 
                 }}
                 style={styles.closeBtn}
               >
-                <X size={20} color="#94A3B8" />
+                <Icon name="X" size={20} color="#94A3B8" />
               </TouchableOpacity>
             </View>
 
@@ -72,9 +72,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({ visible, onClose }) 
                   }}
                   style={[styles.typeButton, type === t && styles.activeTypeButton]}
                 >
-                  {t === 'BANK' && <Landmark size={15} color={type === t ? '#38BDF8' : '#64748B'} />}
-                  {t === 'RDN' && <TrendingUp size={15} color={type === t ? '#10B981' : '#64748B'} />}
-                  {t === 'E-WALLET' && <Smartphone size={15} color={type === t ? '#06B6D4' : '#64748B'} />}
+                  {t === 'BANK' && <Icon name="Landmark" size={15} color={type === t ? '#38BDF8' : '#64748B'} />}
+                  {t === 'RDN' && <Icon name="TrendingUp" size={15} color={type === t ? '#10B981' : '#64748B'} />}
+                  {t === 'E-WALLET' && <Icon name="Smartphone" size={15} color={type === t ? '#06B6D4' : '#64748B'} />}
                   <Text style={[styles.typeText, type === t && styles.activeTypeText]}>{t}</Text>
                 </TouchableOpacity>
               ))}

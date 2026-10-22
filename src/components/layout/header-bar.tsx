@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Eye, EyeOff, RefreshCw } from 'lucide-react-native';
+import { Icon } from '../common/icon';
 import { useWealth } from '../../store/wealth-context';
 import { formatTime } from '../../utils/format';
 
@@ -29,7 +29,7 @@ export const HeaderBar: React.FC = () => {
           {isRefreshing ? (
             <ActivityIndicator size="small" color="#10B981" />
           ) : (
-            <RefreshCw size={17} color="#94A3B8" />
+            <Icon name="RefreshCw" size={17} color="#94A3B8" />
           )}
         </TouchableOpacity>
 
@@ -41,9 +41,9 @@ export const HeaderBar: React.FC = () => {
           accessibilityLabel="Toggle Sensor Privasi Saldo"
         >
           {privacyMode ? (
-            <EyeOff size={17} color="#F59E0B" />
+            <Icon name="EyeOff" size={17} color="#F59E0B" />
           ) : (
-            <Eye size={17} color="#94A3B8" />
+            <Icon name="Eye" size={17} color="#94A3B8" />
           )}
         </TouchableOpacity>
       </View>

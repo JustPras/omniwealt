@@ -9,18 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import {
-  FileText,
-  Lock,
-  UploadCloud,
-  CheckCircle2,
-  AlertCircle,
-  TrendingUp,
-  ArrowDownLeft,
-  ArrowUpRight,
-  Sparkles,
-  Zap,
-} from 'lucide-react-native';
+import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
@@ -185,7 +174,7 @@ export default function SyncScreen() {
         <GlassCard style={styles.heroCard} borderTint="rgba(56, 189, 248, 0.25)">
           <View style={styles.heroHeader}>
             <View style={styles.heroIconBox}>
-              <Sparkles size={20} color="#38BDF8" />
+              <Icon name="Sparkles" size={20} color="#38BDF8" />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.heroTitle}>Broker Statement Engine</Text>
@@ -206,7 +195,7 @@ export default function SyncScreen() {
         {/* 3 PRESET SIMULATION BUTTONS (1-CLICK TEST) */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleRow}>
-            <Zap size={16} color="#F59E0B" />
+            <Icon name="Zap" size={16} color="#F59E0B" />
             <Text style={styles.sectionTitle}>Uji Coba 1-Klik Simulasi Broker Statement</Text>
           </View>
           <Text style={styles.sectionSubtitle}>Wajib Ada untuk Pengujian Instan</Text>
@@ -247,7 +236,7 @@ export default function SyncScreen() {
 
           {/* Optional PDF Password */}
           <View style={styles.passwordInputContainer}>
-            <Lock size={15} color="#94A3B8" />
+            <Icon name="Lock" size={15} color="#94A3B8" />
             <TextInput
               style={styles.passwordInput}
               placeholder="Password PDF Broker (Opsional jika dienkripsi)"
@@ -269,7 +258,7 @@ export default function SyncScreen() {
               <ActivityIndicator color="#080C14" />
             ) : (
               <>
-                <UploadCloud size={18} color="#080C14" />
+                <Icon name="UploadCloud" size={18} color="#080C14" />
                 <Text style={styles.uploadBtnText}>
                   {selectedFileName ? `Ganti File (${selectedFileName})` : 'Pilih File Dokumen Broker'}
                 </Text>
@@ -282,7 +271,7 @@ export default function SyncScreen() {
         {confirmationNotice && (
           <GlassCard style={styles.successNoticeCard} borderTint="rgba(16, 185, 129, 0.3)">
             <View style={styles.noticeHeader}>
-              <CheckCircle2 size={20} color="#10B981" />
+              <Icon name="CheckCircle2" size={20} color="#10B981" />
               <View style={{ flex: 1 }}>
                 <Text style={styles.successNoticeTitle}>Portofolio Berhasil Diperbarui!</Text>
                 <Text style={styles.successNoticeMsg}>{confirmationNotice}</Text>

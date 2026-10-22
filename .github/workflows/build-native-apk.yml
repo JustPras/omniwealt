@@ -12,6 +12,10 @@ jobs:
     name: Build True Native APK (Hermes + New Arch)
     runs-on: ubuntu-latest
 
+    env:
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      JAVA_HOME: /usr/lib/jvm/temurin-17-amd64
+
     steps:
       - name: 1. Checkout Repository
         uses: actions/checkout@v4
@@ -36,14 +40,21 @@ jobs:
 
       - name: 6. Expo Prebuild Android (Generate True Native Android Project)
         run: npx expo prebuild --platform android --no-install
+        env:
+          EXPO_NO_TELEMETRY: 1
 
-      - name: 7. Build Debug APK with Gradle
+      - name: 7. Make gradlew executable
         working-directory: android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+        run: chmod +x gradlew
 
-      - name: 8. Upload True Native APK Artifact
+      - name: 8. Build Debug APK with Gradle
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        env:
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+          GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+
+      - name: 9. Upload True Native APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OmniWealth-TrueNative-Android-APK

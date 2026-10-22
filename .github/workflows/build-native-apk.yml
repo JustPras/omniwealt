@@ -28,8 +28,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 4. Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: 4. Setup Gradle & Cache
+        uses: gradle/actions/setup-gradle@v3
 
       - name: 5. Install Node Dependencies
         run: npm install --legacy-peer-deps
@@ -41,7 +41,7 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: 8. Upload True Native APK Artifact
         uses: actions/upload-artifact@v4

@@ -13,7 +13,9 @@ import * as DocumentPicker from 'expo-document-picker';
 import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
+import { ScreenTransition } from '../../src/components/common/screen-transition';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
+import { LuxuryLoader } from '../../src/components/common/luxury-loader';
 import { useWealth } from '../../src/store/wealth-context';
 import { formatIDR } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
@@ -342,7 +344,7 @@ T O T A L 2,365,863 1,841,000 -524,863`;
   };
 
   return (
-    <View style={styles.screenContainer}>
+    <ScreenTransition style={styles.screenContainer}>
       <HeaderBar />
 
       <ScrollView
@@ -538,6 +540,14 @@ T O T A L 2,365,863 1,841,000 -524,863`;
             )}
           </TouchableOpacity>
         </GlassCard>
+
+        {/* LUXURY ANIMATED BROKER SCANNER LOADER */}
+        {isExtracting && (
+          <LuxuryLoader
+            title="AI BROKER STATEMENT ENGINE"
+            subtitle="Menganalisis Dokumen & Ekstraksi Portofolio Saham..."
+          />
+        )}
 
         {/* CONFIRMATION SUCCESS NOTIFICATION */}
         {confirmationNotice && (
@@ -742,7 +752,7 @@ T O T A L 2,365,863 1,841,000 -524,863`;
           </GlassCard>
         )}
       </ScrollView>
-    </View>
+    </ScreenTransition>
   );
 }
 

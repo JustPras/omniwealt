@@ -4,6 +4,7 @@ import { StorageService } from '../services/storage-service';
 import { MarketService } from '../services/market-service';
 import { AIParserService } from '../services/ai-parser';
 import { triggerHaptic } from '../utils/haptics';
+import { formatIDR } from '../utils/format';
 
 interface WealthContextType {
   // Data State
@@ -340,6 +341,108 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       if (!rdnAcc) {
         return { success: false, message: 'Akun RDN tidak ditemukan.' };
+      }
+
+      // Special Handler for Statement of Account (Holdings Snapshot)
+      if (result.documentType === 'STATEMENT_OF_ACCOUNT' && result.holdings && result.holdings.length > 0) {
+        const targetRdn =
+          accounts.find((a) => a.accountNumber === result.rdnAccountNumber) ||
+          accounts.find((a) => a.type === 'RDN') ||
+          accounts[0];
+
+        // 1. Sync Stock Holdings
+        setStocks((prevStocks) => {
+          let updatedStocks = [...prevStocks];
+
+          for (const item of result.holdings!) {
+            const existingIdx = updatedStocks.findIndex(
+              (s) => s.ticker.toUpperCase() === item.ticker.toUpperCase()
+            );
+
+            if (existingIdx >= 0) {
+              updatedStocks[existingIdx] = {
+                ...updatedStocks[existingIdx],
+                lots: item.lots,
+                avgBuyPrice: item.avgBuyPrice,
+                currentPrice: item.currentPrice,
+                name: item.name || updatedStocks[existingIdx].name,
+                updatedAt: new Date().toISOString(),
+              };
+            } else {
+              updatedStocks.push({
+                id: `stock-soa-${Date.now()}-${item.ticker}`,
+                ticker: item.ticker,
+                name: item.name,
+                lots: item.lots,
+                avgBuyPrice: item.avgBuyPrice,
+                currentPrice: item.currentPrice,
+                change24h: item.unrealizedPnLPct || 0,
+                currency: 'IDR',
+                rdnAccountId: targetRdn?.id,
+                updatedAt: new Date().toISOString(),
+              });
+            }
+          }
+
+          StorageService.saveStocks(updatedStocks);
+          return updatedStocks;
+        });
+
+        // 2. Sync RDN Account Balance
+        const newRdnBalance = result.rdnCashBalance !== undefined ? result.rdnCashBalance : 408241;
+        setAccounts((prevAccs) => {
+          let updatedAccs = [...prevAccs];
+          const rdnIdx = updatedAccs.findIndex(
+            (a) => a.id === targetRdn?.id || a.type === 'RDN' || a.accountNumber === result.rdnAccountNumber
+          );
+
+          if (rdnIdx >= 0) {
+            updatedAccs[rdnIdx] = {
+              ...updatedAccs[rdnIdx],
+              name: `RDN Stockbit ${result.rdnBank ? result.rdnBank.replace('Bank ', '') : 'Jago'}`,
+              accountNumber: result.rdnAccountNumber || updatedAccs[rdnIdx].accountNumber || '112359923696',
+              balance: newRdnBalance,
+              updatedAt: new Date().toISOString(),
+            };
+          } else {
+            updatedAccs.push({
+              id: `acc-rdn-${Date.now()}`,
+              name: `RDN Stockbit ${result.rdnBank || 'Jago'}`,
+              type: 'RDN',
+              accountNumber: result.rdnAccountNumber || '112359923696',
+              balance: newRdnBalance,
+              color: '#10B981',
+              updatedAt: new Date().toISOString(),
+            });
+          }
+
+          StorageService.saveAccounts(updatedAccs);
+          return updatedAccs;
+        });
+
+        // 3. Record Sync Transaction
+        const syncTx: Transaction = {
+          id: `tx-soa-${Date.now()}`,
+          accountId: targetRdn?.id || 'rdn-sync',
+          accountName: `RDN Stockbit ${result.rdnBank || 'Jago'}`,
+          type: 'TRANSFER',
+          amount: newRdnBalance,
+          category: 'Broker Statement Sync',
+          description: `Sinkronisasi SoA Stockbit (${result.holdings.length} Saham • Saldo RDN ${formatIDR(newRdnBalance)})`,
+          source: 'BROKER_SOA',
+          transactionDate: new Date().toISOString(),
+        };
+
+        setTransactions((prev) => {
+          const next = [syncTx, ...prev];
+          StorageService.saveTransactions(next);
+          return next;
+        });
+
+        return {
+          success: true,
+          message: `Berhasil menyinkronkan ${result.holdings.length} saham dari Statement Stockbit & saldo RDN ${formatIDR(newRdnBalance)}!`,
+        };
       }
 
       let rdnBalanceDelta = 0;

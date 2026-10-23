@@ -11,6 +11,7 @@ export type IconName =
   | 'ArrowUpRight'
   | 'ArrowDownRight'
   | 'ArrowDownLeft'
+  | 'ArrowRight'
   | 'Wallet'
   | 'Plus'
   | 'RefreshCw'
@@ -26,13 +27,18 @@ export type IconName =
   | 'AlertCircle'
   | 'Zap'
   | 'LayoutDashboard'
-  | 'TrendingUp'
-  | 'RefreshCw'
   | 'Coins'
   | 'Edit2'
   | 'Eye'
   | 'EyeOff'
-  | 'X';
+  | 'X'
+  | 'Search'
+  | 'Filter'
+  | 'Trash2'
+  | 'PieChart'
+  | 'ShieldCheck'
+  | 'ChevronRight'
+  | 'Info';
 
 interface IconProps {
   name: IconName;
@@ -73,6 +79,14 @@ const IONICONS_MAP: Partial<Record<IconName, IoniconsName>> = {
   Eye: 'eye',
   EyeOff: 'eye-off',
   X: 'close',
+  Search: 'search',
+  Filter: 'filter',
+  Trash2: 'trash-outline',
+  PieChart: 'pie-chart',
+  ShieldCheck: 'shield-checkmark',
+  ChevronRight: 'chevron-forward',
+  Info: 'information-circle',
+  ArrowRight: 'arrow-forward',
 };
 
 export function Icon({ name, size = 20, color = '#FFFFFF' }: IconProps) {

@@ -12,38 +12,29 @@ export const ScreenTransition: React.FC<ScreenTransitionProps> = ({
   style,
   delay = 0,
 }) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(12)).current;
-  const scaleAnim = useRef(new Animated.Value(0.985)).current;
+  const fadeAnim = useRef(new Animated.Value(0.4)).current;
+  const slideAnim = useRef(new Animated.Value(8)).current;
 
   useEffect(() => {
-    fadeAnim.setValue(0);
-    slideAnim.setValue(12);
-    scaleAnim.setValue(0.985);
+    fadeAnim.setValue(0.4);
+    slideAnim.setValue(8);
 
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 260,
+        duration: 180,
         delay,
         useNativeDriver: true,
       }),
       Animated.spring(slideAnim, {
         toValue: 0,
         friction: 8,
-        tension: 70,
-        delay,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 8,
-        tension: 70,
+        tension: 80,
         delay,
         useNativeDriver: true,
       }),
     ]).start();
-  }, [fadeAnim, slideAnim, scaleAnim, delay]);
+  }, [fadeAnim, slideAnim, delay]);
 
   return (
     <Animated.View
@@ -51,7 +42,7 @@ export const ScreenTransition: React.FC<ScreenTransitionProps> = ({
         styles.container,
         {
           opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+          transform: [{ translateY: slideAnim }],
         },
         style,
       ]}
@@ -64,5 +55,6 @@ export const ScreenTransition: React.FC<ScreenTransitionProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#080C14',
   },
 });

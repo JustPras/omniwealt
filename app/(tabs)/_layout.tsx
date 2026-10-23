@@ -136,10 +136,11 @@ export default function TabsLayout() {
   const isSmallScreen = width < 375;
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: '#38BDF8',
+    <View style={{ flex: 1, backgroundColor: '#080C14' }}>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: '#38BDF8',
         tabBarInactiveTintColor: '#64748B',
         tabBarButton: (props) => <AnimatedTabBarButton {...props} />,
         tabBarStyle: [
@@ -202,6 +203,7 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+    </View>
   );
 }
 

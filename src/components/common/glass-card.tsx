@@ -49,6 +49,9 @@ export const GlassCard: React.FC<GlassCardProps> = ({
         style={StyleSheet.absoluteFill}
       />
 
+      {/* Top Specular Rim Reflection Line for Luxury Depth */}
+      <View style={styles.topRimHighlight} pointerEvents="none" />
+
       {/* Card Content */}
       <View style={[styles.innerContent, noPadding && styles.noPadding, contentStyle]}>
         {children}
@@ -63,16 +66,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: 'rgba(15, 23, 42, 0.50)',
+    backgroundColor: 'rgba(15, 23, 42, 0.55)',
     // Subtle physical glass shadow
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    elevation: 4,
+  },
+  topRimHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 16,
+    right: 16,
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    zIndex: 2,
   },
   webBackdrop: {
-    backgroundColor: 'rgba(12, 18, 30, 0.70)',
+    backgroundColor: 'rgba(12, 18, 30, 0.75)',
     // @ts-ignore - Web-specific CSS backdrop-filter
     backdropFilter: 'blur(24px)',
   },

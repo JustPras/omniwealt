@@ -6,12 +6,14 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  TextInput,
   useWindowDimensions,
 } from 'react-native';
 import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
 import { ScreenTransition } from '../../src/components/common/screen-transition';
+import { Sparkline } from '../../src/components/common/sparkline';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
 import { StockModal } from '../../src/components/modals/stock-modal';
 import { CryptoModal } from '../../src/components/modals/crypto-modal';
@@ -41,6 +43,7 @@ export default function PortfolioScreen() {
 
   const [activeFilter, setActiveFilter] = useState<AssetFilter>('ALL');
   const [sortMode, setSortMode] = useState<SortMode>('VALUE');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [stockModalVisible, setStockModalVisible] = useState(false);
   const [selectedStock, setSelectedStock] = useState<StockAsset | null>(null);
@@ -64,6 +67,13 @@ export default function PortfolioScreen() {
     return a.ticker.localeCompare(b.ticker);
   });
 
+  // Filtered by Search Query
+  const displayedStocks = sortedStocks.filter((s) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return s.ticker.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
+  });
+
   // Sorted Cryptos
   const sortedCryptos = [...cryptos].sort((a, b) => {
     const valA = (Number(a.holdings) || 0) * (Number(a.currentPriceIdr) || 0);
@@ -77,6 +87,16 @@ export default function PortfolioScreen() {
     if (sortMode === 'PNL') return pnlB - pnlA;
     return a.symbol.localeCompare(b.symbol);
   });
+
+  const displayedCryptos = sortedCryptos.filter((c) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return c.symbol.toLowerCase().includes(q) || c.name.toLowerCase().includes(q);
+  });
+
+  const portfolioSparkline = isOverallProfit
+    ? [92, 93.5, 94.2, 93.8, 95.8, 97.2, 96.5, 98.4, 100.2, 99.8, 101.5, 103.5]
+    : [104, 102.5, 103.1, 101.2, 99.8, 98.2, 99.1, 97.4, 96.0, 95.2, 94.1, 92.5];
 
   const toggleSort = () => {
     triggerHaptic('selection');
@@ -166,6 +186,14 @@ export default function PortfolioScreen() {
               </View>
             </View>
           </View>
+
+          {/* Micro Sparkline Trend */}
+          <Sparkline
+            data={portfolioSparkline}
+            isPositive={isOverallProfit}
+            height={32}
+            style={styles.heroSparkline}
+          />
         </GlassCard>
 
         {/* FLUID ASSET FILTER & SORT BAR */}
@@ -209,6 +237,27 @@ export default function PortfolioScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Instant Search Bar */}
+        <View style={styles.searchBarContainer}>
+          <Icon name="Search" size={15} color="#64748B" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Cari kode saham (BBRI, ARCI...) atau koin..."
+            placeholderTextColor="#64748B"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="characters"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery('')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Icon name="X" size={14} color="#94A3B8" />
+            </TouchableOpacity>
+          )}
+        </View>
+
         {/* IDX STOCKS SECTION */}
         {(activeFilter === 'ALL' || activeFilter === 'STOCKS') && (
           <View style={styles.sectionBlock}>
@@ -234,14 +283,18 @@ export default function PortfolioScreen() {
               </View>
             </View>
 
-            {sortedStocks.length === 0 ? (
+            {displayedStocks.length === 0 ? (
               <GlassCard style={styles.emptyCard} borderTint="rgba(56, 189, 248, 0.2)">
                 <View style={styles.emptyIconCircle}>
                   <Icon name="TrendingUp" size={20} color="#38BDF8" />
                 </View>
-                <Text style={styles.emptyCardTitle}>Belum Ada Saham</Text>
+                <Text style={styles.emptyCardTitle}>
+                  {searchQuery ? 'Saham Tidak Ditemukan' : 'Belum Ada Saham'}
+                </Text>
                 <Text style={styles.emptyCardDesc}>
-                  Sinkronkan dokumen SoA Stockbit atau catat saham IDX Anda manual.
+                  {searchQuery
+                    ? `Tidak ada saham dengan kata kunci "${searchQuery}". Coba cari ticker lain.`
+                    : 'Sinkronkan dokumen SoA Stockbit atau catat saham IDX Anda manual.'}
                 </Text>
                 <TouchableOpacity
                   onPress={() => {
@@ -258,7 +311,7 @@ export default function PortfolioScreen() {
               </GlassCard>
             ) : (
               <View style={styles.assetList}>
-              {sortedStocks.map((stock) => {
+              {displayedStocks.map((stock) => {
                 const totalCost = (Number(stock.lots) || 0) * 100 * (Number(stock.avgBuyPrice) || 0);
                 const marketVal = (Number(stock.lots) || 0) * 100 * (Number(stock.currentPrice) || 0);
                 const pnlRp = marketVal - totalCost;
@@ -368,14 +421,18 @@ export default function PortfolioScreen() {
             </View>
           </View>
 
-          {sortedCryptos.length === 0 ? (
+          {displayedCryptos.length === 0 ? (
             <GlassCard style={styles.emptyCard} borderTint="rgba(245, 158, 11, 0.2)">
               <View style={styles.emptyIconCircle}>
                 <Icon name="Coins" size={20} color="#F59E0B" />
               </View>
-              <Text style={styles.emptyCardTitle}>Belum Ada Aset Kripto</Text>
+              <Text style={styles.emptyCardTitle}>
+                {searchQuery ? 'Kripto Tidak Ditemukan' : 'Belum Ada Aset Kripto'}
+              </Text>
               <Text style={styles.emptyCardDesc}>
-                Catat portofolio koin crypto seperti BTC, ETH, SOL, USDT, dll.
+                {searchQuery
+                  ? `Tidak ada aset kripto dengan kata kunci "${searchQuery}".`
+                  : 'Catat portofolio koin crypto seperti BTC, ETH, SOL, USDT, dll.'}
               </Text>
               <TouchableOpacity
                 onPress={() => {
@@ -392,7 +449,7 @@ export default function PortfolioScreen() {
             </GlassCard>
           ) : (
             <View style={styles.assetList}>
-              {sortedCryptos.map((crypto) => {
+              {displayedCryptos.map((crypto) => {
                 const totalCost = (Number(crypto.holdings) || 0) * (Number(crypto.avgBuyPriceIdr) || 0);
                 const marketVal = (Number(crypto.holdings) || 0) * (Number(crypto.currentPriceIdr) || 0);
                 const pnlRp = marketVal - totalCost;
@@ -525,6 +582,11 @@ const styles = StyleSheet.create({
     color: '#F8FAFC',
     marginTop: 4,
   },
+  heroSparkline: {
+    marginTop: 10,
+    marginBottom: 2,
+    paddingHorizontal: 2,
+  },
   heroActions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -641,6 +703,24 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     color: '#94A3B8',
+  },
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 12,
+    color: '#F8FAFC',
+    fontWeight: '500',
+    padding: 0,
   },
   sectionBlock: {
     gap: 8,

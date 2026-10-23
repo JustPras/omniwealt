@@ -12,6 +12,8 @@ import { router } from 'expo-router';
 import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
+import { ScreenTransition } from '../../src/components/common/screen-transition';
+import { Sparkline } from '../../src/components/common/sparkline';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
 import { CashMutationModal } from '../../src/components/modals/cash-mutation-modal';
 import { useWealth } from '../../src/store/wealth-context';
@@ -59,6 +61,19 @@ export default function OverviewScreen() {
   const currentTimeLabel = timeframeMultipliers[activeTimeframe].label;
   const isCurrentProfit = currentChangePct >= 0;
 
+  // Dynamic sparkline series based on active timeframe
+  const baseSparklines: Record<Timeframe, number[]> = {
+    '1H': [98, 99.2, 98.8, 99.5, 100.1, 99.8, 100.4, 101.2, 100.9, 101.8, 102.1, 102.7, 103],
+    '1M': [92, 93.8, 93.1, 95.2, 96.0, 95.5, 97.4, 98.1, 98.9, 99.6, 101.2, 102.4, 103.8],
+    '1B': [88, 90.2, 91.5, 89.8, 92.4, 94.1, 93.5, 96.2, 97.5, 99.1, 98.6, 101.4, 104],
+    '1T': [76, 79.5, 83.2, 81.0, 85.4, 88.0, 86.5, 90.1, 93.4, 96.2, 98.5, 101.0, 104.5],
+    'ALL': [62, 67.0, 71.5, 76.0, 74.2, 81.0, 85.5, 89.2, 92.0, 96.4, 98.0, 102.1, 105],
+  };
+
+  const activeSparklineData = isCurrentProfit
+    ? baseSparklines[activeTimeframe]
+    : baseSparklines[activeTimeframe].slice().reverse();
+
   // Proportional multi-segment allocation calculation
   const cashPct = totalNetWorth > 0 ? (totalCash / totalNetWorth) * 100 : 33.3;
   const stockPct = totalNetWorth > 0 ? (totalStocks / totalNetWorth) * 100 : 33.3;
@@ -87,7 +102,7 @@ export default function OverviewScreen() {
   const isPnLProfit = totalUnrealizedPnL >= 0;
 
   return (
-    <View style={styles.screenContainer}>
+    <ScreenTransition style={styles.screenContainer}>
       <HeaderBar />
 
       <ScrollView
@@ -140,6 +155,14 @@ export default function OverviewScreen() {
               ]}
             />
           </View>
+
+          {/* Luxury Micro Sparkline */}
+          <Sparkline
+            data={activeSparklineData}
+            isPositive={isCurrentProfit}
+            height={36}
+            style={styles.sparklineContainer}
+          />
 
           {/* Fluid Interactive Timeframe Switcher */}
           <View style={styles.timeframeRow}>
@@ -350,6 +373,31 @@ export default function OverviewScreen() {
           </View>
         </View>
 
+        {/* SMART AI WEALTH INTELLIGENCE POD */}
+        <GlassCard
+          style={styles.insightCard}
+          borderTint="rgba(56, 189, 248, 0.22)"
+          gradientColors={['rgba(56, 189, 248, 0.08)', 'rgba(15, 23, 42, 0.50)']}
+        >
+          <View style={styles.insightHeader}>
+            <View style={styles.insightBadge}>
+              <Icon name="Sparkles" size={13} color="#38BDF8" />
+              <Text style={styles.insightBadgeText}>AI WEALTH INTELLIGENCE</Text>
+            </View>
+            <View style={styles.insightStatusPill}>
+              <View style={[styles.statusDot, { backgroundColor: cashPct >= 25 ? '#10B981' : '#F59E0B' }]} />
+              <Text style={styles.insightHealthText}>
+                {cashPct >= 25 ? 'Likuiditas Prima' : 'Agresif Terinvestasi'}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.insightBody}>
+            {cashPct >= 25
+              ? `Rasio kas Anda berada di level sehat (${cashPct.toFixed(0)}%). Anda memiliki likuiditas optimal untuk strategi Dollar Cost Averaging (DCA) atau akumulasi saham berkualitas saat IHSG koreksi.`
+              : `Alokasi portofolio investasi mendominasi ${(stockPct + cryptoPct).toFixed(0)}%. Pertimbangkan menyisihkan kas likuid minimal 3 bulan pengeluaran rutin.`}
+          </Text>
+        </GlassCard>
+
         {/* HIGH-DENSITY TOP MOVERS */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleRow}>
@@ -428,7 +476,7 @@ export default function OverviewScreen() {
         visible={mutationModalVisible}
         onClose={() => setMutationModalVisible(false)}
       />
-    </View>
+    </ScreenTransition>
   );
 }
 
@@ -499,6 +547,59 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#F8FAFC',
     letterSpacing: -0.6,
+  },
+  sparklineContainer: {
+    marginVertical: 6,
+    paddingHorizontal: 2,
+  },
+  insightCard: {
+    borderRadius: 20,
+  },
+  insightHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  insightBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  insightBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#38BDF8',
+    letterSpacing: 0.5,
+  },
+  insightStatusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  insightHealthText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#F8FAFC',
+  },
+  insightBody: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: '#94A3B8',
+    fontWeight: '400',
   },
   timeframeRow: {
     flexDirection: 'row',

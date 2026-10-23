@@ -110,11 +110,9 @@ export default function PortfolioScreen() {
           borderTint="rgba(56, 189, 248, 0.25)"
           gradientColors={['rgba(56, 189, 248, 0.10)', 'rgba(15, 23, 42, 0.55)']}
         >
-          <View style={styles.heroTop}>
-            <View>
-              <Text style={styles.heroLabel}>TOTAL NILAI INVESTASI</Text>
-              <PrivacyValue value={totalInvestments} style={styles.heroAmount} />
-            </View>
+          {/* Hero Top: Label and Action Buttons */}
+          <View style={styles.heroHeaderRow}>
+            <Text style={styles.heroLabel}>TOTAL NILAI INVESTASI</Text>
             <View style={styles.heroActions}>
               <TouchableOpacity
                 onPress={() => {
@@ -123,9 +121,9 @@ export default function PortfolioScreen() {
                   setStockModalVisible(true);
                 }}
                 style={styles.addBtnSky}
-                activeOpacity={0.65}
+                activeOpacity={0.7}
               >
-                <Icon name="Plus" size={13} color="#080C14" />
+                <Icon name="Plus" size={12} color="#080C14" />
                 <Text style={styles.addBtnText}>+ Saham</Text>
               </TouchableOpacity>
 
@@ -136,13 +134,16 @@ export default function PortfolioScreen() {
                   setCryptoModalVisible(true);
                 }}
                 style={styles.addBtnAmber}
-                activeOpacity={0.65}
+                activeOpacity={0.7}
               >
-                <Icon name="Plus" size={13} color="#080C14" />
+                <Icon name="Plus" size={12} color="#080C14" />
                 <Text style={styles.addBtnText}>+ Kripto</Text>
               </TouchableOpacity>
             </View>
           </View>
+
+          {/* Full-width Investment Value */}
+          <PrivacyValue value={totalInvestments} style={styles.heroAmount} />
 
           {/* Unrealized PnL Pod */}
           <View style={styles.pnlPod}>
@@ -216,10 +217,47 @@ export default function PortfolioScreen() {
                 <Icon name="TrendingUp" size={15} color="#38BDF8" />
                 <Text style={styles.sectionTitle}>Saham Indonesia (IDX)</Text>
               </View>
-              <PrivacyValue value={totalStocks} style={styles.sectionTotalVal} />
+              <View style={styles.sectionRightRow}>
+                <PrivacyValue value={totalStocks} style={styles.sectionTotalVal} />
+                <TouchableOpacity
+                  onPress={() => {
+                    triggerHaptic('medium');
+                    setSelectedStock(null);
+                    setStockModalVisible(true);
+                  }}
+                  style={styles.sectionAddBtnSky}
+                  activeOpacity={0.7}
+                >
+                  <Icon name="Plus" size={10} color="#38BDF8" />
+                  <Text style={styles.sectionAddBtnSkyText}>Tambah</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
-            <View style={styles.assetList}>
+            {sortedStocks.length === 0 ? (
+              <GlassCard style={styles.emptyCard} borderTint="rgba(56, 189, 248, 0.2)">
+                <View style={styles.emptyIconCircle}>
+                  <Icon name="TrendingUp" size={20} color="#38BDF8" />
+                </View>
+                <Text style={styles.emptyCardTitle}>Belum Ada Saham</Text>
+                <Text style={styles.emptyCardDesc}>
+                  Sinkronkan dokumen SoA Stockbit atau catat saham IDX Anda manual.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    triggerHaptic('medium');
+                    setSelectedStock(null);
+                    setStockModalVisible(true);
+                  }}
+                  style={styles.emptyActionBtnSky}
+                  activeOpacity={0.75}
+                >
+                  <Icon name="Plus" size={13} color="#080C14" />
+                  <Text style={styles.emptyActionBtnText}>+ Tambah Saham Manual</Text>
+                </TouchableOpacity>
+              </GlassCard>
+            ) : (
+              <View style={styles.assetList}>
               {sortedStocks.map((stock) => {
                 const totalCost = (Number(stock.lots) || 0) * 100 * (Number(stock.avgBuyPrice) || 0);
                 const marketVal = (Number(stock.lots) || 0) * 100 * (Number(stock.currentPrice) || 0);
@@ -301,20 +339,58 @@ export default function PortfolioScreen() {
                 );
               })}
             </View>
-          </View>
-        )}
+          )}
+        </View>
+      )}
 
-        {/* CRYPTO ASSETS SECTION */}
-        {(activeFilter === 'ALL' || activeFilter === 'CRYPTO') && (
-          <View style={styles.sectionBlock}>
-            <View style={styles.sectionTitleRow}>
-              <View style={styles.titleWithIcon}>
-                <Icon name="Coins" size={15} color="#F59E0B" />
-                <Text style={styles.sectionTitle}>Aset Kripto (IDR)</Text>
-              </View>
-              <PrivacyValue value={totalCryptos} style={styles.sectionTotalVal} />
+      {/* CRYPTO ASSETS SECTION */}
+      {(activeFilter === 'ALL' || activeFilter === 'CRYPTO') && (
+        <View style={styles.sectionBlock}>
+          <View style={styles.sectionTitleRow}>
+            <View style={styles.titleWithIcon}>
+              <Icon name="Coins" size={15} color="#F59E0B" />
+              <Text style={styles.sectionTitle}>Aset Kripto (IDR)</Text>
             </View>
+            <View style={styles.sectionRightRow}>
+              <PrivacyValue value={totalCryptos} style={styles.sectionTotalVal} />
+              <TouchableOpacity
+                onPress={() => {
+                  triggerHaptic('medium');
+                  setSelectedCrypto(null);
+                  setCryptoModalVisible(true);
+                }}
+                style={styles.sectionAddBtnAmber}
+                activeOpacity={0.7}
+              >
+                <Icon name="Plus" size={10} color="#F59E0B" />
+                <Text style={styles.sectionAddBtnAmberText}>Tambah</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
+          {sortedCryptos.length === 0 ? (
+            <GlassCard style={styles.emptyCard} borderTint="rgba(245, 158, 11, 0.2)">
+              <View style={styles.emptyIconCircle}>
+                <Icon name="Coins" size={20} color="#F59E0B" />
+              </View>
+              <Text style={styles.emptyCardTitle}>Belum Ada Aset Kripto</Text>
+              <Text style={styles.emptyCardDesc}>
+                Catat portofolio koin crypto seperti BTC, ETH, SOL, USDT, dll.
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  triggerHaptic('medium');
+                  setSelectedCrypto(null);
+                  setCryptoModalVisible(true);
+                }}
+                style={styles.emptyActionBtn}
+                activeOpacity={0.75}
+              >
+                <Icon name="Plus" size={13} color="#080C14" />
+                <Text style={styles.emptyActionBtnText}>+ Tambah Kripto Baru</Text>
+              </TouchableOpacity>
+            </GlassCard>
+          ) : (
             <View style={styles.assetList}>
               {sortedCryptos.map((crypto) => {
                 const totalCost = (Number(crypto.holdings) || 0) * (Number(crypto.avgBuyPriceIdr) || 0);
@@ -397,8 +473,9 @@ export default function PortfolioScreen() {
                 );
               })}
             </View>
-          </View>
-        )}
+          )}
+        </View>
+      )}
       </ScrollView>
 
       {/* Stock Modal */}
@@ -430,10 +507,11 @@ const styles = StyleSheet.create({
   heroCard: {
     borderRadius: 24,
   },
-  heroTop: {
+  heroHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    gap: 8,
   },
   heroLabel: {
     fontSize: 10,
@@ -445,29 +523,31 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: '800',
     color: '#F8FAFC',
-    marginTop: 3,
+    marginTop: 4,
   },
   heroActions: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
+    flexShrink: 0,
   },
   addBtnSky: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: '#38BDF8',
-    paddingVertical: 7,
-    paddingHorizontal: 10,
-    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 9,
+    borderRadius: 9,
   },
   addBtnAmber: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: '#F59E0B',
-    paddingVertical: 7,
-    paddingHorizontal: 10,
-    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 9,
+    borderRadius: 9,
   },
   addBtnText: {
     fontSize: 11,
@@ -584,6 +664,97 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#94A3B8',
+  },
+  sectionRightRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sectionAddBtnSky: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.35)',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  sectionAddBtnSkyText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#38BDF8',
+  },
+  sectionAddBtnAmber: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  sectionAddBtnAmberText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#F59E0B',
+  },
+  emptyCard: {
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+  },
+  emptyIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  emptyCardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#F8FAFC',
+  },
+  emptyCardDesc: {
+    fontSize: 11,
+    color: '#94A3B8',
+    textAlign: 'center',
+    lineHeight: 16,
+    maxWidth: 260,
+  },
+  emptyActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F59E0B',
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    marginTop: 6,
+  },
+  emptyActionBtnSky: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#38BDF8',
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    marginTop: 6,
+  },
+  emptyActionBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#080C14',
   },
   assetList: {
     gap: 8,

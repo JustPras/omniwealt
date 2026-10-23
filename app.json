@@ -7,6 +7,7 @@
     "icon": "./assets/icon.png",
     "scheme": "omniwealth",
     "userInterfaceStyle": "dark",
+    "backgroundColor": "#080C14",
     "newArchEnabled": true,
     "jsEngine": "hermes",
     "splash": {
@@ -19,6 +20,7 @@
       "bundleIdentifier": "com.omniwealth.nativeapp"
     },
     "android": {
+      "backgroundColor": "#080C14",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#080C14"

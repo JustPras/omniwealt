@@ -65,9 +65,33 @@ export interface BrokerTradeItem {
   netAmount: number;
 }
 
+export interface BrokerHoldingItem {
+  ticker: string;
+  name: string;
+  lots: number;
+  shares: number;
+  avgBuyPrice: number;
+  currentPrice: number;
+  buyingValue: number;
+  marketValue: number;
+  unrealizedPnLRp: number;
+  unrealizedPnLPct: number;
+}
+
 export interface BrokerExtractionResult {
   brokerName: string;
+  documentType?: 'STATEMENT_OF_ACCOUNT' | 'TRADE_CONFIRMATION';
   tradeDate: string;
+  period?: string;
+  clientName?: string;
+  sid?: string;
+  rdnBank?: string;
+  rdnAccountNumber?: string;
+  rdnCashBalance?: number;
+  totalPortfolioValue?: number;
+  totalBuyingValue?: number;
+  totalUnrealizedPnL?: number;
+  holdings?: BrokerHoldingItem[];
   trades: BrokerTradeItem[];
   rawText?: string;
   summaryNote?: string;

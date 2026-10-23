@@ -11,6 +11,7 @@ import {
 import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
+import { ScreenTransition } from '../../src/components/common/screen-transition';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
 import { StockModal } from '../../src/components/modals/stock-modal';
 import { CryptoModal } from '../../src/components/modals/crypto-modal';
@@ -85,7 +86,7 @@ export default function PortfolioScreen() {
   };
 
   return (
-    <View style={styles.screenContainer}>
+    <ScreenTransition style={styles.screenContainer}>
       <HeaderBar />
 
       <ScrollView
@@ -413,7 +414,7 @@ export default function PortfolioScreen() {
         onClose={() => setCryptoModalVisible(false)}
         cryptoToEdit={selectedCrypto}
       />
-    </View>
+    </ScreenTransition>
   );
 }
 

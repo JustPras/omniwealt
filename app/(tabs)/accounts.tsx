@@ -12,6 +12,7 @@ import {
 import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
+import { ScreenTransition } from '../../src/components/common/screen-transition';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
 import { AccountModal } from '../../src/components/modals/account-modal';
 import { CashMutationModal } from '../../src/components/modals/cash-mutation-modal';
@@ -127,7 +128,7 @@ export default function AccountsScreen() {
   };
 
   return (
-    <View style={styles.screenContainer}>
+    <ScreenTransition style={styles.screenContainer}>
       <HeaderBar />
 
       <ScrollView
@@ -468,7 +469,7 @@ export default function AccountsScreen() {
         defaultAccountId={activeAccountForMutation}
         defaultType={mutationType}
       />
-    </View>
+    </ScreenTransition>
   );
 }
 

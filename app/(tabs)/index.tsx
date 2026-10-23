@@ -15,11 +15,17 @@ import { GlassCard } from '../../src/components/common/glass-card';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
 import { CashMutationModal } from '../../src/components/modals/cash-mutation-modal';
 import { useWealth } from '../../src/store/wealth-context';
-import { formatIDR, formatPercent } from '../../src/utils/format';
+import { formatPercent } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
+
+type Timeframe = '1H' | '1M' | '1B' | '1T' | 'ALL';
+type AllocationHighlight = 'ALL' | 'CASH' | 'STOCKS' | 'CRYPTO';
 
 export default function OverviewScreen() {
   const { width } = useWindowDimensions();
+  const isSmall = width < 375;
+  const isLarge = width >= 414;
+
   const {
     totalNetWorth,
     totalCash,
@@ -37,6 +43,21 @@ export default function OverviewScreen() {
   } = useWealth();
 
   const [mutationModalVisible, setMutationModalVisible] = useState(false);
+  const [activeTimeframe, setActiveTimeframe] = useState<Timeframe>('1H');
+  const [selectedAllocation, setSelectedAllocation] = useState<AllocationHighlight>('ALL');
+
+  // Dynamic timeframe multiplier simulation for responsive feedback
+  const timeframeMultipliers: Record<Timeframe, { pct: number; label: string }> = {
+    '1H': { pct: dailyChangePercent, label: 'hari ini' },
+    '1M': { pct: dailyChangePercent * 2.8 + 0.012, label: '1 minggu' },
+    '1B': { pct: dailyChangePercent * 5.4 + 0.038, label: '1 bulan' },
+    '1T': { pct: totalUnrealizedPnLPercent, label: '1 tahun' },
+    'ALL': { pct: totalUnrealizedPnLPercent * 1.35, label: 'sepanjang masa' },
+  };
+
+  const currentChangePct = timeframeMultipliers[activeTimeframe].pct;
+  const currentTimeLabel = timeframeMultipliers[activeTimeframe].label;
+  const isCurrentProfit = currentChangePct >= 0;
 
   // Proportional multi-segment allocation calculation
   const cashPct = totalNetWorth > 0 ? (totalCash / totalNetWorth) * 100 : 33.3;
@@ -63,7 +84,6 @@ export default function OverviewScreen() {
     })),
   ].sort((a, b) => Math.abs(b.change24h) - Math.abs(a.change24h)).slice(0, 4);
 
-  const isDailyProfit = dailyChangeRp >= 0;
   const isPnLProfit = totalUnrealizedPnL >= 0;
 
   return (
@@ -71,7 +91,10 @@ export default function OverviewScreen() {
       <HeaderBar />
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: isSmall ? 12 : 16 },
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -85,114 +108,220 @@ export default function OverviewScreen() {
         {/* HERO NET WORTH POD */}
         <GlassCard
           style={styles.heroCard}
-          borderTint="rgba(56, 189, 248, 0.22)"
-          gradientColors={['rgba(56, 189, 248, 0.08)', 'rgba(15, 23, 42, 0.4)']}
+          borderTint="rgba(56, 189, 248, 0.25)"
+          gradientColors={['rgba(56, 189, 248, 0.10)', 'rgba(15, 23, 42, 0.55)']}
         >
           <View style={styles.heroHeader}>
-            <Text style={styles.heroLabel}>TOTAL NET WORTH</Text>
-            <View style={[styles.dailyBadge, isDailyProfit ? styles.badgeGreen : styles.badgeRed]}>
-              {isDailyProfit ? (
-                <Icon name="ArrowUpRight" size={13} color="#10B981" />
-              ) : (
-                <Icon name="ArrowDownRight" size={13} color="#F43F5E" />
-              )}
-              <Text style={[styles.dailyBadgeText, isDailyProfit ? styles.textGreen : styles.textRed]}>
-                {formatPercent(dailyChangePercent)} (hari ini)
+            <View style={styles.heroTitleRow}>
+              <Text style={styles.heroLabel}>TOTAL NET WORTH</Text>
+              <View style={styles.livePulseDot} />
+            </View>
+
+            {/* Dynamic Growth Badge */}
+            <View style={[styles.dailyBadge, isCurrentProfit ? styles.badgeGreen : styles.badgeRed]}>
+              <Icon
+                name={isCurrentProfit ? 'ArrowUpRight' : 'ArrowDownRight'}
+                size={12}
+                color={isCurrentProfit ? '#10B981' : '#F43F5E'}
+              />
+              <Text style={[styles.dailyBadgeText, isCurrentProfit ? styles.textGreen : styles.textRed]}>
+                {formatPercent(currentChangePct)} ({currentTimeLabel})
               </Text>
             </View>
           </View>
 
           {/* Super Dominant Currency Display */}
           <View style={styles.dominantAmountContainer}>
-            <PrivacyValue value={totalNetWorth} style={styles.dominantAmountText} />
+            <PrivacyValue
+              value={totalNetWorth}
+              style={[
+                styles.dominantAmountText,
+                { fontSize: isSmall ? 28 : isLarge ? 36 : 32 },
+              ]}
+            />
           </View>
 
-          {/* Allocation Bar */}
+          {/* Fluid Interactive Timeframe Switcher */}
+          <View style={styles.timeframeRow}>
+            {(['1H', '1M', '1B', '1T', 'ALL'] as Timeframe[]).map((tf) => {
+              const isActive = activeTimeframe === tf;
+              return (
+                <TouchableOpacity
+                  key={tf}
+                  onPress={() => {
+                    triggerHaptic('selection');
+                    setActiveTimeframe(tf);
+                  }}
+                  activeOpacity={0.65}
+                  style={[styles.timeframeChip, isActive && styles.activeTimeframeChip]}
+                >
+                  <Text style={[styles.timeframeChipText, isActive && styles.activeTimeframeChipText]}>
+                    {tf}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Dynamic Allocation Bar */}
           <View style={styles.allocationBarContainer}>
-            <View style={[styles.allocationSegment, { width: `${Math.max(4, cashPct)}%`, backgroundColor: '#10B981' }]} />
-            <View style={[styles.allocationSegment, { width: `${Math.max(4, stockPct)}%`, backgroundColor: '#38BDF8' }]} />
-            <View style={[styles.allocationSegment, { width: `${Math.max(4, cryptoPct)}%`, backgroundColor: '#F59E0B' }]} />
+            <View
+              style={[
+                styles.allocationSegment,
+                {
+                  width: `${Math.max(4, cashPct)}%`,
+                  backgroundColor: '#10B981',
+                  opacity: selectedAllocation === 'ALL' || selectedAllocation === 'CASH' ? 1 : 0.35,
+                },
+              ]}
+            />
+            <View
+              style={[
+                styles.allocationSegment,
+                {
+                  width: `${Math.max(4, stockPct)}%`,
+                  backgroundColor: '#38BDF8',
+                  opacity: selectedAllocation === 'ALL' || selectedAllocation === 'STOCKS' ? 1 : 0.35,
+                },
+              ]}
+            />
+            <View
+              style={[
+                styles.allocationSegment,
+                {
+                  width: `${Math.max(4, cryptoPct)}%`,
+                  backgroundColor: '#F59E0B',
+                  opacity: selectedAllocation === 'ALL' || selectedAllocation === 'CRYPTO' ? 1 : 0.35,
+                },
+              ]}
+            />
           </View>
 
-          {/* Legend Items */}
+          {/* Interactive Legend Chips */}
           <View style={styles.legendRow}>
-            <View style={styles.legendItem}>
+            <TouchableOpacity
+              onPress={() => {
+                triggerHaptic('light');
+                setSelectedAllocation(selectedAllocation === 'CASH' ? 'ALL' : 'CASH');
+              }}
+              activeOpacity={0.7}
+              style={[
+                styles.legendItem,
+                selectedAllocation === 'CASH' && styles.legendItemActive,
+              ]}
+            >
               <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
               <Text style={styles.legendLabel}>Kas {cashPct.toFixed(0)}%</Text>
-            </View>
-            <View style={styles.legendItem}>
+              {selectedAllocation === 'CASH' && (
+                <PrivacyValue value={totalCash} style={styles.activeAllocationVal} />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                triggerHaptic('light');
+                setSelectedAllocation(selectedAllocation === 'STOCKS' ? 'ALL' : 'STOCKS');
+              }}
+              activeOpacity={0.7}
+              style={[
+                styles.legendItem,
+                selectedAllocation === 'STOCKS' && styles.legendItemActive,
+              ]}
+            >
               <View style={[styles.legendDot, { backgroundColor: '#38BDF8' }]} />
               <Text style={styles.legendLabel}>Saham {stockPct.toFixed(0)}%</Text>
-            </View>
-            <View style={styles.legendItem}>
+              {selectedAllocation === 'STOCKS' && (
+                <PrivacyValue value={totalStocks} style={styles.activeAllocationVal} />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                triggerHaptic('light');
+                setSelectedAllocation(selectedAllocation === 'CRYPTO' ? 'ALL' : 'CRYPTO');
+              }}
+              activeOpacity={0.7}
+              style={[
+                styles.legendItem,
+                selectedAllocation === 'CRYPTO' && styles.legendItemActive,
+              ]}
+            >
               <View style={[styles.legendDot, { backgroundColor: '#F59E0B' }]} />
               <Text style={styles.legendLabel}>Kripto {cryptoPct.toFixed(0)}%</Text>
-            </View>
+              {selectedAllocation === 'CRYPTO' && (
+                <PrivacyValue value={totalCryptos} style={styles.activeAllocationVal} />
+              )}
+            </TouchableOpacity>
           </View>
         </GlassCard>
 
         {/* ASYMMETRIC 2-COLUMN BENTO GRID */}
         <View style={styles.bentoContainer}>
           {/* Left Column: Full Height Active Investment Pod */}
-          <View style={styles.bentoLeftCol}>
-            <GlassCard
-              style={styles.investmentPodCard}
-              borderTint="rgba(255, 255, 255, 0.12)"
-            >
+          <GlassCard
+            style={styles.investmentPodCard}
+            borderTint="rgba(56, 189, 248, 0.20)"
+            gradientColors={['rgba(56, 189, 248, 0.08)', 'rgba(15, 23, 42, 0.50)']}
+            onPress={() => {
+              triggerHaptic('selection');
+              router.push('/(tabs)/portfolio');
+            }}
+          >
+            <View style={styles.podTopRow}>
               <View style={styles.podIconBadge}>
                 <Icon name="TrendingUp" size={16} color="#38BDF8" />
               </View>
-              <Text style={styles.podLabel}>Investasi Aktif</Text>
-              <PrivacyValue value={totalInvestments} style={styles.podMainValue} />
-
-              <View style={styles.pnlContainer}>
-                <Text style={styles.pnlTitle}>Unrealized PnL</Text>
-                <View style={styles.pnlRow}>
-                  <Text style={[styles.pnlValue, isPnLProfit ? styles.textGreen : styles.textRed]}>
-                    {isPnLProfit ? '+' : ''}
-                    {formatPercent(totalUnrealizedPnLPercent)}
-                  </Text>
-                </View>
-                <PrivacyValue
-                  value={totalUnrealizedPnL}
-                  prefix={isPnLProfit ? '+' : ''}
-                  style={[styles.pnlSubValue, isPnLProfit ? styles.textGreen : styles.textRed]}
-                />
-              </View>
-
-              <TouchableOpacity
-                onPress={() => {
-                  triggerHaptic('selection');
-                  router.push('/(tabs)/portfolio');
-                }}
-                style={styles.inspectBtn}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.inspectBtnText}>Lihat Portofolio</Text>
+              <View style={styles.tapArrowBadge}>
                 <Icon name="ArrowUpRight" size={13} color="#38BDF8" />
-              </TouchableOpacity>
-            </GlassCard>
-          </View>
+              </View>
+            </View>
+
+            <Text style={styles.podLabel}>Investasi Aktif</Text>
+            <PrivacyValue value={totalInvestments} style={styles.podMainValue} />
+
+            <View style={styles.pnlContainer}>
+              <Text style={styles.pnlTitle}>Unrealized PnL</Text>
+              <View style={styles.pnlRow}>
+                <Text style={[styles.pnlValue, isPnLProfit ? styles.textGreen : styles.textRed]}>
+                  {isPnLProfit ? '+' : ''}
+                  {formatPercent(totalUnrealizedPnLPercent)}
+                </Text>
+              </View>
+              <PrivacyValue
+                value={totalUnrealizedPnL}
+                prefix={isPnLProfit ? '+' : ''}
+                style={[styles.pnlSubValue, isPnLProfit ? styles.textGreen : styles.textRed]}
+              />
+            </View>
+          </GlassCard>
 
           {/* Right Column: 2 Stacked Cards */}
           <View style={styles.bentoRightCol}>
             {/* Top Right Card: Cash Liquidity */}
             <GlassCard
               style={styles.cashPodCard}
-              borderTint="rgba(16, 185, 129, 0.2)"
+              borderTint="rgba(16, 185, 129, 0.22)"
+              gradientColors={['rgba(16, 185, 129, 0.08)', 'rgba(15, 23, 42, 0.50)']}
+              onPress={() => {
+                triggerHaptic('selection');
+                router.push('/(tabs)/accounts');
+              }}
             >
               <View style={styles.cashHeader}>
-                <Icon name="Wallet" size={15} color="#10B981" />
+                <View style={styles.cashIconMini}>
+                  <Icon name="Wallet" size={13} color="#10B981" />
+                </View>
                 <Text style={styles.podLabel}>Kas & RDN</Text>
               </View>
               <PrivacyValue value={totalCash} style={styles.cashAmount} />
-              <Text style={styles.cashSubtext}>Tersedia untuk transaksi</Text>
+              <Text style={styles.cashSubtext}>Tersedia untuk transaksi &rarr;</Text>
             </GlassCard>
 
             {/* Bottom Right Card: Action Shortcuts */}
             <GlassCard
               style={styles.actionPodCard}
-              borderTint="rgba(245, 158, 11, 0.2)"
+              borderTint="rgba(245, 158, 11, 0.22)"
+              gradientColors={['rgba(245, 158, 11, 0.08)', 'rgba(15, 23, 42, 0.50)']}
             >
               <TouchableOpacity
                 onPress={() => {
@@ -200,9 +329,9 @@ export default function OverviewScreen() {
                   setMutationModalVisible(true);
                 }}
                 style={styles.quickActionBtn}
-                activeOpacity={0.7}
+                activeOpacity={0.65}
               >
-                <Icon name="Plus" size={14} color="#10B981" />
+                <Icon name="Plus" size={13} color="#10B981" />
                 <Text style={styles.quickActionText}>+ Catat Mutasi</Text>
               </TouchableOpacity>
 
@@ -212,7 +341,7 @@ export default function OverviewScreen() {
                   router.push('/(tabs)/sync');
                 }}
                 style={[styles.quickActionBtn, styles.syncQuickBtn]}
-                activeOpacity={0.7}
+                activeOpacity={0.65}
               >
                 <Icon name="RefreshCw" size={13} color="#F59E0B" />
                 <Text style={[styles.quickActionText, { color: '#F59E0B' }]}>Sync SoA</Text>
@@ -224,7 +353,7 @@ export default function OverviewScreen() {
         {/* HIGH-DENSITY TOP MOVERS */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleRow}>
-            <Icon name="Sparkles" size={16} color="#F59E0B" />
+            <Icon name="Sparkles" size={15} color="#F59E0B" />
             <Text style={styles.sectionTitle}>Top Movers Hari Ini</Text>
           </View>
           <TouchableOpacity
@@ -232,8 +361,10 @@ export default function OverviewScreen() {
               triggerHaptic('selection');
               router.push('/(tabs)/portfolio');
             }}
+            activeOpacity={0.65}
+            style={styles.seeAllBtn}
           >
-            <Text style={styles.seeAllText}>Semua Aset</Text>
+            <Text style={styles.seeAllText}>Semua Aset &rarr;</Text>
           </TouchableOpacity>
         </View>
 
@@ -241,7 +372,16 @@ export default function OverviewScreen() {
           {allMovers.map((mover) => {
             const isUp = mover.change24h >= 0;
             return (
-              <GlassCard key={mover.id} style={styles.moverCard}>
+              <GlassCard
+                key={mover.id}
+                style={styles.moverCard}
+                borderTint="rgba(255, 255, 255, 0.09)"
+                onPress={() => {
+                  triggerHaptic('selection');
+                  router.push('/(tabs)/portfolio');
+                }}
+                activeOpacity={0.7}
+              >
                 <View style={styles.moverLeft}>
                   <View
                     style={[
@@ -258,7 +398,7 @@ export default function OverviewScreen() {
                       {mover.type}
                     </Text>
                   </View>
-                  <View>
+                  <View style={styles.moverInfo}>
                     <Text style={styles.moverSymbol}>{mover.symbol}</Text>
                     <Text style={styles.moverName} numberOfLines={1}>
                       {mover.name}
@@ -298,19 +438,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#080C14',
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 110,
-    gap: 16,
+    paddingBottom: 120,
+    gap: 14,
   },
   heroCard: {
     borderRadius: 24,
-    padding: 20,
   },
   heroHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
+  },
+  heroTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   heroLabel: {
     fontSize: 11,
@@ -318,19 +461,25 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     letterSpacing: 1.2,
   },
+  livePulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#10B981',
+  },
   dailyBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 12,
   },
   badgeGreen: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    backgroundColor: 'rgba(16, 185, 129, 0.16)',
   },
   badgeRed: {
-    backgroundColor: 'rgba(244, 63, 94, 0.15)',
+    backgroundColor: 'rgba(244, 63, 94, 0.16)',
   },
   dailyBadgeText: {
     fontSize: 11,
@@ -344,13 +493,38 @@ const styles = StyleSheet.create({
     color: '#F43F5E',
   },
   dominantAmountContainer: {
-    marginVertical: 10,
+    marginVertical: 4,
   },
   dominantAmountText: {
-    fontSize: 32,
     fontWeight: '800',
     color: '#F8FAFC',
-    letterSpacing: -0.5,
+    letterSpacing: -0.6,
+  },
+  timeframeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginVertical: 8,
+  },
+  timeframeChip: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  activeTimeframeChip: {
+    backgroundColor: 'rgba(56, 189, 248, 0.18)',
+    borderColor: 'rgba(56, 189, 248, 0.40)',
+  },
+  timeframeChipText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  activeTimeframeChipText: {
+    color: '#38BDF8',
   },
   allocationBarContainer: {
     height: 8,
@@ -358,8 +532,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     flexDirection: 'row',
     overflow: 'hidden',
-    marginTop: 14,
-    marginBottom: 10,
+    marginTop: 8,
+    marginBottom: 8,
     gap: 2,
   },
   allocationSegment: {
@@ -368,13 +542,21 @@ const styles = StyleSheet.create({
   },
   legendRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 8,
     marginTop: 4,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: 'transparent',
+  },
+  legendItemActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
   },
   legendDot: {
     width: 6,
@@ -384,19 +566,27 @@ const styles = StyleSheet.create({
   legendLabel: {
     fontSize: 11,
     color: '#94A3B8',
-    fontWeight: '500',
+    fontWeight: '600',
+  },
+  activeAllocationVal: {
+    fontSize: 11,
+    color: '#F8FAFC',
+    fontWeight: '700',
+    marginLeft: 2,
   },
   bentoContainer: {
     flexDirection: 'row',
-    gap: 12,
-  },
-  bentoLeftCol: {
-    flex: 1.15,
+    gap: 10,
   },
   investmentPodCard: {
-    height: 220,
+    flex: 1.15,
+    minHeight: 200,
     justifyContent: 'space-between',
-    padding: 16,
+  },
+  podTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   podIconBadge: {
     width: 32,
@@ -405,7 +595,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(56, 189, 248, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
+  },
+  tapArrowBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   podLabel: {
     fontSize: 11,
@@ -414,16 +612,18 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   podMainValue: {
-    fontSize: 19,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     color: '#F8FAFC',
-    marginTop: 4,
-    marginBottom: 8,
+    marginTop: 3,
+    marginBottom: 6,
   },
   pnlContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderRadius: 12,
     padding: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
   pnlTitle: {
     fontSize: 10,
@@ -436,7 +636,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   pnlValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
@@ -446,46 +646,43 @@ const styles = StyleSheet.create({
     marginTop: 1,
     fontVariant: ['tabular-nums'],
   },
-  inspectBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  inspectBtnText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#38BDF8',
-  },
   bentoRightCol: {
     flex: 0.95,
-    gap: 12,
+    gap: 10,
   },
   cashPodCard: {
-    height: 104,
+    flex: 1,
+    minHeight: 94,
     justifyContent: 'space-between',
-    padding: 14,
   },
   cashHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
+  cashIconMini: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   cashAmount: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#10B981',
+    marginVertical: 2,
   },
   cashSubtext: {
     fontSize: 9,
     color: '#64748B',
+    fontWeight: '500',
   },
   actionPodCard: {
-    height: 104,
+    flex: 1,
+    minHeight: 94,
     justifyContent: 'center',
-    padding: 10,
     gap: 6,
   },
   quickActionBtn: {
@@ -512,8 +709,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 4,
+    marginTop: 6,
+    marginBottom: 2,
   },
   sectionTitleRow: {
     flexDirection: 'row',
@@ -521,13 +718,17 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#F8FAFC',
     letterSpacing: 0.3,
   },
+  seeAllBtn: {
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+  },
   seeAllText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#38BDF8',
     fontWeight: '600',
   },
@@ -535,17 +736,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   moverCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
     borderRadius: 18,
   },
   moverLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    flex: 1,
   },
   moverIconBadge: {
     paddingVertical: 4,
@@ -569,15 +766,18 @@ const styles = StyleSheet.create({
   textAmber: {
     color: '#F59E0B',
   },
+  moverInfo: {
+    flex: 1,
+  },
   moverSymbol: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#F8FAFC',
   },
   moverName: {
     fontSize: 11,
     color: '#64748B',
-    maxWidth: 140,
+    marginTop: 1,
   },
   moverRight: {
     alignItems: 'flex-end',
@@ -585,7 +785,7 @@ const styles = StyleSheet.create({
   },
   moverPrice: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#F8FAFC',
   },
   changeChip: {
@@ -600,7 +800,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(244, 63, 94, 0.15)',
   },
   changeChipText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },

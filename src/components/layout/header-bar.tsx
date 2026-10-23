@@ -1,14 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../common/icon';
 import { useWealth } from '../../store/wealth-context';
 import { formatTime } from '../../utils/format';
+import { triggerHaptic } from '../../utils/haptics';
 
 export const HeaderBar: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const { privacyMode, togglePrivacy, isRefreshing, refreshMarketPrices, lastUpdated } = useWealth();
 
   return (
-    <View style={styles.headerContainer}>
+    <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top + 6, 16) }]}>
       {/* Live Market Status Pill */}
       <View style={styles.liveBadge}>
         <View style={styles.pulseDot} />
@@ -20,30 +23,36 @@ export const HeaderBar: React.FC = () => {
       <View style={styles.actionGroup}>
         {/* Refresh Market Prices Button */}
         <TouchableOpacity
-          onPress={refreshMarketPrices}
+          onPress={() => {
+            triggerHaptic('light');
+            refreshMarketPrices();
+          }}
           disabled={isRefreshing}
-          activeOpacity={0.7}
+          activeOpacity={0.65}
           style={styles.iconButton}
           accessibilityLabel="Refresh harga pasar IDX dan Kripto"
         >
           {isRefreshing ? (
             <ActivityIndicator size="small" color="#10B981" />
           ) : (
-            <Icon name="RefreshCw" size={17} color="#94A3B8" />
+            <Icon name="RefreshCw" size={16} color="#94A3B8" />
           )}
         </TouchableOpacity>
 
         {/* Privacy Eye Toggle Button */}
         <TouchableOpacity
-          onPress={togglePrivacy}
-          activeOpacity={0.7}
+          onPress={() => {
+            triggerHaptic('medium');
+            togglePrivacy();
+          }}
+          activeOpacity={0.65}
           style={[styles.iconButton, privacyMode && styles.activeIconButton]}
           accessibilityLabel="Toggle Sensor Privasi Saldo"
         >
           {privacyMode ? (
-            <Icon name="EyeOff" size={17} color="#F59E0B" />
+            <Icon name="EyeOff" size={16} color="#F59E0B" />
           ) : (
-            <Icon name="Eye" size={17} color="#94A3B8" />
+            <Icon name="Eye" size={16} color="#94A3B8" />
           )}
         </TouchableOpacity>
       </View>
@@ -56,15 +65,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    zIndex: 10,
   },
   liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    paddingVertical: 5,
+    paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 20,
     borderWidth: 1,
@@ -95,8 +104,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   iconButton: {
-    width: 38,
-    height: 38,
+    width: 36,
+    height: 36,
     borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
@@ -106,6 +115,6 @@ const styles = StyleSheet.create({
   },
   activeIconButton: {
     backgroundColor: 'rgba(245, 158, 11, 0.12)',
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: 'rgba(245, 158, 11, 0.35)',
   },
 });

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
@@ -17,18 +18,32 @@ import { CashMutationModal } from '../../src/components/modals/cash-mutation-mod
 import { useWealth } from '../../src/store/wealth-context';
 import { formatIDR, formatDate } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
-import { BankMutationResult, Account } from '../../src/types';
+import { BankMutationResult, AccountType } from '../../src/types';
+
+type AccountFilter = 'ALL' | 'BANK' | 'RDN' | 'E-WALLET';
+type TxFilter = 'ALL' | 'INCOME' | 'EXPENSE';
 
 export default function AccountsScreen() {
-  const { accounts, transactions, applyMutationText, totalCash } = useWealth();
+  const { width } = useWindowDimensions();
+  const isSmall = width < 375;
 
-  // Modals state
+  const {
+    accounts,
+    totalCash,
+    transactions,
+    applyMutationText,
+  } = useWealth();
+
   const [accountModalVisible, setAccountModalVisible] = useState(false);
   const [mutationModalVisible, setMutationModalVisible] = useState(false);
   const [activeAccountForMutation, setActiveAccountForMutation] = useState<string | undefined>(undefined);
   const [mutationType, setMutationType] = useState<'INCOME' | 'EXPENSE'>('EXPENSE');
 
-  // Smart Parser state
+  // Interactive filters
+  const [selectedAccFilter, setSelectedAccFilter] = useState<AccountFilter>('ALL');
+  const [selectedTxFilter, setSelectedTxFilter] = useState<TxFilter>('ALL');
+
+  // AI Parser state
   const [parserText, setParserText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [parseResult, setParseResult] = useState<BankMutationResult | null>(null);
@@ -40,32 +55,50 @@ export default function AccountsScreen() {
     {
       id: 'p1',
       title: 'QRIS Kopi Kenangan',
+      amount: 'Rp 48.500',
+      tag: 'BCA Tahapan',
       text: 'Transaksi QRIS Rp 48.500 di Kopi Kenangan berhasil dari rekening BCA Tahapan',
     },
     {
       id: 'p2',
-      title: 'BI-FAST Gaji',
+      title: 'BI-FAST Gaji Bulanan',
+      amount: 'Rp 2.500.000',
+      tag: 'Mandiri Livin',
       text: 'Transfer masuk BI-FAST Rp 2.500.000 dari PT Karya Digital ke Mandiri Livin',
     },
     {
       id: 'p3',
-      title: 'Top Up RDN',
+      title: 'Top Up RDN Stockbit',
+      amount: 'Rp 1.000.000',
+      tag: 'BCA Tahapan',
       text: 'Top up RDN Stockbit BCA sebesar Rp 1.000.000 dari BCA Tahapan berhasil',
     },
   ];
 
+  const filteredAccounts = accounts.filter((acc) => {
+    if (selectedAccFilter === 'ALL') return true;
+    return acc.type === selectedAccFilter;
+  });
+
+  const filteredTransactions = transactions.filter((tx) => {
+    if (selectedTxFilter === 'ALL') return true;
+    return tx.type === selectedTxFilter;
+  });
+
   const handleProcessMutation = async (customText?: string) => {
-    const textToRun = customText || parserText;
-    if (!textToRun.trim()) return;
+    const textToProcess = customText || parserText;
+    if (!textToProcess.trim()) return;
 
     setIsProcessing(true);
     triggerHaptic('medium');
 
     try {
-      const res = await applyMutationText(textToRun);
-      setParseResult(res);
-      setParserText('');
+      const result = await applyMutationText(textToProcess);
+      setParseResult(result);
       triggerHaptic('success');
+      if (!customText) {
+        setParserText('');
+      }
     } catch {
       triggerHaptic('warning');
     } finally {
@@ -75,13 +108,12 @@ export default function AccountsScreen() {
 
   const handleSimulateAndroidListener = () => {
     triggerHaptic('heavy');
-    const randomAmount = Math.floor(Math.random() * 40 + 25) * 1000;
-    const merchants = ['Janji Jiwa', 'Alfamart Senopati', 'Mixue Sudirman', 'Kantin Mega'];
+    const merchants = ['Kopi Kenangan Senopati', 'Fore Coffee Grand Indonesia', 'Point Coffee Sudirman', 'FamilyMart Thamrin'];
+    const randomAmount = Math.floor(Math.random() * 45000) + 25000;
     const randomMerchant = merchants[Math.floor(Math.random() * merchants.length)];
     const text = `Transaksi QRIS Rp ${randomAmount.toLocaleString('id-ID')} di ${randomMerchant} berhasil dari rekening BCA Tahapan`;
 
     setSimulatedNotification(text);
-    // Auto-process as if intercepted in background
     setTimeout(() => {
       handleProcessMutation(text);
     }, 600);
@@ -98,13 +130,24 @@ export default function AccountsScreen() {
     <View style={styles.screenContainer}>
       <HeaderBar />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: isSmall ? 12 : 16 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Total Liquidity Pod */}
-        <GlassCard style={styles.liquidityHeroCard} borderTint="rgba(16, 185, 129, 0.25)">
+        <GlassCard
+          style={styles.liquidityHeroCard}
+          borderTint="rgba(16, 185, 129, 0.25)"
+          gradientColors={['rgba(16, 185, 129, 0.10)', 'rgba(15, 23, 42, 0.55)']}
+        >
           <View style={styles.liquidityHeader}>
             <View>
               <Text style={styles.liquidityLabel}>TOTAL LIKUIDITAS KAS & RDN</Text>
               <PrivacyValue value={totalCash} style={styles.liquidityAmount} />
+              <Text style={styles.liquiditySubtitle}>{accounts.length} rekening aktif terhubung</Text>
             </View>
             <TouchableOpacity
               onPress={() => {
@@ -112,31 +155,74 @@ export default function AccountsScreen() {
                 setAccountModalVisible(true);
               }}
               style={styles.addAccountBtn}
-              activeOpacity={0.8}
+              activeOpacity={0.7}
             >
-              <Icon name="Plus" size={14} color="#080C14" />
-              <Text style={styles.addAccountBtnText}>Tambah Rekening</Text>
+              <Icon name="Plus" size={13} color="#080C14" />
+              <Text style={styles.addAccountBtnText}>+ Akun Baru</Text>
             </TouchableOpacity>
           </View>
         </GlassCard>
 
-        {/* BANK & RDN ACCOUNTS LIST */}
+        {/* BANK & RDN ACCOUNTS LIST WITH RESPONSIVE FILTER CHIPS */}
         <View style={styles.sectionTitleRow}>
-          <Text style={styles.sectionTitle}>Daftar Rekening & Dompet Digital</Text>
-          <Text style={styles.sectionSubtitle}>{accounts.length} Akun Terdaftar</Text>
+          <Text style={styles.sectionTitle}>Rekening & Dompet Digital</Text>
+          <Text style={styles.sectionSubtitle}>{filteredAccounts.length} Akun</Text>
         </View>
 
+        {/* Filter Chips Bar */}
+        <View style={styles.accountFilterRow}>
+          {(['ALL', 'BANK', 'RDN', 'E-WALLET'] as AccountFilter[]).map((filter) => {
+            const isActive = selectedAccFilter === filter;
+            const count = filter === 'ALL'
+              ? accounts.length
+              : accounts.filter((a) => a.type === filter).length;
+
+            return (
+              <TouchableOpacity
+                key={filter}
+                onPress={() => {
+                  triggerHaptic('selection');
+                  setSelectedAccFilter(filter);
+                }}
+                activeOpacity={0.65}
+                style={[styles.accFilterChip, isActive && styles.activeAccFilterChip]}
+              >
+                <Text style={[styles.accFilterChipText, isActive && styles.activeAccFilterChipText]}>
+                  {filter === 'ALL' ? 'Semua' : filter} ({count})
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Account Cards */}
         <View style={styles.accountList}>
-          {accounts.map((acc) => (
-            <GlassCard key={acc.id} style={styles.accountCard} borderTint="rgba(255, 255, 255, 0.1)">
+          {filteredAccounts.map((acc) => (
+            <GlassCard
+              key={acc.id}
+              style={styles.accountCard}
+              borderTint="rgba(255, 255, 255, 0.10)"
+            >
               <View style={styles.accountTopRow}>
                 <View style={styles.accountLeft}>
-                  <View style={[styles.accountIconBadge, { backgroundColor: 'rgba(56, 189, 248, 0.12)' }]}>
+                  <View
+                    style={[
+                      styles.accountIconBadge,
+                      {
+                        backgroundColor:
+                          acc.type === 'BANK'
+                            ? 'rgba(56, 189, 248, 0.12)'
+                            : acc.type === 'RDN'
+                            ? 'rgba(16, 185, 129, 0.12)'
+                            : 'rgba(6, 182, 212, 0.12)',
+                      },
+                    ]}
+                  >
                     {acc.type === 'BANK' && <Icon name="Landmark" size={18} color="#38BDF8" />}
                     {acc.type === 'RDN' && <Icon name="TrendingUp" size={18} color="#10B981" />}
                     {acc.type === 'E-WALLET' && <Icon name="Smartphone" size={18} color="#06B6D4" />}
                   </View>
-                  <View>
+                  <View style={styles.accountTextContainer}>
                     <Text style={styles.accountName}>{acc.name}</Text>
                     <Text style={styles.accountNumber}>
                       {acc.type} • {acc.accountNumber || 'Aktif'}
@@ -154,7 +240,7 @@ export default function AccountsScreen() {
                 <TouchableOpacity
                   onPress={() => openMutationModal(acc.id, 'INCOME')}
                   style={[styles.smallAdjustBtn, styles.incomeAdjustBtn]}
-                  activeOpacity={0.7}
+                  activeOpacity={0.65}
                 >
                   <Icon name="ArrowDownLeft" size={12} color="#10B981" />
                   <Text style={[styles.smallAdjustText, { color: '#10B981' }]}>+ Pemasukan</Text>
@@ -163,7 +249,7 @@ export default function AccountsScreen() {
                 <TouchableOpacity
                   onPress={() => openMutationModal(acc.id, 'EXPENSE')}
                   style={[styles.smallAdjustBtn, styles.expenseAdjustBtn]}
-                  activeOpacity={0.7}
+                  activeOpacity={0.65}
                 >
                   <Icon name="ArrowUpRight" size={12} color="#F43F5E" />
                   <Text style={[styles.smallAdjustText, { color: '#F43F5E' }]}>- Pengeluaran</Text>
@@ -174,22 +260,26 @@ export default function AccountsScreen() {
         </View>
 
         {/* SMART AI NOTIFICATION & QRIS MUTASI PARSER */}
-        <GlassCard style={styles.aiParserCard} borderTint="rgba(56, 189, 248, 0.25)">
+        <GlassCard
+          style={styles.aiParserCard}
+          borderTint="rgba(56, 189, 248, 0.22)"
+          gradientColors={['rgba(56, 189, 248, 0.08)', 'rgba(15, 23, 42, 0.50)']}
+        >
           <View style={styles.aiParserHeader}>
             <View style={styles.aiHeaderTitle}>
-              <Icon name="Sparkles" size={18} color="#38BDF8" />
+              <Icon name="Sparkles" size={17} color="#38BDF8" />
               <Text style={styles.aiTitle}>Smart Android Mutasi & QRIS Parser</Text>
             </View>
             <View style={styles.aiEngineTag}>
-              <Text style={styles.aiEngineTagText}>Gemini Flash + Local Regex</Text>
+              <Text style={styles.aiEngineTagText}>Gemini + Regex</Text>
             </View>
           </View>
 
           <Text style={styles.aiInstruction}>
-            Tempel teks notifikasi SMS, WhatsApp, atau QRIS dari bank Anda untuk potong/tambah saldo instan:
+            Pilih preset instan di bawah atau tempel teks SMS/QRIS bank Anda:
           </Text>
 
-          {/* 3 REQUIRED PRESET BUTTONS (1-CLICK TEST) */}
+          {/* 3 PRESET BUTTONS (RESPONSIVE CHIPS) */}
           <View style={styles.presetGrid}>
             {PRESETS.map((p) => (
               <TouchableOpacity
@@ -200,10 +290,13 @@ export default function AccountsScreen() {
                   setParseResult(null);
                 }}
                 style={styles.presetChip}
-                activeOpacity={0.7}
+                activeOpacity={0.65}
               >
-                <Icon name="Zap" size={11} color="#F59E0B" />
-                <Text style={styles.presetChipText}>{p.title}</Text>
+                <View style={styles.presetChipTop}>
+                  <Icon name="Zap" size={11} color="#F59E0B" />
+                  <Text style={styles.presetChipTitle}>{p.title}</Text>
+                </View>
+                <Text style={styles.presetChipAmount}>{p.amount}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -242,7 +335,7 @@ export default function AccountsScreen() {
             onPress={() => handleProcessMutation()}
             disabled={isProcessing || !parserText.trim()}
             style={[styles.aiProcessBtn, (!parserText.trim() || isProcessing) && styles.disabledBtn]}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
             {isProcessing ? (
               <ActivityIndicator color="#080C14" size="small" />
@@ -253,7 +346,11 @@ export default function AccountsScreen() {
         </GlassCard>
 
         {/* ANDROID NOTIFICATION LISTENER SIMULATOR */}
-        <GlassCard style={styles.listenerCard} borderTint="rgba(245, 158, 11, 0.25)">
+        <GlassCard
+          style={styles.listenerCard}
+          borderTint="rgba(245, 158, 11, 0.22)"
+          gradientColors={['rgba(245, 158, 11, 0.08)', 'rgba(15, 23, 42, 0.50)']}
+        >
           <View style={styles.listenerHeader}>
             <View style={styles.listenerIcon}>
               <Icon name="BellRing" size={16} color="#F59E0B" />
@@ -261,7 +358,7 @@ export default function AccountsScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.listenerTitle}>Android Notification Interceptor</Text>
               <Text style={styles.listenerSubtitle}>
-                Simulasi listener otomatis latar belakang saat ada transaksi QRIS / SMS masuk
+                Simulasi listener otomatis saat transaksi QRIS / SMS masuk
               </Text>
             </View>
           </View>
@@ -275,27 +372,50 @@ export default function AccountsScreen() {
           <TouchableOpacity
             onPress={handleSimulateAndroidListener}
             style={styles.simulateActionBtn}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
-            <Icon name="Zap" size={14} color="#080C14" />
+            <Icon name="Zap" size={13} color="#080C14" />
             <Text style={styles.simulateActionBtnText}>Simulasi Notifikasi QRIS Masuk</Text>
           </TouchableOpacity>
         </GlassCard>
 
-        {/* RECENT TRANSACTIONS HISTORY */}
+        {/* RECENT TRANSACTIONS HISTORY WITH TYPE FILTER */}
         <View style={styles.sectionTitleRow}>
           <View style={styles.historyTitleRow}>
-            <Icon name="History" size={16} color="#94A3B8" />
+            <Icon name="History" size={15} color="#94A3B8" />
             <Text style={styles.sectionTitle}>Riwayat Transaksi Terbaru</Text>
+          </View>
+
+          {/* Mini Tx Filter */}
+          <View style={styles.txFilterGroup}>
+            {(['ALL', 'INCOME', 'EXPENSE'] as TxFilter[]).map((f) => (
+              <TouchableOpacity
+                key={f}
+                onPress={() => {
+                  triggerHaptic('light');
+                  setSelectedTxFilter(f);
+                }}
+                activeOpacity={0.65}
+                style={[styles.txFilterBtn, selectedTxFilter === f && styles.txFilterBtnActive]}
+              >
+                <Text style={[styles.txFilterBtnText, selectedTxFilter === f && styles.txFilterBtnTextActive]}>
+                  {f === 'ALL' ? 'Semua' : f === 'INCOME' ? 'Masuk' : 'Keluar'}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
         <View style={styles.txList}>
-          {transactions.slice(0, 10).map((tx) => {
+          {filteredTransactions.slice(0, 10).map((tx) => {
             const isInc = tx.type === 'INCOME';
             const isTrans = tx.type === 'TRANSFER';
             return (
-              <GlassCard key={tx.id} style={styles.txCard}>
+              <GlassCard
+                key={tx.id}
+                style={styles.txCard}
+                borderTint="rgba(255, 255, 255, 0.08)"
+              >
                 <View style={styles.txLeft}>
                   <View
                     style={[
@@ -304,11 +424,11 @@ export default function AccountsScreen() {
                     ]}
                   >
                     {isInc ? (
-                      <Icon name="ArrowDownLeft" size={14} color="#10B981" />
+                      <Icon name="ArrowDownLeft" size={13} color="#10B981" />
                     ) : isTrans ? (
-                      <Icon name="TrendingUp" size={14} color="#38BDF8" />
+                      <Icon name="TrendingUp" size={13} color="#38BDF8" />
                     ) : (
-                      <Icon name="ArrowUpRight" size={14} color="#F43F5E" />
+                      <Icon name="ArrowUpRight" size={13} color="#F43F5E" />
                     )}
                   </View>
                   <View style={{ flex: 1 }}>
@@ -358,12 +478,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#080C14',
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 110,
-    gap: 16,
+    paddingBottom: 120,
+    gap: 14,
   },
   liquidityHeroCard: {
-    padding: 18,
     borderRadius: 24,
   },
   liquidityHeader: {
@@ -381,20 +499,26 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: '800',
     color: '#10B981',
-    marginTop: 4,
+    marginTop: 3,
+  },
+  liquiditySubtitle: {
+    fontSize: 10,
+    color: '#64748B',
+    marginTop: 2,
+    fontWeight: '500',
   },
   addAccountBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
     backgroundColor: '#38BDF8',
-    paddingVertical: 9,
-    paddingHorizontal: 14,
-    borderRadius: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
   },
   addAccountBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '800',
     color: '#080C14',
   },
   sectionTitleRow: {
@@ -409,7 +533,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#F8FAFC',
     letterSpacing: 0.3,
@@ -417,13 +541,38 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 11,
     color: '#64748B',
+    fontWeight: '600',
+  },
+  accountFilterRow: {
+    flexDirection: 'row',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  accFilterChip: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  activeAccFilterChip: {
+    backgroundColor: 'rgba(56, 189, 248, 0.16)',
+    borderColor: 'rgba(56, 189, 248, 0.35)',
+  },
+  accFilterChipText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  activeAccFilterChipText: {
+    color: '#38BDF8',
   },
   accountList: {
-    gap: 10,
+    gap: 8,
   },
   accountCard: {
     borderRadius: 20,
-    padding: 14,
   },
   accountTopRow: {
     flexDirection: 'row',
@@ -433,17 +582,21 @@ const styles = StyleSheet.create({
   accountLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    flex: 1,
   },
   accountIconBadge: {
-    width: 38,
-    height: 38,
+    width: 36,
+    height: 36,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  accountTextContainer: {
+    flex: 1,
+  },
   accountName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#F8FAFC',
   },
@@ -457,14 +610,14 @@ const styles = StyleSheet.create({
   },
   accountBalance: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#F8FAFC',
   },
   quickButtonsRow: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 12,
-    paddingTop: 10,
+    marginTop: 10,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.06)',
   },
@@ -473,26 +626,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 7,
+    gap: 4,
+    paddingVertical: 6,
     borderRadius: 10,
     borderWidth: 1,
   },
   incomeAdjustBtn: {
     backgroundColor: 'rgba(16, 185, 129, 0.08)',
-    borderColor: 'rgba(16, 185, 129, 0.2)',
+    borderColor: 'rgba(16, 185, 129, 0.22)',
   },
   expenseAdjustBtn: {
     backgroundColor: 'rgba(244, 63, 94, 0.08)',
-    borderColor: 'rgba(244, 63, 94, 0.2)',
+    borderColor: 'rgba(244, 63, 94, 0.22)',
   },
   smallAdjustText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
   },
   aiParserCard: {
     borderRadius: 22,
-    padding: 16,
   },
   aiParserHeader: {
     flexDirection: 'row',
@@ -503,22 +655,22 @@ const styles = StyleSheet.create({
   aiHeaderTitle: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   aiTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#F8FAFC',
   },
   aiEngineTag: {
-    backgroundColor: 'rgba(56, 189, 248, 0.1)',
-    paddingVertical: 2,
-    paddingHorizontal: 6,
-    borderRadius: 6,
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 8,
   },
   aiEngineTagText: {
     fontSize: 9,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#38BDF8',
   },
   aiInstruction: {
@@ -529,83 +681,93 @@ const styles = StyleSheet.create({
   },
   presetGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 6,
     marginBottom: 10,
   },
   presetChip: {
+    flex: 1,
+    paddingVertical: 7,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.20)',
+    justifyContent: 'space-between',
+  },
+  presetChipTop: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.25)',
-    paddingVertical: 5,
-    paddingHorizontal: 9,
-    borderRadius: 8,
+    marginBottom: 3,
   },
-  presetChipText: {
+  presetChipTitle: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '700',
+    color: '#F8FAFC',
+    flex: 1,
+  },
+  presetChipAmount: {
+    fontSize: 10,
     color: '#F59E0B',
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
   },
   aiInputArea: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    padding: 10,
+    borderColor: 'rgba(255, 255, 255, 0.10)',
     color: '#F8FAFC',
+    padding: 10,
     fontSize: 12,
-    minHeight: 70,
+    minHeight: 64,
     textAlignVertical: 'top',
-    marginBottom: 10,
   },
   resultBanner: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 8,
     backgroundColor: 'rgba(16, 185, 129, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
-    borderRadius: 10,
+    borderColor: 'rgba(16, 185, 129, 0.30)',
+    borderRadius: 12,
     padding: 10,
-    marginBottom: 10,
+    marginTop: 8,
   },
   resultTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     color: '#10B981',
-    fontVariant: ['tabular-nums'],
   },
   resultSubtitle: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#94A3B8',
-    marginTop: 2,
+    marginTop: 1,
   },
   aiProcessBtn: {
     backgroundColor: '#38BDF8',
     borderRadius: 12,
-    paddingVertical: 12,
+    paddingVertical: 10,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
   },
   disabledBtn: {
-    opacity: 0.5,
+    opacity: 0.45,
   },
   aiProcessBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
     color: '#080C14',
-    fontWeight: '700',
-    fontSize: 13,
   },
   listenerCard: {
-    borderRadius: 20,
-    padding: 16,
-    gap: 10,
+    borderRadius: 22,
   },
   listenerHeader: {
     flexDirection: 'row',
-    gap: 10,
     alignItems: 'center',
+    gap: 10,
+    marginBottom: 8,
   },
   listenerIcon: {
     width: 32,
@@ -626,15 +788,16 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   simulatedBox: {
-    backgroundColor: 'rgba(245, 158, 11, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.2)',
+    backgroundColor: 'rgba(245, 158, 11, 0.10)',
+    borderRadius: 10,
     padding: 8,
-    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#F59E0B',
+    marginBottom: 8,
   },
   simulatedText: {
     fontSize: 11,
-    color: '#F59E0B',
+    color: '#F8FAFC',
     fontStyle: 'italic',
   },
   simulateActionBtn: {
@@ -644,22 +807,38 @@ const styles = StyleSheet.create({
     gap: 6,
     backgroundColor: '#F59E0B',
     borderRadius: 12,
-    paddingVertical: 11,
+    paddingVertical: 9,
   },
   simulateActionBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '800',
     color: '#080C14',
   },
+  txFilterGroup: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  txFilterBtn: {
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  },
+  txFilterBtnActive: {
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+  },
+  txFilterBtnText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  txFilterBtnTextActive: {
+    color: '#38BDF8',
+  },
   txList: {
-    gap: 8,
+    gap: 6,
   },
   txCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
     borderRadius: 16,
   },
   txLeft: {
@@ -676,37 +855,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   txBadgeGreen: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
   },
   txBadgeSky: {
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
   },
   txBadgeRed: {
-    backgroundColor: 'rgba(244, 63, 94, 0.12)',
+    backgroundColor: 'rgba(244, 63, 94, 0.15)',
   },
   txDesc: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
     color: '#F8FAFC',
   },
   txMeta: {
     fontSize: 10,
     color: '#64748B',
-    marginTop: 2,
+    marginTop: 1,
   },
   txRight: {
     alignItems: 'flex-end',
-    gap: 2,
   },
   txAmount: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '800',
     fontVariant: ['tabular-nums'],
   },
   txSourceTag: {
     fontSize: 9,
     color: '#475569',
-    fontWeight: '600',
+    marginTop: 1,
   },
   textGreen: {
     color: '#10B981',

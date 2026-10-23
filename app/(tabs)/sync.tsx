@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { Icon } from '../../src/components/common/icon';
@@ -20,6 +21,8 @@ import { BrokerExtractionResult, BrokerTradeItem } from '../../src/types';
 import { AIParserService } from '../../src/services/ai-parser';
 
 export default function SyncScreen() {
+  const { width } = useWindowDimensions();
+  const isSmall = width < 375;
   const { confirmBrokerTrades, accounts, stocks } = useWealth();
 
   const [pdfPassword, setPdfPassword] = useState('');
@@ -169,7 +172,13 @@ export default function SyncScreen() {
     <View style={styles.screenContainer}>
       <HeaderBar />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingHorizontal: isSmall ? 12 : 16 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* HERO SYNC EXPLANATION */}
         <GlassCard style={styles.heroCard} borderTint="rgba(56, 189, 248, 0.25)">
           <View style={styles.heroHeader}>
@@ -364,9 +373,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#080C14',
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 110,
-    gap: 16,
+    paddingBottom: 120,
+    gap: 14,
   },
   heroCard: {
     borderRadius: 24,

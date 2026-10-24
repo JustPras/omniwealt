@@ -1,4 +1,5 @@
-// Real-Time Market Data Service for IDX Stocks & CoinGecko Crypto
+// Real-Time Market Data Service for IDX Stocks & CoinGecko Crypto with Offline Local Caching
+import { StorageService } from './storage-service';
 
 export interface StockQuote {
   ticker: string;
@@ -13,7 +14,7 @@ export interface CryptoQuote {
   change24h: number;
 }
 
-// Fallback base values for IDX stocks
+// Fallback base values for IDX stocks if neither online nor cached data exists
 const DEFAULT_IDX_PRICES: Record<string, { price: number; change24h: number }> = {
   'BBCA.JK': { price: 9950, change24h: 0.0179 },
   'BMRI.JK': { price: 6725, change24h: 0.0151 },
@@ -22,7 +23,7 @@ const DEFAULT_IDX_PRICES: Record<string, { price: number; change24h: number }> =
   'GOTO.JK': { price: 69, change24h: 0.0294 },
 };
 
-// Fallback base values for Cryptos in IDR
+// Fallback base values for Cryptos in IDR if neither online nor cached data exists
 const DEFAULT_CRYPTO_PRICES: Record<string, { priceIdr: number; change24h: number }> = {
   bitcoin: { priceIdr: 1045000000, change24h: 0.0245 },
   ethereum: { priceIdr: 44800000, change24h: 0.011 },
@@ -31,11 +32,12 @@ const DEFAULT_CRYPTO_PRICES: Record<string, { priceIdr: number; change24h: numbe
 
 export const MarketService = {
   /**
-   * Fetch live stock quote for Indonesian IDX (.JK)
+   * Fetch live stock quote for Indonesian IDX (.JK).
+   * If online, returns real-time Yahoo Finance quote.
+   * If offline or network error, prioritizes the latest cached market data from storage.
    */
   async fetchStockPrice(ticker: string): Promise<StockQuote> {
     const cleanTicker = ticker.toUpperCase().endsWith('.JK') ? ticker.toUpperCase() : `${ticker.toUpperCase()}.JK`;
-    const fallback = DEFAULT_IDX_PRICES[cleanTicker] || { price: 5000, change24h: 0.01 };
 
     try {
       // Direct Yahoo Finance v8 chart query
@@ -67,17 +69,25 @@ export const MarketService = {
         }
       }
     } catch {
-      // Network, CORS or rate-limit: degrade to realistic live-ticking fallback
+      // Network, CORS or rate-limit: degrade to offline cached price
     }
 
-    // Realistic live-ticking variation (micro fluctuation: ±0.15%)
-    const drift = (Math.random() - 0.48) * 0.003;
-    const driftedPrice = Math.round(fallback.price * (1 + drift));
+    // 1. Offline Priority: Check local market cache for the latest updated price
+    const cached = await StorageService.getCachedStockPrice(cleanTicker);
+    if (cached && typeof cached.price === 'number' && cached.price > 0) {
+      return {
+        ticker: cleanTicker,
+        price: cached.price,
+        change24h: cached.change24h,
+      };
+    }
 
+    // 2. Fallback to default dictionary if no cache exists
+    const fallback = DEFAULT_IDX_PRICES[cleanTicker] || { price: 5000, change24h: 0.01 };
     return {
       ticker: cleanTicker,
-      price: driftedPrice,
-      change24h: fallback.change24h + drift,
+      price: fallback.price,
+      change24h: fallback.change24h,
     };
   },
 
@@ -95,7 +105,9 @@ export const MarketService = {
   },
 
   /**
-   * Fetch live crypto prices in IDR from CoinGecko
+   * Fetch live crypto prices in IDR from CoinGecko.
+   * If online, returns real-time IDR quotes.
+   * If offline or rate-limited, prioritizes the latest cached market data from storage.
    */
   async fetchCryptoPrices(ids: string[] = ['bitcoin', 'ethereum', 'solana']): Promise<Record<string, CryptoQuote>> {
     const results: Record<string, CryptoQuote> = {};
@@ -125,19 +137,27 @@ export const MarketService = {
         }
       }
     } catch {
-      // CoinGecko public rate limit or network issue: fall back gracefully
+      // CoinGecko public rate limit or network issue: fall back to offline cache
     }
 
-    // Use default prices with micro fluctuation
+    // Offline Priority: For any un-fetched cryptos, check local cached market data
     for (const id of ids) {
       if (!results[id]) {
-        const def = DEFAULT_CRYPTO_PRICES[id] || { priceIdr: 1000000, change24h: 0.02 };
-        const drift = (Math.random() - 0.48) * 0.004;
-        results[id] = {
-          id,
-          priceIdr: Math.round(def.priceIdr * (1 + drift)),
-          change24h: def.change24h + drift,
-        };
+        const cached = await StorageService.getCachedCryptoPrice(id);
+        if (cached && typeof cached.price === 'number' && cached.price > 0) {
+          results[id] = {
+            id,
+            priceIdr: cached.price,
+            change24h: cached.change24h,
+          };
+        } else {
+          const def = DEFAULT_CRYPTO_PRICES[id] || { priceIdr: 1000000, change24h: 0.02 };
+          results[id] = {
+            id,
+            priceIdr: def.priceIdr,
+            change24h: def.change24h,
+          };
+        }
       }
     }
 

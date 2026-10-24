@@ -62,12 +62,13 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     let isMounted = true;
     const hydrate = async () => {
       try {
-        const [storedAcc, storedStocks, storedCryptos, storedTx, storedPrivacy] = await Promise.all([
+        const [storedAcc, storedStocks, storedCryptos, storedTx, storedPrivacy, storedMarket] = await Promise.all([
           StorageService.getAccounts(),
           StorageService.getStocks(),
           StorageService.getCryptos(),
           StorageService.getTransactions(),
           StorageService.getPrivacyMode(),
+          StorageService.getMarketCache(),
         ]);
 
         if (isMounted) {
@@ -76,6 +77,9 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           setCryptos(storedCryptos);
           setTransactions(storedTx);
           setPrivacyMode(storedPrivacy);
+          if (storedMarket?.lastUpdated) {
+            setLastUpdated(new Date(storedMarket.lastUpdated));
+          }
           setIsHydrated(true);
         }
       } catch (e) {
@@ -143,6 +147,10 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         MarketService.fetchAllStocks(stockTickers),
         MarketService.fetchCryptoPrices(cryptoIds),
       ]);
+
+      // Save fresh market quotes to offline storage and prune deleted/stale records
+      await StorageService.updateMarketQuotes(stockQuotes, cryptoQuotes);
+      await StorageService.pruneMarketCache(stockTickers, cryptoIds);
 
       // Update stocks with fresh market data
       setStocks((prev) => {
@@ -655,9 +663,13 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setStocks((prev) => {
       const updated = prev.filter((s) => s.id !== id);
       StorageService.saveStocks(updated);
+      StorageService.pruneMarketCache(
+        updated.map((s) => s.ticker),
+        cryptos.map((c) => c.coingeckoId)
+      );
       return updated;
     });
-  }, []);
+  }, [cryptos]);
 
   // 9. Crypto CRUD
   const saveCrypto = useCallback(async (cryptoData: Omit<CryptoAsset, 'id'>, id?: string) => {
@@ -684,9 +696,13 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setCryptos((prev) => {
       const updated = prev.filter((c) => c.id !== id);
       StorageService.saveCryptos(updated);
+      StorageService.pruneMarketCache(
+        stocks.map((s) => s.ticker),
+        updated.map((c) => c.coingeckoId)
+      );
       return updated;
     });
-  }, []);
+  }, [stocks]);
 
   // 10. Reset Data
   const resetToInitialSeed = useCallback(async () => {

@@ -198,7 +198,7 @@ export default function OverviewScreen() {
         }
       >
         {/* 1. HERO NET WORTH CARD (WITH LIVE SCRUBBING) */}
-        <GlassCard level="base" style={styles.heroCard} experimentalDimezis>
+        <GlassCard level="base" style={styles.heroCard}>
           <View style={styles.heroHeader}>
             <View style={styles.heroLabelRow}>
               <Text style={styles.heroLabel}>Kekayaan bersih</Text>

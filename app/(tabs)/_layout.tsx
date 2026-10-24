@@ -6,7 +6,7 @@ import {
   Platform,
   useWindowDimensions,
   Animated,
-  Pressable,
+  TouchableOpacity,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -95,8 +95,9 @@ const AnimatedTabBarButton = (props: any) => {
   };
 
   return (
-    <Pressable
+    <TouchableOpacity
       {...props}
+      activeOpacity={0.88}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -112,7 +113,7 @@ const AnimatedTabBarButton = (props: any) => {
       >
         {children}
       </Animated.View>
-    </Pressable>
+    </TouchableOpacity>
   );
 };
 

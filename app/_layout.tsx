@@ -28,8 +28,6 @@ function RootContent() {
   // Cinematic exit transition values
   const splashFadeAnim = useRef(new Animated.Value(1)).current;
   const splashScaleAnim = useRef(new Animated.Value(1)).current;
-  const contentFadeAnim = useRef(new Animated.Value(0.92)).current;
-  const contentScaleAnim = useRef(new Animated.Value(0.98)).current;
 
   useEffect(() => {
     if (isHydrated) {
@@ -48,24 +46,12 @@ function RootContent() {
             easing: Easing.out(Easing.cubic),
             useNativeDriver: true,
           }),
-          Animated.timing(contentFadeAnim, {
-            toValue: 1,
-            duration: motion.count,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }),
-          Animated.timing(contentScaleAnim, {
-            toValue: 1,
-            duration: motion.count,
-            easing: Easing.out(Easing.back(1.1)),
-            useNativeDriver: true,
-          }),
         ]),
       ]).start(() => {
         setShowSplash(false);
       });
     }
-  }, [isHydrated, splashFadeAnim, splashScaleAnim, contentFadeAnim, contentScaleAnim]);
+  }, [isHydrated, splashFadeAnim, splashScaleAnim]);
 
   return (
     <ThemeProvider value={CustomDarkTheme}>
@@ -73,16 +59,8 @@ function RootContent() {
         <StatusBar style="light" translucent backgroundColor={color.obsidian} />
         <AmbientBackground />
 
-        {/* Animated Root Content with subtle scale & opacity entrance */}
-        <Animated.View
-          style={[
-            styles.contentWrapper,
-            {
-              opacity: contentFadeAnim,
-              transform: [{ scale: contentScaleAnim }],
-            },
-          ]}
-        >
+        {/* Root Content */}
+        <View style={styles.contentWrapper}>
           <Stack
             screenOptions={{
               headerShown: false,
@@ -90,9 +68,10 @@ function RootContent() {
               animation: 'fade',
             }}
           >
+            <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           </Stack>
-        </Animated.View>
+        </View>
 
         {/* Cold Start Luxury Loader (Pure Obsidian Glass) */}
         {showSplash && (

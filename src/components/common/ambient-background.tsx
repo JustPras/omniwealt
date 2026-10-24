@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { View, StyleSheet, useWindowDimensions, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { color } from '../../theme/tokens';
@@ -22,16 +22,24 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
       ? color.asset.stock
       : activeAssetClass === 'CRYPTO'
       ? color.asset.crypto
-      : color.asset.stock; // default cool is sky
+      : color.asset.stock;
 
-  // Parallax translation: 0.25x scroll speed
-  const parallaxY = scrollY
+  // Safe parallax translation: only interpolate if scrollY is an Animated.Value
+  const parallaxY1 = scrollY
     ? scrollY.interpolate({
         inputRange: [-200, 0, 400],
         outputRange: [50, 0, -100],
         extrapolate: 'clamp',
       })
-    : 0;
+    : null;
+
+  const parallaxY2 = scrollY
+    ? scrollY.interpolate({
+        inputRange: [-200, 0, 400],
+        outputRange: [-50, 0, 100],
+        extrapolate: 'clamp',
+      })
+    : null;
 
   return (
     <View style={[StyleSheet.absoluteFill, styles.container]} pointerEvents="none">
@@ -44,7 +52,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
             left: -width * 0.18,
             width: width * 0.95,
             height: width * 0.95,
-            transform: [{ translateY: parallaxY }],
+            transform: parallaxY1 ? [{ translateY: parallaxY1 }] : undefined,
           },
         ]}
       >
@@ -65,7 +73,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
             right: -width * 0.22,
             width: width * 1.05,
             height: width * 1.05,
-            transform: [{ translateY: Animated.multiply(parallaxY as any, -1) }],
+            transform: parallaxY2 ? [{ translateY: parallaxY2 }] : undefined,
           },
         ]}
       >

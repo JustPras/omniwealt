@@ -373,10 +373,12 @@ T O T A L 2,365,863 1,841,000 -524,863`;
             <View style={styles.rdnRow}>
               <View>
                 <Text style={styles.rdnLabel}>Rekening RDN Terhubung:</Text>
-                <Text style={styles.rdnName}>{rdnAccount?.name || 'RDN Stockbit Jago'}</Text>
+                <Text style={styles.rdnName}>{rdnAccount?.name || 'Belum Terhubung'}</Text>
                 {rdnAccount?.accountNumber ? (
                   <Text style={styles.rdnAccNumber}>No. {rdnAccount.accountNumber}</Text>
-                ) : null}
+                ) : (
+                  <Text style={styles.rdnAccNumber}>Otomatis dibuat saat import SoA</Text>
+                )}
               </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Text style={styles.rdnLabel}>Saldo Kas RDN:</Text>

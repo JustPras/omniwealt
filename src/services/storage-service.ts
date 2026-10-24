@@ -1,13 +1,22 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Account, StockAsset, CryptoAsset, Transaction } from '../types';
-import { INITIAL_ACCOUNTS, INITIAL_STOCKS, INITIAL_CRYPTOS, INITIAL_TRANSACTIONS } from '../constants/initial-data';
+import {
+  INITIAL_ACCOUNTS,
+  INITIAL_STOCKS,
+  INITIAL_CRYPTOS,
+  INITIAL_TRANSACTIONS,
+  DEMO_ACCOUNTS,
+  DEMO_STOCKS,
+  DEMO_CRYPTOS,
+  DEMO_TRANSACTIONS,
+} from '../constants/initial-data';
 
 const STORAGE_KEYS = {
-  ACCOUNTS: '@omniwealth_accounts_v2',
-  STOCKS: '@omniwealth_stocks_v2',
-  CRYPTOS: '@omniwealth_cryptos_v2',
-  TRANSACTIONS: '@omniwealth_transactions_v2',
-  PRIVACY: '@omniwealth_privacy_v2',
+  ACCOUNTS: '@omniwealth_accounts_v3',
+  STOCKS: '@omniwealth_stocks_v3',
+  CRYPTOS: '@omniwealth_cryptos_v3',
+  TRANSACTIONS: '@omniwealth_transactions_v3',
+  PRIVACY: '@omniwealth_privacy_v3',
 };
 
 export const StorageService = {
@@ -17,7 +26,7 @@ export const StorageService = {
       if (data) {
         return JSON.parse(data);
       }
-      // First run: save & return initial seed data
+      // First run for new user: 0 data
       await AsyncStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(INITIAL_ACCOUNTS));
       return INITIAL_ACCOUNTS;
     } catch {
@@ -113,14 +122,38 @@ export const StorageService = {
     }
   },
 
-  async resetToSeed(): Promise<void> {
+  /**
+   * Reset all storage to 0 data (clean slate for new user)
+   */
+  async clearAllData(): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(INITIAL_ACCOUNTS));
-      await AsyncStorage.setItem(STORAGE_KEYS.STOCKS, JSON.stringify(INITIAL_STOCKS));
-      await AsyncStorage.setItem(STORAGE_KEYS.CRYPTOS, JSON.stringify(INITIAL_CRYPTOS));
-      await AsyncStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(INITIAL_TRANSACTIONS));
+      await AsyncStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify([]));
+      await AsyncStorage.setItem(STORAGE_KEYS.STOCKS, JSON.stringify([]));
+      await AsyncStorage.setItem(STORAGE_KEYS.CRYPTOS, JSON.stringify([]));
+      await AsyncStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
     } catch (e) {
-      console.warn('Failed to reset data:', e);
+      console.warn('Failed to clear data:', e);
+    }
+  },
+
+  /**
+   * Reset to initial seed (0 data)
+   */
+  async resetToSeed(): Promise<void> {
+    return this.clearAllData();
+  },
+
+  /**
+   * Populate sample demo data for testing & simulation
+   */
+  async loadDemoData(): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(DEMO_ACCOUNTS));
+      await AsyncStorage.setItem(STORAGE_KEYS.STOCKS, JSON.stringify(DEMO_STOCKS));
+      await AsyncStorage.setItem(STORAGE_KEYS.CRYPTOS, JSON.stringify(DEMO_CRYPTOS));
+      await AsyncStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(DEMO_TRANSACTIONS));
+    } catch (e) {
+      console.warn('Failed to load demo data:', e);
     }
   },
 };

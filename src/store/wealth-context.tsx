@@ -41,6 +41,8 @@ interface WealthContextType {
   saveCrypto: (crypto: Omit<CryptoAsset, 'id'>, id?: string) => Promise<void>;
   deleteCrypto: (id: string) => Promise<void>;
   resetToInitialSeed: () => Promise<void>;
+  clearAllData: () => Promise<void>;
+  loadDemoData: () => Promise<void>;
 }
 
 const WealthContext = createContext<WealthContextType | null>(null);
@@ -257,69 +259,84 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     async (text: string): Promise<BankMutationResult> => {
       const parsed = await AIParserService.parseBankMutation(text);
 
-      // Find matched account
-      const matchedAccount =
+      // Find matched account or create one
+      let matchedAccount =
         accounts.find((a) => a.name.toLowerCase().includes(parsed.bankName.toLowerCase())) ||
         accounts.find((a) => a.type === 'BANK') ||
         accounts[0];
 
-      if (matchedAccount) {
-        let delta = 0;
-        if (parsed.type === 'EXPENSE') delta = -parsed.amount;
-        else if (parsed.type === 'INCOME') delta = parsed.amount;
-        else if (parsed.type === 'TRANSFER') {
-          // Transfer to RDN or another account
-          delta = -parsed.amount;
-          const rdnAccount = accounts.find((a) => a.type === 'RDN');
-          if (rdnAccount) {
-            setAccounts((prev) => {
-              const updated = prev.map((a) => {
-                if (a.id === rdnAccount.id) {
-                  return { ...a, balance: a.balance + parsed.amount };
-                }
-                return a;
-              });
-              StorageService.saveAccounts(updated);
-              return updated;
-            });
-          }
-        }
-
-        // Apply to matched account
+      if (!matchedAccount) {
+        matchedAccount = {
+          id: `acc-${Date.now()}`,
+          name: parsed.bankName || 'Rekening Utama',
+          type: 'BANK',
+          accountNumber: 'Aktif',
+          balance: parsed.type === 'INCOME' ? parsed.amount : 0,
+          color: '#38BDF8',
+          icon: 'landmark',
+          updatedAt: new Date().toISOString(),
+        };
         setAccounts((prev) => {
-          const updated = prev.map((a) => {
-            if (a.id === matchedAccount.id) {
-              return { ...a, balance: Math.max(0, a.balance + delta) };
-            }
-            return a;
-          });
+          const updated = [matchedAccount, ...prev];
           StorageService.saveAccounts(updated);
           return updated;
         });
-
-        // Add Transaction
-        const newTx: Transaction = {
-          id: `tx-ai-${Date.now()}`,
-          accountId: matchedAccount.id,
-          accountName: matchedAccount.name,
-          type: parsed.type,
-          amount: parsed.amount,
-          category: parsed.category,
-          description: parsed.description,
-          rawNotificationText: text,
-          source: 'AI_MUTATION',
-          transactionDate: new Date().toISOString(),
-        };
-
-        setTransactions((prev) => {
-          const updated = [newTx, ...prev];
-          StorageService.saveTransactions(updated);
-          return updated;
-        });
-
-        triggerHaptic('success');
       }
 
+      let delta = 0;
+      if (parsed.type === 'EXPENSE') delta = -parsed.amount;
+      else if (parsed.type === 'INCOME') delta = parsed.amount;
+      else if (parsed.type === 'TRANSFER') {
+        // Transfer to RDN or another account
+        delta = -parsed.amount;
+        const rdnAccount = accounts.find((a) => a.type === 'RDN');
+        if (rdnAccount) {
+          setAccounts((prev) => {
+            const updated = prev.map((a) => {
+              if (a.id === rdnAccount.id) {
+                return { ...a, balance: a.balance + parsed.amount };
+              }
+              return a;
+            });
+            StorageService.saveAccounts(updated);
+            return updated;
+          });
+        }
+      }
+
+      // Apply to matched account
+      setAccounts((prev) => {
+        const updated = prev.map((a) => {
+          if (a.id === matchedAccount.id) {
+            return { ...a, balance: Math.max(0, a.balance + delta) };
+          }
+          return a;
+        });
+        StorageService.saveAccounts(updated);
+        return updated;
+      });
+
+      // Add Transaction
+      const newTx: Transaction = {
+        id: `tx-ai-${Date.now()}`,
+        accountId: matchedAccount.id,
+        accountName: matchedAccount.name,
+        type: parsed.type,
+        amount: parsed.amount,
+        category: parsed.category,
+        description: parsed.description,
+        rawNotificationText: text,
+        source: 'AI_MUTATION',
+        transactionDate: new Date().toISOString(),
+      };
+
+      setTransactions((prev) => {
+        const updated = [newTx, ...prev];
+        StorageService.saveTransactions(updated);
+        return updated;
+      });
+
+      triggerHaptic('success');
       return parsed;
     },
     [accounts]
@@ -333,14 +350,24 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     ): Promise<{ success: boolean; message: string }> => {
       triggerHaptic('medium');
 
-      // Resolve RDN account
-      const rdnAcc =
+      // Resolve RDN account or prepare fallback
+      let rdnAcc =
         accounts.find((a) => a.id === targetRdnId) ||
+        accounts.find((a) => a.accountNumber === result.rdnAccountNumber) ||
         accounts.find((a) => a.type === 'RDN') ||
         accounts[0];
 
       if (!rdnAcc) {
-        return { success: false, message: 'Akun RDN tidak ditemukan.' };
+        rdnAcc = {
+          id: `acc-rdn-${Date.now()}`,
+          name: `RDN ${result.brokerName ? result.brokerName.replace('PT. ', '') : 'Stockbit Jago'}`,
+          type: 'RDN',
+          accountNumber: result.rdnAccountNumber || '112359923696',
+          balance: result.rdnCashBalance || 0,
+          color: '#10B981',
+          icon: 'trending-up',
+          updatedAt: new Date().toISOString(),
+        };
       }
 
       // Special Handler for Statement of Account (Holdings Snapshot)
@@ -348,7 +375,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         const targetRdn =
           accounts.find((a) => a.accountNumber === result.rdnAccountNumber) ||
           accounts.find((a) => a.type === 'RDN') ||
-          accounts[0];
+          rdnAcc;
 
         // 1. Sync Stock Holdings
         setStocks((prevStocks) => {
@@ -556,18 +583,31 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         return currentStocks;
       });
 
-      // Update RDN Account Balance
+      // Update RDN Account Balance (merging if newly auto-created)
       setAccounts((prevAccs) => {
-        const updated = prevAccs.map((a) => {
-          if (a.id === rdnAcc.id) {
-            return {
-              ...a,
-              balance: Math.max(0, a.balance + rdnBalanceDelta),
+        const exists = prevAccs.some((a) => a.id === rdnAcc.id);
+        let updated: Account[];
+        if (exists) {
+          updated = prevAccs.map((a) => {
+            if (a.id === rdnAcc.id) {
+              return {
+                ...a,
+                balance: Math.max(0, a.balance + rdnBalanceDelta),
+                updatedAt: new Date().toISOString(),
+              };
+            }
+            return a;
+          });
+        } else {
+          updated = [
+            {
+              ...rdnAcc,
+              balance: Math.max(0, rdnAcc.balance + rdnBalanceDelta),
               updatedAt: new Date().toISOString(),
-            };
-          }
-          return a;
-        });
+            },
+            ...prevAccs,
+          ];
+        }
         StorageService.saveAccounts(updated);
         return updated;
       });
@@ -652,6 +692,24 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const resetToInitialSeed = useCallback(async () => {
     triggerHaptic('heavy');
     await StorageService.resetToSeed();
+    setAccounts([]);
+    setStocks([]);
+    setCryptos([]);
+    setTransactions([]);
+  }, []);
+
+  const clearAllData = useCallback(async () => {
+    triggerHaptic('heavy');
+    await StorageService.clearAllData();
+    setAccounts([]);
+    setStocks([]);
+    setCryptos([]);
+    setTransactions([]);
+  }, []);
+
+  const loadDemoData = useCallback(async () => {
+    triggerHaptic('medium');
+    await StorageService.loadDemoData();
     const [storedAcc, storedStocks, storedCryptos, storedTx] = await Promise.all([
       StorageService.getAccounts(),
       StorageService.getStocks(),
@@ -696,6 +754,8 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         saveCrypto,
         deleteCrypto,
         resetToInitialSeed,
+        clearAllData,
+        loadDemoData,
       }}
     >
       {children}

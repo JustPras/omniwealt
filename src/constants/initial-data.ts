@@ -1,6 +1,17 @@
 import { Account, StockAsset, CryptoAsset, Transaction } from '../types';
 
-export const INITIAL_ACCOUNTS: Account[] = [
+/**
+ * Clean Slate: New users start with 0 data (empty state).
+ */
+export const INITIAL_ACCOUNTS: Account[] = [];
+export const INITIAL_STOCKS: StockAsset[] = [];
+export const INITIAL_CRYPTOS: CryptoAsset[] = [];
+export const INITIAL_TRANSACTIONS: Transaction[] = [];
+
+/**
+ * Demo Datasets for testing, developer preview, and 1-click simulation.
+ */
+export const DEMO_ACCOUNTS: Account[] = [
   {
     id: 'acc-bca-01',
     name: 'BCA Tahapan',
@@ -43,7 +54,7 @@ export const INITIAL_ACCOUNTS: Account[] = [
   },
 ];
 
-export const INITIAL_STOCKS: StockAsset[] = [
+export const DEMO_STOCKS: StockAsset[] = [
   {
     id: 'stock-bbca',
     ticker: 'BBCA.JK',
@@ -82,7 +93,7 @@ export const INITIAL_STOCKS: StockAsset[] = [
   },
 ];
 
-export const INITIAL_CRYPTOS: CryptoAsset[] = [
+export const DEMO_CRYPTOS: CryptoAsset[] = [
   {
     id: 'crypto-btc',
     coingeckoId: 'bitcoin',
@@ -118,7 +129,7 @@ export const INITIAL_CRYPTOS: CryptoAsset[] = [
   },
 ];
 
-export const INITIAL_TRANSACTIONS: Transaction[] = [
+export const DEMO_TRANSACTIONS: Transaction[] = [
   {
     id: 'tx-01',
     accountId: 'acc-bca-01',

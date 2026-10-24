@@ -395,9 +395,9 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       if (!rdnAcc) {
         rdnAcc = {
           id: `acc-rdn-${Date.now()}`,
-          name: `RDN ${result.brokerName ? result.brokerName.replace('PT. ', '') : 'Stockbit Jago'}`,
+          name: `RDN ${result.brokerName ? result.brokerName.replace('PT. ', '') : 'Sekuritas'}`,
           type: 'RDN',
-          accountNumber: result.rdnAccountNumber || '112359923696',
+          accountNumber: result.rdnAccountNumber || '1000000000',
           balance: result.rdnCashBalance || 0,
           color: '#10B981',
           icon: 'trending-up',
@@ -451,7 +451,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         });
 
         // 2. Sync RDN Account Balance
-        const newRdnBalance = result.rdnCashBalance !== undefined ? result.rdnCashBalance : 408241;
+        const newRdnBalance = result.rdnCashBalance !== undefined ? result.rdnCashBalance : 0;
         setAccounts((prevAccs) => {
           let updatedAccs = [...prevAccs];
           const rdnIdx = updatedAccs.findIndex(
@@ -461,17 +461,17 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           if (rdnIdx >= 0) {
             updatedAccs[rdnIdx] = {
               ...updatedAccs[rdnIdx],
-              name: `RDN Stockbit ${result.rdnBank ? result.rdnBank.replace('Bank ', '') : 'Jago'}`,
-              accountNumber: result.rdnAccountNumber || updatedAccs[rdnIdx].accountNumber || '112359923696',
+              name: `RDN ${result.rdnBank ? result.rdnBank.replace('Bank ', '') : 'Sekuritas'}`,
+              accountNumber: result.rdnAccountNumber || updatedAccs[rdnIdx].accountNumber || '1000000000',
               balance: newRdnBalance,
               updatedAt: new Date().toISOString(),
             };
           } else {
             updatedAccs.push({
               id: `acc-rdn-${Date.now()}`,
-              name: `RDN Stockbit ${result.rdnBank || 'Jago'}`,
+              name: `RDN ${result.rdnBank || 'Sekuritas'}`,
               type: 'RDN',
-              accountNumber: result.rdnAccountNumber || '112359923696',
+              accountNumber: result.rdnAccountNumber || '1000000000',
               balance: newRdnBalance,
               color: '#10B981',
               updatedAt: new Date().toISOString(),

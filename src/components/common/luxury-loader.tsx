@@ -8,10 +8,10 @@ import {
   ViewStyle,
   StyleProp,
   Platform,
+  Image,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Icon } from './icon';
 
 interface LuxuryLoaderProps {
   title?: string;
@@ -149,7 +149,11 @@ export const LuxuryLoader: React.FC<LuxuryLoaderProps> = ({
           ]}
         >
           <View style={styles.emblemInner}>
-            <Icon name="Sparkles" size={28} color="#38BDF8" />
+            <Image
+              source={require('../../../assets/icon.png')}
+              style={{ width: 40, height: 40, borderRadius: 10 }}
+              resizeMode="cover"
+            />
           </View>
         </Animated.View>
       </View>

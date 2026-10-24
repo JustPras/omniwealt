@@ -1,7 +1,8 @@
-import React from 'react';
-import { Text, TextStyle, StyleProp, StyleSheet } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { Text, TextStyle, StyleProp, StyleSheet, Animated } from 'react-native';
 import { useWealth } from '../../store/wealth-context';
 import { formatIDR } from '../../utils/format';
+import { color } from '../../theme/tokens';
 
 interface PrivacyValueProps {
   value: number | string;
@@ -23,13 +24,33 @@ export const PrivacyValue: React.FC<PrivacyValueProps> = ({
   maskedLength = 8,
 }) => {
   const { privacyMode } = useWealth();
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // 180ms soft transition when toggling privacy mode
+  useEffect(() => {
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 0.35,
+        duration: 90,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 90,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [privacyMode, fadeAnim]);
 
   if (privacyMode) {
-    const dots = '•'.repeat(maskedLength);
+    const dots = '••••';
     return (
-      <Text selectable style={[styles.tabularText, style]}>
+      <Animated.Text
+        selectable={false}
+        style={[styles.tabularText, { opacity: fadeAnim }, style]}
+      >
         {isCurrency ? `Rp ${dots}` : dots}
-      </Text>
+      </Animated.Text>
     );
   }
 
@@ -41,16 +62,20 @@ export const PrivacyValue: React.FC<PrivacyValueProps> = ({
   }
 
   return (
-    <Text selectable style={[styles.tabularText, style]}>
+    <Animated.Text
+      selectable
+      style={[styles.tabularText, { opacity: fadeAnim }, style]}
+    >
       {prefix}
       {display}
       {suffix}
-    </Text>
+    </Animated.Text>
   );
 };
 
 const styles = StyleSheet.create({
   tabularText: {
     fontVariant: ['tabular-nums'],
+    color: color.text,
   },
 });

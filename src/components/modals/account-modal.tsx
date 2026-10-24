@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, Pressable } from 'react-native';
 import { Icon } from '../common/icon';
 import { GlassCard } from '../common/glass-card';
 import { AccountType } from '../../types';
 import { useWealth } from '../../store/wealth-context';
 import { triggerHaptic } from '../../utils/haptics';
+import { color, space, radius, shadow } from '../../theme/tokens';
 
 interface AccountModalProps {
   visible: boolean;
@@ -17,7 +18,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({ visible, onClose }) 
   const [type, setType] = useState<AccountType>('BANK');
   const [accountNumber, setAccountNumber] = useState('');
   const [balance, setBalance] = useState('');
-  const [color, setColor] = useState('#3B82F6');
 
   const handleSubmit = async () => {
     if (!name.trim()) return;
@@ -28,10 +28,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({ visible, onClose }) 
       type,
       accountNumber: accountNumber.trim() || undefined,
       balance: numBalance,
-      color,
+      color: type === 'BANK' ? color.asset.stock : type === 'RDN' ? color.gain : color.asset.crypto,
       icon: type === 'BANK' ? 'landmark' : type === 'RDN' ? 'trending-up' : 'smartphone',
     });
 
+    triggerHaptic('success');
     setName('');
     setAccountNumber('');
     setBalance('');
@@ -42,80 +43,90 @@ export const AccountModal: React.FC<AccountModalProps> = ({ visible, onClose }) 
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.modalContent}>
-          <GlassCard style={styles.cardContainer}>
+          <GlassCard level="raised" style={styles.cardContainer}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.title}>Tambah Rekening Baru</Text>
-              <TouchableOpacity
+              <Text style={styles.title}>Tambah rekening baru</Text>
+              <Pressable
                 onPress={() => {
                   triggerHaptic('light');
                   onClose();
                 }}
+                hitSlop={8}
                 style={styles.closeBtn}
               >
-                <Icon name="X" size={20} color="#94A3B8" />
-              </TouchableOpacity>
+                <Icon name="X" size={18} color={color.textMuted} />
+              </Pressable>
             </View>
 
             {/* Type Selector */}
-            <Text style={styles.inputLabel}>Tipe Akun</Text>
+            <Text style={styles.inputLabel}>Tipe akun</Text>
             <View style={styles.typeRow}>
-              {(['BANK', 'RDN', 'E-WALLET'] as AccountType[]).map((t) => (
-                <TouchableOpacity
-                  key={t}
-                  onPress={() => {
-                    triggerHaptic('selection');
-                    setType(t);
-                    if (t === 'BANK') setColor('#3B82F6');
-                    else if (t === 'RDN') setColor('#10B981');
-                    else setColor('#06B6D4');
-                  }}
-                  style={[styles.typeButton, type === t && styles.activeTypeButton]}
-                >
-                  {t === 'BANK' && <Icon name="Landmark" size={15} color={type === t ? '#38BDF8' : '#64748B'} />}
-                  {t === 'RDN' && <Icon name="TrendingUp" size={15} color={type === t ? '#10B981' : '#64748B'} />}
-                  {t === 'E-WALLET' && <Icon name="Smartphone" size={15} color={type === t ? '#06B6D4' : '#64748B'} />}
-                  <Text style={[styles.typeText, type === t && styles.activeTypeText]}>{t}</Text>
-                </TouchableOpacity>
-              ))}
+              {(['BANK', 'RDN', 'E-WALLET'] as AccountType[]).map((t) => {
+                const isActive = type === t;
+                const label = t === 'BANK' ? 'Bank' : t === 'RDN' ? 'RDN' : 'E-Wallet';
+                return (
+                  <Pressable
+                    key={t}
+                    onPress={() => {
+                      triggerHaptic('selection');
+                      setType(t);
+                    }}
+                    style={[styles.typeButton, isActive && styles.activeTypeButton]}
+                  >
+                    {t === 'BANK' && (
+                      <Icon name="Landmark" size={15} color={isActive ? color.accent : color.textMuted} />
+                    )}
+                    {t === 'RDN' && (
+                      <Icon name="TrendingUp" size={15} color={isActive ? color.accent : color.textMuted} />
+                    )}
+                    {t === 'E-WALLET' && (
+                      <Icon name="Smartphone" size={15} color={isActive ? color.accent : color.textMuted} />
+                    )}
+                    <Text style={[styles.typeText, isActive && styles.activeTypeText]}>
+                      {label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
 
             {/* Account Name */}
-            <Text style={styles.inputLabel}>Nama Rekening</Text>
+            <Text style={styles.inputLabel}>Nama rekening</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. BCA Prioritas, Mandiri RDN"
-              placeholderTextColor="#475569"
+              placeholder="Contoh: BCA Tahapan, Mandiri RDN"
+              placeholderTextColor={color.textFaint}
               value={name}
               onChangeText={setName}
             />
 
             {/* Account Number */}
-            <Text style={styles.inputLabel}>Nomor Rekening (Opsional)</Text>
+            <Text style={styles.inputLabel}>Nomor rekening (opsional)</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. 8220194821"
-              placeholderTextColor="#475569"
+              placeholder="Contoh: 8220194821"
+              placeholderTextColor={color.textFaint}
               keyboardType="number-pad"
               value={accountNumber}
               onChangeText={setAccountNumber}
             />
 
             {/* Initial Balance */}
-            <Text style={styles.inputLabel}>Saldo Awal (Rp)</Text>
+            <Text style={styles.inputLabel}>Saldo awal (Rp)</Text>
             <TextInput
               style={styles.input}
               placeholder="0"
-              placeholderTextColor="#475569"
+              placeholderTextColor={color.textFaint}
               keyboardType="number-pad"
               value={balance}
               onChangeText={setBalance}
             />
 
             {/* Submit Button */}
-            <TouchableOpacity onPress={handleSubmit} style={styles.submitBtn} activeOpacity={0.8}>
-              <Text style={styles.submitText}>Simpan Rekening</Text>
-            </TouchableOpacity>
+            <Pressable onPress={handleSubmit} style={styles.submitBtn}>
+              <Text style={styles.submitText}>Simpan rekening</Text>
+            </Pressable>
           </GlassCard>
         </View>
       </View>
@@ -131,41 +142,39 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '100%',
-    padding: 16,
+    padding: space.md,
     paddingBottom: 34,
   },
   cardContainer: {
-    backgroundColor: '#0F172A',
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    padding: space.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: space.md,
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: color.text,
   },
   closeBtn: {
     padding: 6,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: radius.pill,
+    backgroundColor: color.glassFillInset,
   },
   inputLabel: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#94A3B8',
+    fontWeight: '500',
+    color: color.textMuted,
     marginBottom: 6,
-    marginTop: 10,
-    letterSpacing: 0.3,
+    marginTop: space.sm,
   },
   typeRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 6,
+    gap: space.xs + 2,
+    marginBottom: space.xs,
   },
   typeButton: {
     flex: 1,
@@ -174,44 +183,46 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: radius.md,
+    backgroundColor: color.glassFillInset,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: color.hairline,
   },
   activeTypeButton: {
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
-    borderColor: '#38BDF8',
+    backgroundColor: color.accentSoft,
+    borderColor: color.accentRim,
   },
   typeText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
+    fontWeight: '500',
+    color: color.textMuted,
   },
   activeTypeText: {
-    color: '#F8FAFC',
+    color: color.accent,
+    fontWeight: '600',
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: color.glassFillInset,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 14,
+    borderColor: color.hairline,
+    borderRadius: radius.md,
+    paddingHorizontal: space.md,
     paddingVertical: 12,
-    color: '#F8FAFC',
+    color: color.text,
     fontSize: 14,
     fontVariant: ['tabular-nums'],
   },
   submitBtn: {
-    backgroundColor: '#10B981',
-    borderRadius: 14,
-    paddingVertical: 14,
+    backgroundColor: color.accent,
+    borderRadius: radius.pill,
+    paddingVertical: 13,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: space.lg,
+    ...shadow.e1,
   },
   submitText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 15,
+    color: color.onAccent,
+    fontWeight: '600',
+    fontSize: 14,
   },
 });

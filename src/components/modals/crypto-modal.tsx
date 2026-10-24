@@ -1,41 +1,42 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, Pressable, ActivityIndicator } from 'react-native';
 import { Icon } from '../common/icon';
 import { GlassCard } from '../common/glass-card';
 import { CryptoAsset } from '../../types';
 import { useWealth } from '../../store/wealth-context';
 import { triggerHaptic } from '../../utils/haptics';
+import { color, space, radius, shadow } from '../../theme/tokens';
 
 interface CryptoModalProps {
   visible: boolean;
   onClose: () => void;
-  cryptoToEdit?: CryptoAsset | null;
+  crypto?: CryptoAsset | null;
 }
 
-export const CryptoModal: React.FC<CryptoModalProps> = ({ visible, onClose, cryptoToEdit }) => {
+export const CryptoModal: React.FC<CryptoModalProps> = ({ visible, onClose, crypto }) => {
   const { saveCrypto, deleteCrypto } = useWealth();
 
-  const [symbol, setSymbol] = useState(cryptoToEdit ? cryptoToEdit.symbol : '');
-  const [name, setName] = useState(cryptoToEdit ? cryptoToEdit.name : '');
-  const [holdings, setHoldings] = useState(cryptoToEdit ? cryptoToEdit.holdings.toString() : '');
+  const [symbol, setSymbol] = useState(crypto ? crypto.symbol : '');
+  const [name, setName] = useState(crypto ? crypto.name : '');
+  const [holdings, setHoldings] = useState(crypto ? crypto.holdings.toString() : '');
   const [avgBuyPriceIdr, setAvgBuyPriceIdr] = useState(
-    cryptoToEdit ? cryptoToEdit.avgBuyPriceIdr.toString() : ''
+    crypto ? crypto.avgBuyPriceIdr.toString() : ''
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   React.useEffect(() => {
-    if (cryptoToEdit) {
-      setSymbol(cryptoToEdit.symbol);
-      setName(cryptoToEdit.name);
-      setHoldings(cryptoToEdit.holdings.toString());
-      setAvgBuyPriceIdr(cryptoToEdit.avgBuyPriceIdr.toString());
+    if (crypto) {
+      setSymbol(crypto.symbol);
+      setName(crypto.name);
+      setHoldings(crypto.holdings.toString());
+      setAvgBuyPriceIdr(crypto.avgBuyPriceIdr.toString());
     } else {
       setSymbol('');
       setName('');
       setHoldings('');
       setAvgBuyPriceIdr('');
     }
-  }, [cryptoToEdit]);
+  }, [crypto, visible]);
 
   const handleSubmit = async () => {
     const cleanSymbol = symbol.trim().toUpperCase();
@@ -58,11 +59,12 @@ export const CryptoModal: React.FC<CryptoModalProps> = ({ visible, onClose, cryp
           coingeckoId,
           holdings: numHoldings,
           avgBuyPriceIdr: numAvgPrice,
-          currentPriceIdr: cryptoToEdit?.currentPriceIdr || numAvgPrice,
-          change24h: cryptoToEdit?.change24h || 0,
+          currentPriceIdr: crypto?.currentPriceIdr || numAvgPrice,
+          change24h: crypto?.change24h || 0,
         },
-        cryptoToEdit?.id
+        crypto?.id
       );
+      triggerHaptic('success');
       onClose();
     } finally {
       setIsSubmitting(false);
@@ -70,8 +72,9 @@ export const CryptoModal: React.FC<CryptoModalProps> = ({ visible, onClose, cryp
   };
 
   const handleDelete = async () => {
-    if (cryptoToEdit) {
-      await deleteCrypto(cryptoToEdit.id);
+    if (crypto) {
+      triggerHaptic('warning');
+      await deleteCrypto(crypto.id);
       onClose();
     }
   };
@@ -80,101 +83,87 @@ export const CryptoModal: React.FC<CryptoModalProps> = ({ visible, onClose, cryp
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.modalContent}>
-          <GlassCard style={styles.cardContainer}>
+          <GlassCard level="raised" style={styles.cardContainer}>
             {/* Header */}
             <View style={styles.header}>
-              <View style={styles.headerLeft}>
-                <Icon name="Coins" size={18} color="#F59E0B" />
-                <Text style={styles.title}>{cryptoToEdit ? 'Edit Aset Kripto' : 'Tambah Aset Kripto'}</Text>
-              </View>
-              <TouchableOpacity
+              <Text style={styles.title}>{crypto ? 'Ubah aset kripto' : 'Tambah kripto'}</Text>
+              <Pressable
                 onPress={() => {
                   triggerHaptic('light');
                   onClose();
                 }}
+                hitSlop={8}
                 style={styles.closeBtn}
               >
-                <Icon name="X" size={20} color="#94A3B8" />
-              </TouchableOpacity>
+                <Icon name="X" size={18} color={color.textMuted} />
+              </Pressable>
             </View>
 
             {/* Simbol Kripto */}
-            <Text style={styles.inputLabel}>Simbol Kripto</Text>
+            <Text style={styles.inputLabel}>Simbol koin (kripto)</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. BTC, ETH, SOL, BNB"
-              placeholderTextColor="#475569"
+              placeholder="Contoh: BTC, ETH, SOL"
+              placeholderTextColor={color.textFaint}
               autoCapitalize="characters"
               value={symbol}
               onChangeText={setSymbol}
             />
 
-            {/* Nama Kripto */}
-            <Text style={styles.inputLabel}>Nama Koin / Token</Text>
+            {/* Nama Aset */}
+            <Text style={styles.inputLabel}>Nama koin</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. Bitcoin, Ethereum, Solana"
-              placeholderTextColor="#475569"
+              placeholder="Contoh: Bitcoin, Ethereum"
+              placeholderTextColor={color.textFaint}
               value={name}
               onChangeText={setName}
             />
 
-            {/* Holdings */}
-            <Text style={styles.inputLabel}>Jumlah Koin (Holdings)</Text>
+            {/* Jumlah Koin */}
+            <Text style={styles.inputLabel}>Jumlah kepemilikan koin</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. 0.05 atau 12.5"
-              placeholderTextColor="#475569"
+              placeholder="0.00"
+              placeholderTextColor={color.textFaint}
               keyboardType="numeric"
               value={holdings}
               onChangeText={setHoldings}
             />
 
-            {/* Avg Buy Price */}
-            <Text style={styles.inputLabel}>Harga Beli Rata-Rata (IDR)</Text>
+            {/* Harga Rata-rata Beli */}
+            <Text style={styles.inputLabel}>Harga beli rata-rata (IDR)</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. 1000000000"
-              placeholderTextColor="#475569"
+              placeholder="0"
+              placeholderTextColor={color.textFaint}
               keyboardType="number-pad"
               value={avgBuyPriceIdr}
               onChangeText={setAvgBuyPriceIdr}
             />
 
-            {/* Automatic Real-Time Market Price Notice */}
-            <View style={styles.autoPricePill}>
-              <Icon name="Sparkles" size={15} color="#F59E0B" />
-              <View style={styles.autoPriceTextGroup}>
-                <Text style={styles.autoPriceTitle}>Harga Pasar Real-Time Otomatis</Text>
-                <Text style={styles.autoPriceSubtitle}>
-                  {cryptoToEdit
-                    ? `Harga saat ini (Rp ${cryptoToEdit.currentPriceIdr.toLocaleString('id-ID')}) diperbarui otomatis live dari CoinGecko.`
-                    : 'Harga pasar live langsung diambil otomatis dari CoinGecko (denominasi Rupiah).'}
-                </Text>
-              </View>
-            </View>
+            <Text style={styles.autoPriceNotice}>
+              Harga live pasar akan diperbarui secara otomatis.
+            </Text>
 
-            {/* Submit & Delete Buttons */}
-            <View style={styles.actionRow}>
-              {cryptoToEdit && (
-                <TouchableOpacity onPress={handleDelete} style={styles.deleteBtn} activeOpacity={0.8}>
+            {/* Action Buttons */}
+            <View style={styles.buttonRow}>
+              {crypto && (
+                <Pressable onPress={handleDelete} style={styles.deleteBtn}>
                   <Text style={styles.deleteText}>Hapus</Text>
-                </TouchableOpacity>
+                </Pressable>
               )}
-              <TouchableOpacity
+              <Pressable
                 onPress={handleSubmit}
-                style={[styles.submitBtn, isSubmitting && styles.submitBtnDisabled]}
-                activeOpacity={0.8}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !symbol.trim()}
+                style={[styles.submitBtn, (!symbol.trim() || isSubmitting) && styles.disabledBtn]}
               >
-                <Text style={styles.submitText}>
-                  {isSubmitting
-                    ? 'Memperbarui Harga...'
-                    : cryptoToEdit
-                    ? 'Simpan Perubahan'
-                    : '+ Tambah Kripto'}
-                </Text>
-              </TouchableOpacity>
+                {isSubmitting ? (
+                  <ActivityIndicator color={color.onAccent} size="small" />
+                ) : (
+                  <Text style={styles.submitText}>Simpan transaksi</Text>
+                )}
+              </Pressable>
             </View>
           </GlassCard>
         </View>
@@ -191,109 +180,87 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '100%',
-    padding: 16,
+    padding: space.md,
     paddingBottom: 34,
   },
   cardContainer: {
-    backgroundColor: '#0F172A',
-    borderColor: 'rgba(245, 158, 11, 0.25)',
+    padding: space.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    marginBottom: space.md,
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: color.text,
   },
   closeBtn: {
     padding: 6,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: radius.pill,
+    backgroundColor: color.glassFillInset,
   },
   inputLabel: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#94A3B8',
-    marginBottom: 4,
-    marginTop: 8,
+    fontWeight: '500',
+    color: color.textMuted,
+    marginBottom: 6,
+    marginTop: space.sm,
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: color.glassFillInset,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    color: '#F8FAFC',
+    borderColor: color.hairline,
+    borderRadius: radius.md,
+    paddingHorizontal: space.md,
+    paddingVertical: 12,
+    color: color.text,
     fontSize: 14,
     fontVariant: ['tabular-nums'],
   },
-  autoPricePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: 'rgba(245, 158, 11, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.25)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginTop: 12,
-  },
-  autoPriceTextGroup: {
-    flex: 1,
-  },
-  autoPriceTitle: {
+  autoPriceNotice: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#F59E0B',
+    color: color.textMuted,
+    marginTop: space.sm,
+    fontStyle: 'italic',
   },
-  autoPriceSubtitle: {
-    fontSize: 11,
-    color: '#94A3B8',
-    marginTop: 2,
-    lineHeight: 15,
-  },
-  actionRow: {
+  buttonRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 18,
+    gap: space.sm,
+    marginTop: space.lg,
   },
   deleteBtn: {
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 14,
-    backgroundColor: 'rgba(244, 63, 94, 0.15)',
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    borderRadius: radius.pill,
+    backgroundColor: color.glassFillInset,
     borderWidth: 1,
     borderColor: 'rgba(244, 63, 94, 0.3)',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   deleteText: {
-    color: '#F43F5E',
-    fontWeight: '700',
+    color: color.loss,
+    fontWeight: '600',
+    fontSize: 13,
   },
   submitBtn: {
     flex: 1,
-    backgroundColor: '#F59E0B',
-    borderRadius: 14,
-    paddingVertical: 14,
+    backgroundColor: color.accent,
+    borderRadius: radius.pill,
+    paddingVertical: 13,
     alignItems: 'center',
+    justifyContent: 'center',
+    ...shadow.e1,
   },
-  submitBtnDisabled: {
-    opacity: 0.65,
+  disabledBtn: {
+    opacity: 0.5,
   },
   submitText: {
-    color: '#080C14',
-    fontWeight: '700',
-    fontSize: 15,
+    color: color.onAccent,
+    fontWeight: '600',
+    fontSize: 14,
   },
 });

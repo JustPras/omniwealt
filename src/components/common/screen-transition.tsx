@@ -1,68 +1,51 @@
-import React, { useRef, useCallback } from 'react';
-import { Animated, StyleSheet, ViewStyle, StyleProp, Easing } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import React, { useRef, useEffect } from 'react';
+import { Animated, StyleSheet, ViewStyle, StyleProp, Easing, AccessibilityInfo } from 'react-native';
+import { motion } from '../../theme/tokens';
 
 interface ScreenTransitionProps {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
-  delay?: number;
 }
 
-/**
- * ScreenTransition: Provides a smooth, ultra-responsive entrance animation
- * whenever a tab is switched or navigated to in OmniWealth.
- *
- * Utilizes `useFocusEffect` to trigger on every tab switch without white screen
- * or jarring layout shifts.
- */
+// Module-level session flag: entrance animation plays only once per app session
+let sessionEntrancePlayed = false;
+
 export const ScreenTransition: React.FC<ScreenTransitionProps> = ({
   children,
   style,
-  delay = 0,
 }) => {
-  // Start from soft values (never completely blank to eliminate black/white flashes)
-  const fadeAnim = useRef(new Animated.Value(0.45)).current;
-  const slideAnim = useRef(new Animated.Value(7)).current;
-  const scaleAnim = useRef(new Animated.Value(0.99)).current;
+  const shouldAnimate = !sessionEntrancePlayed;
+  const fadeAnim = useRef(new Animated.Value(shouldAnimate ? 0.6 : 1)).current;
+  const slideAnim = useRef(new Animated.Value(shouldAnimate ? 8 : 0)).current;
 
-  useFocusEffect(
-    useCallback(() => {
-      // Soft reset upon entering focus
-      fadeAnim.setValue(0.45);
-      slideAnim.setValue(7);
-      scaleAnim.setValue(0.99);
+  useEffect(() => {
+    if (!sessionEntrancePlayed) {
+      sessionEntrancePlayed = true;
 
-      const anim = Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 220,
-          delay,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 240,
-          delay,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 1,
-          duration: 240,
-          delay,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-      ]);
+      AccessibilityInfo.isReduceMotionEnabled().then((reduceMotion) => {
+        if (reduceMotion) {
+          fadeAnim.setValue(1);
+          slideAnim.setValue(0);
+          return;
+        }
 
-      anim.start();
-
-      return () => {
-        anim.stop();
-      };
-    }, [fadeAnim, slideAnim, scaleAnim, delay])
-  );
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: motion.base,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: motion.base,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+        ]).start();
+      });
+    }
+  }, [fadeAnim, slideAnim]);
 
   return (
     <Animated.View
@@ -70,10 +53,7 @@ export const ScreenTransition: React.FC<ScreenTransitionProps> = ({
         styles.container,
         {
           opacity: fadeAnim,
-          transform: [
-            { translateY: slideAnim },
-            { scale: scaleAnim },
-          ],
+          transform: [{ translateY: slideAnim }],
         },
         style,
       ]}
@@ -86,6 +66,5 @@ export const ScreenTransition: React.FC<ScreenTransitionProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#080C14',
   },
 });

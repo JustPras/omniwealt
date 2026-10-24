@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, Pressable, ActivityIndicator } from 'react-native';
 import { Icon } from '../common/icon';
 import { GlassCard } from '../common/glass-card';
 import { useWealth } from '../../store/wealth-context';
 import { formatIDR } from '../../utils/format';
 import { triggerHaptic } from '../../utils/haptics';
 import { BankMutationResult } from '../../types';
+import { color, space, radius, shadow } from '../../theme/tokens';
 
 interface NotificationSimulatorModalProps {
   visible: boolean;
@@ -24,17 +25,17 @@ export const NotificationSimulatorModal: React.FC<NotificationSimulatorModalProp
   const PRESETS = [
     {
       id: 'p1',
-      title: 'QRIS Kopi Kenangan (BCA)',
+      title: 'QRIS Kopi Kenangan',
       text: 'Transaksi QRIS Rp 48.500 di Kopi Kenangan berhasil dari rekening BCA Tahapan',
     },
     {
       id: 'p2',
-      title: 'BI-FAST Gaji (Mandiri)',
+      title: 'Gaji Bulanan',
       text: 'Transfer masuk BI-FAST Rp 2.500.000 dari PT Karya Digital ke Mandiri Livin',
     },
     {
       id: 'p3',
-      title: 'Top Up RDN Stockbit',
+      title: 'Top Up RDN',
       text: 'Top up RDN Stockbit BCA sebesar Rp 1.000.000 dari BCA Tahapan berhasil',
     },
   ];
@@ -55,96 +56,73 @@ export const NotificationSimulatorModal: React.FC<NotificationSimulatorModalProp
     }
   };
 
-  const handleApplyPreset = (presetText: string) => {
-    triggerHaptic('selection');
-    setInputText(presetText);
-    setLastResult(null);
-  };
-
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.modalContent}>
-          <GlassCard style={styles.cardContainer}>
-            {/* Header */}
+          <GlassCard level="raised" style={styles.cardContainer}>
             <View style={styles.header}>
-              <View style={styles.headerLeft}>
-                <Icon name="Sparkles" size={18} color="#38BDF8" />
-                <Text style={styles.title}>Smart Bank & QRIS Parser</Text>
-              </View>
-              <TouchableOpacity
+              <Text style={styles.title}>Simulasi notifikasi mutasi</Text>
+              <Pressable
                 onPress={() => {
                   triggerHaptic('light');
                   onClose();
                 }}
+                hitSlop={8}
                 style={styles.closeBtn}
               >
-                <Icon name="X" size={20} color="#94A3B8" />
-              </TouchableOpacity>
+                <Icon name="X" size={18} color={color.textMuted} />
+              </Pressable>
             </View>
 
-            <Text style={styles.subtitle}>
-              Tempel notifikasi SMS / WhatsApp / QRIS mutasi bank dari HP Anda, atau pilih preset cepat di bawah:
-            </Text>
-
-            {/* 3 Quick Presets */}
-            <View style={styles.presetSection}>
+            <Text style={styles.label}>Pilih preset simulasi notifikasi SMS/QRIS:</Text>
+            <View style={styles.presetRow}>
               {PRESETS.map((p) => (
-                <TouchableOpacity
+                <Pressable
                   key={p.id}
-                  onPress={() => handleApplyPreset(p.text)}
+                  onPress={() => {
+                    triggerHaptic('selection');
+                    setInputText(p.text);
+                  }}
                   style={styles.presetChip}
-                  activeOpacity={0.7}
                 >
-                  <Icon name="Zap" size={12} color="#F59E0B" />
                   <Text style={styles.presetChipText}>{p.title}</Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </View>
 
-            {/* Text Input Multiline */}
             <TextInput
-              style={styles.textArea}
-              placeholder="Ketik atau paste teks notifikasi di sini..."
-              placeholderTextColor="#475569"
+              style={styles.input}
+              placeholder="Ketik atau tempel teks notifikasi..."
+              placeholderTextColor={color.textFaint}
               multiline
-              numberOfLines={4}
+              numberOfLines={3}
               value={inputText}
-              onChangeText={(t) => {
-                setInputText(t);
-                setLastResult(null);
-              }}
+              onChangeText={setInputText}
             />
 
-            {/* Result Preview Banner */}
             {lastResult && (
-              <View style={styles.resultBanner}>
-                <Icon name="CheckCircle2" size={18} color="#10B981" />
-                <View style={styles.resultContent}>
-                  <Text style={styles.resultTitle}>
-                    {lastResult.type}: {formatIDR(lastResult.amount)}
-                  </Text>
-                  <Text style={styles.resultDetails}>
-                    Akun: {lastResult.bankName} • Kategori: {lastResult.category}
-                  </Text>
-                  <Text style={styles.resultSuccessTag}>Saldo Rekening Otomatis Terpotong/Bertambah</Text>
-                </View>
+              <View style={styles.resultBox}>
+                <Text style={styles.resultTitle}>
+                  {lastResult.type}: {formatIDR(lastResult.amount)}
+                </Text>
+                <Text style={styles.resultSubtitle}>
+                  {lastResult.bankName} • {lastResult.category}
+                </Text>
               </View>
             )}
 
-            {/* Action Button */}
-            <TouchableOpacity
+            <Pressable
               onPress={handleProcess}
               disabled={isProcessing || !inputText.trim()}
-              style={[styles.processBtn, (!inputText.trim() || isProcessing) && styles.disabledBtn]}
-              activeOpacity={0.8}
+              style={[styles.submitBtn, (!inputText.trim() || isProcessing) && styles.disabledBtn]}
             >
               {isProcessing ? (
-                <ActivityIndicator color="#080C14" />
+                <ActivityIndicator color={color.onAccent} size="small" />
               ) : (
-                <Text style={styles.processBtnText}>⚡ Proses & Perbarui Saldo</Text>
+                <Text style={styles.submitText}>Proses notifikasi</Text>
               )}
-            </TouchableOpacity>
+            </Pressable>
           </GlassCard>
         </View>
       </View>
@@ -160,118 +138,97 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '100%',
-    padding: 16,
+    padding: space.md,
     paddingBottom: 34,
   },
   cardContainer: {
-    backgroundColor: '#0F172A',
-    borderColor: 'rgba(56, 189, 248, 0.25)',
+    padding: space.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    marginBottom: space.md,
   },
   title: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: color.text,
   },
   closeBtn: {
     padding: 6,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: radius.pill,
+    backgroundColor: color.glassFillInset,
   },
-  subtitle: {
+  label: {
     fontSize: 12,
-    color: '#94A3B8',
-    marginBottom: 12,
-    lineHeight: 18,
+    color: color.textMuted,
+    marginBottom: space.xs,
   },
-  presetSection: {
+  presetRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 12,
+    gap: space.xs,
+    marginBottom: space.md,
   },
   presetChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    flex: 1,
+    paddingVertical: 7,
+    paddingHorizontal: 8,
+    borderRadius: radius.md,
+    backgroundColor: color.glassFillInset,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.25)',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 10,
+    borderColor: color.hairline,
+    alignItems: 'center',
   },
   presetChipText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#F59E0B',
+    color: color.text,
+    fontWeight: '500',
   },
-  textArea: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  input: {
+    backgroundColor: color.glassFillInset,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    borderRadius: 12,
-    padding: 12,
-    color: '#F8FAFC',
+    borderColor: color.hairline,
+    borderRadius: radius.md,
+    paddingHorizontal: space.md,
+    paddingVertical: 12,
+    color: color.text,
     fontSize: 13,
-    minHeight: 85,
+    minHeight: 70,
     textAlignVertical: 'top',
-    marginBottom: 12,
+    marginBottom: space.md,
   },
-  resultBanner: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+  resultBox: {
+    padding: space.md,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(16, 185, 129, 0.10)',
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
-    borderRadius: 12,
-    padding: 12,
-    gap: 10,
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  resultContent: {
-    flex: 1,
+    borderColor: 'rgba(16, 185, 129, 0.22)',
+    marginBottom: space.md,
   },
   resultTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#10B981',
-    fontVariant: ['tabular-nums'],
+    fontSize: 13,
+    fontWeight: '600',
+    color: color.gain,
   },
-  resultDetails: {
+  resultSubtitle: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: color.textMuted,
     marginTop: 2,
   },
-  resultSuccessTag: {
-    fontSize: 11,
-    color: '#34D399',
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  processBtn: {
-    backgroundColor: '#38BDF8',
-    borderRadius: 14,
-    paddingVertical: 14,
+  submitBtn: {
+    backgroundColor: color.accent,
+    borderRadius: radius.pill,
+    paddingVertical: 13,
     alignItems: 'center',
-    justifyContent: 'center',
+    ...shadow.e1,
   },
   disabledBtn: {
     opacity: 0.5,
   },
-  processBtnText: {
-    color: '#080C14',
-    fontWeight: '700',
+  submitText: {
+    color: color.onAccent,
+    fontWeight: '600',
     fontSize: 14,
   },
 });

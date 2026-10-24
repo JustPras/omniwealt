@@ -18,8 +18,8 @@ const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({ name, focused, size }
   useEffect(() => {
     Animated.spring(anim, {
       toValue: focused ? 1 : 0,
-      tension: 75,
-      friction: 7,
+      tension: 100,
+      friction: 8,
       useNativeDriver: true,
     }).start();
   }, [focused, anim]);
@@ -91,9 +91,9 @@ const AnimatedTabBarButton = (props: any) => {
 
   const handlePressIn = () => {
     Animated.spring(pressScale, {
-      toValue: 0.90,
-      tension: 140,
-      friction: 5,
+      toValue: 0.94,
+      tension: 160,
+      friction: 8,
       useNativeDriver: true,
     }).start();
   };
@@ -101,8 +101,8 @@ const AnimatedTabBarButton = (props: any) => {
   const handlePressOut = () => {
     Animated.spring(pressScale, {
       toValue: 1,
-      tension: 140,
-      friction: 6,
+      tension: 160,
+      friction: 8,
       useNativeDriver: true,
     }).start();
   };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   TextInput,
   useWindowDimensions,
 } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
@@ -52,6 +53,15 @@ export default function PortfolioScreen() {
   const [selectedCrypto, setSelectedCrypto] = useState<CryptoAsset | null>(null);
 
   const isOverallProfit = totalUnrealizedPnL >= 0;
+
+  // Auto-refresh market prices silently when opening the Portfolio tab
+  useFocusEffect(
+    useCallback(() => {
+      if (stocks.length > 0 || cryptos.length > 0) {
+        refreshMarketPrices(true);
+      }
+    }, [stocks.length, cryptos.length, refreshMarketPrices])
+  );
 
   // Sorted Stocks
   const sortedStocks = [...stocks].sort((a, b) => {

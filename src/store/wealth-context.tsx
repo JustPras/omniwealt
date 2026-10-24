@@ -31,7 +31,7 @@ interface WealthContextType {
 
   // Actions
   togglePrivacy: () => void;
-  refreshMarketPrices: () => Promise<void>;
+  refreshMarketPrices: (isSilent?: boolean) => Promise<void>;
   addAccount: (account: Omit<Account, 'id'>) => Promise<void>;
   updateAccountBalance: (id: string, delta: number, description: string, type: 'INCOME' | 'EXPENSE') => Promise<void>;
   applyMutationText: (text: string) => Promise<BankMutationResult>;
@@ -134,14 +134,21 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const dailyChangeRp = dailyStockChangeRp + dailyCryptoChangeRp;
   const dailyChangePercent = totalInvestments > 0 ? dailyChangeRp / totalInvestments : 0.0125;
 
-  // 3. Market Price Refresh
-  const refreshMarketPrices = useCallback(async () => {
-    setIsRefreshing(true);
-    triggerHaptic('light');
+  // 3. Market Price Refresh (manual or automatic background silent refresh)
+  const refreshMarketPrices = useCallback(async (isSilent: boolean = false) => {
+    if (!isSilent) {
+      setIsRefreshing(true);
+      triggerHaptic('light');
+    }
 
     try {
       const stockTickers = stocks.map((s) => s.ticker);
       const cryptoIds = cryptos.map((c) => c.coingeckoId);
+
+      if (stockTickers.length === 0 && cryptoIds.length === 0) {
+        if (!isSilent) setIsRefreshing(false);
+        return;
+      }
 
       const [stockQuotes, cryptoQuotes] = await Promise.all([
         MarketService.fetchAllStocks(stockTickers),
@@ -189,14 +196,34 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       });
 
       setLastUpdated(new Date());
-      triggerHaptic('success');
+      if (!isSilent) triggerHaptic('success');
     } catch (e) {
       console.warn('Market refresh failed:', e);
-      triggerHaptic('warning');
+      if (!isSilent) triggerHaptic('warning');
     } finally {
-      setIsRefreshing(false);
+      if (!isSilent) setIsRefreshing(false);
     }
   }, [stocks, cryptos]);
+
+  // Automatic periodic background refresh for market prices (every 60 seconds)
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (stocks.length === 0 && cryptos.length === 0) return;
+
+    // Initial background sync shortly after hydration
+    const initialSyncTimer = setTimeout(() => {
+      refreshMarketPrices(true);
+    }, 2000);
+
+    const autoRefreshInterval = setInterval(() => {
+      refreshMarketPrices(true);
+    }, 60000);
+
+    return () => {
+      clearTimeout(initialSyncTimer);
+      clearInterval(autoRefreshInterval);
+    };
+  }, [isHydrated, stocks.length, cryptos.length, refreshMarketPrices]);
 
   // 4. Privacy Toggle
   const togglePrivacy = useCallback(() => {
@@ -638,16 +665,38 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     [accounts]
   );
 
-  // 8. Stock CRUD
+  // 8. Stock CRUD with automatic real-time market price fetching
   const saveStock = useCallback(async (stockData: Omit<StockAsset, 'id'>, id?: string) => {
     triggerHaptic('medium');
+
+    // Auto-fetch real-time market price for this stock
+    let freshPrice = stockData.currentPrice;
+    let freshChange = stockData.change24h || 0;
+
+    try {
+      const quote = await MarketService.fetchStockPrice(stockData.ticker);
+      if (quote && typeof quote.price === 'number' && quote.price > 0) {
+        freshPrice = quote.price;
+        freshChange = quote.change24h;
+        await StorageService.updateMarketQuotes({ [quote.ticker]: quote }, {});
+      }
+    } catch (e) {
+      console.warn('Auto fetch stock price failed, using fallback/cached:', e);
+    }
+
+    const payload: Omit<StockAsset, 'id'> = {
+      ...stockData,
+      currentPrice: freshPrice,
+      change24h: freshChange,
+    };
+
     setStocks((prev) => {
       let updated: StockAsset[];
       if (id) {
-        updated = prev.map((s) => (s.id === id ? { ...stockData, id, updatedAt: new Date().toISOString() } : s));
+        updated = prev.map((s) => (s.id === id ? { ...payload, id, updatedAt: new Date().toISOString() } : s));
       } else {
         const newStock: StockAsset = {
-          ...stockData,
+          ...payload,
           id: `stock-${Date.now()}`,
           updatedAt: new Date().toISOString(),
         };
@@ -671,16 +720,39 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     });
   }, [cryptos]);
 
-  // 9. Crypto CRUD
+  // 9. Crypto CRUD with automatic real-time market price fetching
   const saveCrypto = useCallback(async (cryptoData: Omit<CryptoAsset, 'id'>, id?: string) => {
     triggerHaptic('medium');
+
+    // Auto-fetch real-time market price for this crypto
+    let freshPriceIdr = cryptoData.currentPriceIdr;
+    let freshChange = cryptoData.change24h || 0;
+
+    try {
+      const quotes = await MarketService.fetchCryptoPrices([cryptoData.coingeckoId]);
+      const quote = quotes[cryptoData.coingeckoId];
+      if (quote && typeof quote.priceIdr === 'number' && quote.priceIdr > 0) {
+        freshPriceIdr = quote.priceIdr;
+        freshChange = quote.change24h;
+        await StorageService.updateMarketQuotes({}, { [cryptoData.coingeckoId]: quote });
+      }
+    } catch (e) {
+      console.warn('Auto fetch crypto price failed, using fallback/cached:', e);
+    }
+
+    const payload: Omit<CryptoAsset, 'id'> = {
+      ...cryptoData,
+      currentPriceIdr: freshPriceIdr,
+      change24h: freshChange,
+    };
+
     setCryptos((prev) => {
       let updated: CryptoAsset[];
       if (id) {
-        updated = prev.map((c) => (c.id === id ? { ...cryptoData, id, updatedAt: new Date().toISOString() } : c));
+        updated = prev.map((c) => (c.id === id ? { ...payload, id, updatedAt: new Date().toISOString() } : c));
       } else {
         const newCrypto: CryptoAsset = {
-          ...cryptoData,
+          ...payload,
           id: `crypto-${Date.now()}`,
           updatedAt: new Date().toISOString(),
         };

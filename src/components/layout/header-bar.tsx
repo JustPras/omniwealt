@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../common/icon';
 import { useWealth } from '../../store/wealth-context';
@@ -82,19 +82,27 @@ export const HeaderBar: React.FC = () => {
 
   return (
     <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top + 6, 16) }]}>
-      {/* Live Market Status Pill */}
-      <View style={styles.liveBadge}>
-        <Animated.View
-          style={[
-            styles.pulseDot,
-            {
-              transform: [{ scale: pulseAnim }],
-              opacity: pulseOpacity,
-            },
-          ]}
+      {/* Brand Logo + Live Pill */}
+      <View style={styles.leftGroup}>
+        <Image
+          source={require('../../../assets/icon.png')}
+          style={styles.brandLogo}
+          resizeMode="cover"
         />
-        <Text style={styles.liveText}>IDX & CRYPTO LIVE</Text>
-        <Text style={styles.timeText}>{formatTime(lastUpdated.toISOString())}</Text>
+        {/* Live Market Status Pill */}
+        <View style={styles.liveBadge}>
+          <Animated.View
+            style={[
+              styles.pulseDot,
+              {
+                transform: [{ scale: pulseAnim }],
+                opacity: pulseOpacity,
+              },
+            ]}
+          />
+          <Text style={styles.liveText}>IDX & CRYPTO LIVE</Text>
+          <Text style={styles.timeText}>{formatTime(lastUpdated.toISOString())}</Text>
+        </View>
       </View>
 
       {/* Header Actions: Refresh & Privacy Toggle */}
@@ -148,6 +156,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 10,
     zIndex: 10,
+  },
+  leftGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  brandLogo: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
   },
   liveBadge: {
     flexDirection: 'row',

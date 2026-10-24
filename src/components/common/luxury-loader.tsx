@@ -22,143 +22,273 @@ interface LuxuryLoaderProps {
 
 export const LuxuryLoader: React.FC<LuxuryLoaderProps> = ({
   title = 'OMNIWEALTH',
-  subtitle = 'Memuat Data Portofolio & Keuangan...',
+  subtitle = 'Menyiapkan Portofolio & Harga Pasar...',
   fullscreen = false,
   style,
 }) => {
-  const rotateAnim = useRef(new Animated.Value(0)).current;
+  // 1. Entrance animation (bloom on mount)
+  const introScale = useRef(new Animated.Value(0.88)).current;
+  const introOpacity = useRef(new Animated.Value(0)).current;
+
+  // 2. Weightless floating (subtle vertical hover)
+  const floatAnim = useRef(new Animated.Value(0)).current;
+
+  // 3. Gentle organic breathing pulse
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
-  const sweepAnim = useRef(new Animated.Value(0)).current;
+
+  // 4. Ambient aura rotation & counter-rotation
+  const rotateAuraClockwise = useRef(new Animated.Value(0)).current;
+  const rotateAuraCounter = useRef(new Animated.Value(0)).current;
+
+  // 5. Glow intensity pulse (aurora breathing)
+  const auraGlowAnim = useRef(new Animated.Value(0.4)).current;
+
+  // 6. Subtitle shimmer
+  const shimmerAnim = useRef(new Animated.Value(0.6)).current;
+
+  // 7. Liquid progress sweep (smooth wave)
+  const progressAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // 1. Continuous smooth rotation for ambient outer glow ring
-    const rotateLoop = Animated.loop(
-      Animated.timing(rotateAnim, {
+    // --- Entrance Bloom ---
+    Animated.parallel([
+      Animated.timing(introOpacity, {
         toValue: 1,
-        duration: 3200,
+        duration: 450,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(introScale, {
+        toValue: 1,
+        duration: 550,
+        easing: Easing.out(Easing.back(1.4)),
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // --- Floating Physics (Anti-gravity hover effect) ---
+    const floatLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, {
+          toValue: -6,
+          duration: 1800,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatAnim, {
+          toValue: 3,
+          duration: 1800,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    // --- Gentle Organic Breathing Pulse ---
+    const pulseLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.04,
+          duration: 1600,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0.98,
+          duration: 1600,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    // --- Ambient Glow Aura Rotation (dual-speed, non-linear feel) ---
+    const auraClockwiseLoop = Animated.loop(
+      Animated.timing(rotateAuraClockwise, {
+        toValue: 1,
+        duration: 7000,
         easing: Easing.linear,
         useNativeDriver: true,
       })
     );
 
-    // 2. Gentle organic breathing / pulse
-    const pulseLoop = Animated.loop(
+    const auraCounterLoop = Animated.loop(
+      Animated.timing(rotateAuraCounter, {
+        toValue: 1,
+        duration: 5500,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+
+    // --- Aurora Breathing Intensity ---
+    const auraGlowLoop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.08,
-          duration: 1200,
-          easing: Easing.inOut(Easing.quad),
+        Animated.timing(auraGlowAnim, {
+          toValue: 0.85,
+          duration: 1400,
+          easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
-        Animated.timing(pulseAnim, {
-          toValue: 0.94,
-          duration: 1200,
-          easing: Easing.inOut(Easing.quad),
+        Animated.timing(auraGlowAnim, {
+          toValue: 0.45,
+          duration: 1400,
+          easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
       ])
     );
 
-    // 3. Shimmer opacity loop for text/scanner
+    // --- Text Shimmer ---
     const shimmerLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(shimmerAnim, {
           toValue: 1,
-          duration: 900,
+          duration: 1100,
           easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
         Animated.timing(shimmerAnim, {
-          toValue: 0.4,
-          duration: 900,
+          toValue: 0.5,
+          duration: 1100,
           easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
       ])
     );
 
-    // 4. Progress bar sweep animation
-    const sweepLoop = Animated.loop(
+    // --- Smooth Liquid Progress Track (ping-pong back and forth for fluid loop) ---
+    const progressLoop = Animated.loop(
       Animated.sequence([
-        Animated.timing(sweepAnim, {
+        Animated.timing(progressAnim, {
           toValue: 1,
-          duration: 1400,
+          duration: 1200,
           easing: Easing.inOut(Easing.cubic),
           useNativeDriver: true,
         }),
-        Animated.timing(sweepAnim, {
+        Animated.timing(progressAnim, {
           toValue: 0,
-          duration: 0,
+          duration: 1200,
+          easing: Easing.inOut(Easing.cubic),
           useNativeDriver: true,
         }),
       ])
     );
 
-    rotateLoop.start();
+    floatLoop.start();
     pulseLoop.start();
+    auraClockwiseLoop.start();
+    auraCounterLoop.start();
+    auraGlowLoop.start();
     shimmerLoop.start();
-    sweepLoop.start();
+    progressLoop.start();
 
     return () => {
-      rotateLoop.stop();
+      floatLoop.stop();
       pulseLoop.stop();
+      auraClockwiseLoop.stop();
+      auraCounterLoop.stop();
+      auraGlowLoop.stop();
       shimmerLoop.stop();
-      sweepLoop.stop();
+      progressLoop.stop();
     };
-  }, [rotateAnim, pulseAnim, shimmerAnim, sweepAnim]);
+  }, [
+    introOpacity,
+    introScale,
+    floatAnim,
+    pulseAnim,
+    rotateAuraClockwise,
+    rotateAuraCounter,
+    auraGlowAnim,
+    shimmerAnim,
+    progressAnim,
+  ]);
 
-  const spin = rotateAnim.interpolate({
+  const spinClockwise = rotateAuraClockwise.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
 
-  const sweepTranslate = sweepAnim.interpolate({
+  const spinCounter = rotateAuraCounter.interpolate({
     inputRange: [0, 1],
-    outputRange: [-120, 200],
+    outputRange: ['360deg', '0deg'],
+  });
+
+  const progressTranslate = progressAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-70, 70],
   });
 
   const content = (
-    <View style={styles.contentBox}>
-      {/* Central Pulsing Geometric Orb */}
-      <View style={styles.orbContainer}>
-        {/* Outer Rotating Glow Accent Ring */}
+    <Animated.View
+      style={[
+        styles.contentBox,
+        {
+          opacity: introOpacity,
+          transform: [
+            { scale: introScale },
+            { translateY: floatAnim },
+          ],
+        },
+      ]}
+    >
+      {/* Central Floating Orb with Multi-Layer Aurora Caustics */}
+      <View style={fullscreen ? styles.largeOrbContainer : styles.orbContainer}>
+        {/* Layer 1: Ambient Outer Aurora Halo (Counter-clockwise rotation) */}
         <Animated.View
           style={[
-            styles.glowRing,
+            styles.outerAuraRing,
             {
-              transform: [{ rotate: spin }],
+              transform: [{ rotate: spinCounter }, { scale: pulseAnim }],
+              opacity: auraGlowAnim,
             },
           ]}
         >
           <LinearGradient
-            colors={['#38BDF8', '#10B981', 'transparent', '#F59E0B']}
+            colors={['#38BDF8', '#10B981', '#F59E0B', '#38BDF8']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.gradientRing}
+            style={styles.gradientFill}
           />
         </Animated.View>
 
-        {/* Central Core with Breathing Scale */}
+        {/* Layer 2: Inner Prismatic Accent Ring (Clockwise rotation) */}
         <Animated.View
           style={[
-            styles.centralEmblem,
+            styles.innerAuraRing,
+            {
+              transform: [{ rotate: spinClockwise }],
+            },
+          ]}
+        >
+          <LinearGradient
+            colors={['rgba(56, 189, 248, 0.8)', 'transparent', 'rgba(16, 185, 129, 0.8)', 'transparent']}
+            start={{ x: 0.1, y: 0.1 }}
+            end={{ x: 0.9, y: 0.9 }}
+            style={styles.gradientFill}
+          />
+        </Animated.View>
+
+        {/* Layer 3: Central High-End 3D Icon Plaque */}
+        <Animated.View
+          style={[
+            fullscreen ? styles.largeCentralEmblem : styles.centralEmblem,
             {
               transform: [{ scale: pulseAnim }],
             },
           ]}
         >
-          <View style={styles.emblemInner}>
+          <View style={styles.emblemBackdrop}>
             <Image
               source={require('../../../assets/icon.png')}
-              style={{ width: 40, height: 40, borderRadius: 10 }}
+              style={fullscreen ? styles.largeLogoImage : styles.logoImage}
               resizeMode="cover"
             />
           </View>
         </Animated.View>
       </View>
 
-      {/* Typography */}
+      {/* Brand Typography */}
       <View style={styles.textContainer}>
         <Text style={styles.brandTitle}>{title}</Text>
         <Animated.Text style={[styles.statusSubtitle, { opacity: shimmerAnim }]}>
@@ -166,25 +296,25 @@ export const LuxuryLoader: React.FC<LuxuryLoaderProps> = ({
         </Animated.Text>
       </View>
 
-      {/* Ultra-sleek Neon Loading Progress Line */}
+      {/* Fluid Liquid Neon Loading Track */}
       <View style={styles.progressBarTrack}>
         <Animated.View
           style={[
             styles.progressBarSweep,
             {
-              transform: [{ translateX: sweepTranslate }],
+              transform: [{ translateX: progressTranslate }],
             },
           ]}
         >
           <LinearGradient
-            colors={['transparent', '#38BDF8', '#10B981', 'transparent']}
+            colors={['transparent', '#38BDF8', '#10B981', '#F59E0B', 'transparent']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.sweepGradient}
           />
         </Animated.View>
       </View>
-    </View>
+    </Animated.View>
   );
 
   if (fullscreen) {
@@ -193,7 +323,7 @@ export const LuxuryLoader: React.FC<LuxuryLoaderProps> = ({
         {Platform.OS === 'web' ? (
           <View style={styles.webBackdrop} />
         ) : (
-          <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
+          <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFill} />
         )}
         {content}
       </View>
@@ -214,7 +344,7 @@ export const LuxuryLoader: React.FC<LuxuryLoaderProps> = ({
 
 const styles = StyleSheet.create({
   fullscreenWrapper: {
-    backgroundColor: 'rgba(8, 12, 20, 0.95)',
+    backgroundColor: '#080C14',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 9999,
@@ -232,84 +362,133 @@ const styles = StyleSheet.create({
   },
   webBackdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(8, 12, 20, 0.90)',
+    backgroundColor: 'rgba(8, 12, 20, 0.95)',
     // @ts-ignore
-    backdropFilter: 'blur(24px)',
+    backdropFilter: 'blur(30px)',
   },
   contentBox: {
     alignItems: 'center',
-    gap: 16,
+    gap: 18,
   },
   orbContainer: {
-    width: 80,
-    height: 80,
+    width: 90,
+    height: 90,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
-  glowRing: {
+  largeOrbContainer: {
+    width: 120,
+    height: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  outerAuraRing: {
     position: 'absolute',
-    width: 76,
-    height: 76,
-    borderRadius: 38,
+    width: '100%',
+    height: '100%',
+    borderRadius: 60,
+    padding: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#38BDF8',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 24,
+    elevation: 10,
+  },
+  innerAuraRing: {
+    position: 'absolute',
+    width: '90%',
+    height: '90%',
+    borderRadius: 55,
     padding: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  gradientRing: {
+  gradientFill: {
     width: '100%',
     height: '100%',
-    borderRadius: 38,
-    opacity: 0.7,
+    borderRadius: 60,
   },
   centralEmblem: {
-    width: 58,
-    height: 58,
+    width: 64,
+    height: 64,
     borderRadius: 20,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#080C14',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.4)',
-    shadowColor: '#38BDF8',
+    borderWidth: 1.5,
+    borderColor: 'rgba(56, 189, 248, 0.45)',
+    shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
-    shadowRadius: 16,
+    shadowRadius: 18,
     elevation: 8,
+    overflow: 'hidden',
   },
-  emblemInner: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 20,
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+  largeCentralEmblem: {
+    width: 84,
+    height: 84,
+    borderRadius: 24,
+    backgroundColor: '#080C14',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(56, 189, 248, 0.5)',
+    shadowColor: '#38BDF8',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.7,
+    shadowRadius: 28,
+    elevation: 12,
+    overflow: 'hidden',
+  },
+  emblemBackdrop: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+  },
+  logoImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+  },
+  largeLogoImage: {
+    width: 68,
+    height: 68,
+    borderRadius: 18,
   },
   textContainer: {
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
   },
   brandTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '800',
     color: '#F8FAFC',
-    letterSpacing: 2.5,
+    letterSpacing: 3,
   },
   statusSubtitle: {
     fontSize: 12,
-    color: '#38BDF8',
-    fontWeight: '600',
+    color: '#94A3B8',
+    fontWeight: '500',
+    letterSpacing: 0.4,
   },
   progressBarTrack: {
-    width: 140,
+    width: 160,
     height: 4,
     borderRadius: 2,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     overflow: 'hidden',
     position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   progressBarSweep: {
-    width: 60,
+    width: 90,
     height: '100%',
     position: 'absolute',
   },

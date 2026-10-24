@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import { View, StyleSheet, Animated, Easing } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -23,44 +23,87 @@ const CustomDarkTheme = {
 function RootContent() {
   const { isHydrated } = useWealth();
   const [showSplash, setShowSplash] = useState(true);
+
+  // Cinematic exit transition values
   const splashFadeAnim = useRef(new Animated.Value(1)).current;
+  const splashScaleAnim = useRef(new Animated.Value(1)).current;
+  const contentFadeAnim = useRef(new Animated.Value(0.92)).current;
+  const contentScaleAnim = useRef(new Animated.Value(0.98)).current;
 
   useEffect(() => {
     if (isHydrated) {
-      // Smooth luxury fade-out transition after hydration
-      Animated.timing(splashFadeAnim, {
-        toValue: 0,
-        duration: 350,
-        delay: 200,
-        useNativeDriver: true,
-      }).start(() => {
+      // Cinematic dissolving reveal: Splash scales up & fades, Content blooms into place
+      Animated.sequence([
+        Animated.delay(180),
+        Animated.parallel([
+          Animated.timing(splashFadeAnim, {
+            toValue: 0,
+            duration: 480,
+            easing: Easing.inOut(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(splashScaleAnim, {
+            toValue: 1.08,
+            duration: 480,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(contentFadeAnim, {
+            toValue: 1,
+            duration: 480,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(contentScaleAnim, {
+            toValue: 1,
+            duration: 480,
+            easing: Easing.out(Easing.back(1.1)),
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start(() => {
         setShowSplash(false);
       });
     }
-  }, [isHydrated, splashFadeAnim]);
+  }, [isHydrated, splashFadeAnim, splashScaleAnim, contentFadeAnim, contentScaleAnim]);
 
   return (
     <ThemeProvider value={CustomDarkTheme}>
       <View style={styles.container}>
         <StatusBar style="light" translucent backgroundColor="#080C14" />
         <AmbientBackground />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: '#080C14' },
-            animation: 'fade',
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
 
-        {/* High-End Smooth Initial Loading Screen */}
+        {/* Animated Root Content with subtle scale & opacity entrance */}
+        <Animated.View
+          style={[
+            styles.contentWrapper,
+            {
+              opacity: contentFadeAnim,
+              transform: [{ scale: contentScaleAnim }],
+            },
+          ]}
+        >
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: '#080C14' },
+              animation: 'fade',
+            }}
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack>
+        </Animated.View>
+
+        {/* High-End Fluid Organic Initial Loading Screen */}
         {showSplash && (
           <Animated.View
             style={[
               StyleSheet.absoluteFill,
               styles.splashOverlay,
-              { opacity: splashFadeAnim },
+              {
+                opacity: splashFadeAnim,
+                transform: [{ scale: splashScaleAnim }],
+              },
             ]}
             pointerEvents={isHydrated ? 'none' : 'auto'}
           >
@@ -94,6 +137,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#080C14',
+  },
+  contentWrapper: {
+    flex: 1,
   },
   splashOverlay: {
     zIndex: 9999,

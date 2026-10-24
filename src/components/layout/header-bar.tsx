@@ -1,50 +1,62 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Animated,
+  Easing,
+  Image,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../common/icon';
 import { useWealth } from '../../store/wealth-context';
 import { formatTime } from '../../utils/format';
 import { triggerHaptic } from '../../utils/haptics';
+import { color, space, radius, shadow, motion } from '../../theme/tokens';
 
 export const HeaderBar: React.FC = () => {
   const insets = useSafeAreaInsets();
   const { privacyMode, togglePrivacy, isRefreshing, refreshMarketPrices, lastUpdated } = useWealth();
 
-  // Pulse animation for LIVE indicator dot
+  // Pulse animation for LIVE indicator dot (The only authorized idle loop in the app per design)
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const pulseOpacity = useRef(new Animated.Value(1)).current;
 
   // Spin animation for RefreshCw button
   const spinAnim = useRef(new Animated.Value(0)).current;
 
+  // Press feedback scales for the two header action buttons
+  const refreshScale = useRef(new Animated.Value(1)).current;
+  const eyeScale = useRef(new Animated.Value(1)).current;
+
   useEffect(() => {
-    // Breathing pulse for LIVE dot
     const pulseLoop = Animated.loop(
       Animated.parallel([
         Animated.sequence([
           Animated.timing(pulseAnim, {
-            toValue: 1.4,
-            duration: 900,
+            toValue: 1.3,
+            duration: 1000,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
           Animated.timing(pulseAnim, {
             toValue: 1,
-            duration: 900,
+            duration: 1000,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
         ]),
         Animated.sequence([
           Animated.timing(pulseOpacity, {
-            toValue: 0.45,
-            duration: 900,
+            toValue: 0.5,
+            duration: 1000,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
           Animated.timing(pulseOpacity, {
             toValue: 1,
-            duration: 900,
+            duration: 1000,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
@@ -80,6 +92,24 @@ export const HeaderBar: React.FC = () => {
     outputRange: ['0deg', '360deg'],
   });
 
+  const handleButtonPressIn = (scaleRef: Animated.Value) => {
+    Animated.spring(scaleRef, {
+      toValue: 0.94,
+      tension: motion.spring.press.tension,
+      friction: motion.spring.press.friction,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleButtonPressOut = (scaleRef: Animated.Value) => {
+    Animated.spring(scaleRef, {
+      toValue: 1,
+      tension: motion.spring.settle.tension,
+      friction: motion.spring.settle.friction,
+      useNativeDriver: true,
+    }).start();
+  };
+
   return (
     <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top + 6, 16) }]}>
       {/* Brand Logo + Live Pill */}
@@ -100,49 +130,69 @@ export const HeaderBar: React.FC = () => {
               },
             ]}
           />
-          <Text style={styles.liveText}>IDX & CRYPTO LIVE</Text>
+          <Text style={styles.liveText}>Live</Text>
           <Text style={styles.timeText}>{formatTime(lastUpdated.toISOString())}</Text>
         </View>
       </View>
 
       {/* Header Actions: Refresh & Privacy Toggle */}
       <View style={styles.actionGroup}>
-        {/* Refresh Market Prices Button with Smooth 360 Spin */}
-        <TouchableOpacity
+        {/* Refresh Market Prices Button */}
+        <Pressable
           onPress={() => {
             triggerHaptic('light');
             refreshMarketPrices();
           }}
+          onPressIn={() => handleButtonPressIn(refreshScale)}
+          onPressOut={() => handleButtonPressOut(refreshScale)}
           disabled={isRefreshing}
-          activeOpacity={0.65}
-          style={[styles.iconButton, isRefreshing && styles.refreshingButton]}
-          accessibilityLabel="Refresh harga pasar IDX dan Kripto"
+          hitSlop={8}
+          accessibilityLabel="Segarkan harga pasar"
+          accessibilityRole="button"
         >
-          <Animated.View style={{ transform: [{ rotate: spin }] }}>
-            <Icon
-              name="RefreshCw"
-              size={16}
-              color={isRefreshing ? '#10B981' : '#94A3B8'}
-            />
+          <Animated.View
+            style={[
+              styles.iconButton,
+              isRefreshing && styles.refreshingButton,
+              { transform: [{ scale: refreshScale }] },
+            ]}
+          >
+            <Animated.View style={{ transform: [{ rotate: spin }] }}>
+              <Icon
+                name="RefreshCw"
+                size={16}
+                color={isRefreshing ? color.accent : color.textMuted}
+              />
+            </Animated.View>
           </Animated.View>
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Privacy Eye Toggle Button */}
-        <TouchableOpacity
+        <Pressable
           onPress={() => {
             triggerHaptic('medium');
             togglePrivacy();
           }}
-          activeOpacity={0.65}
-          style={[styles.iconButton, privacyMode && styles.activeIconButton]}
-          accessibilityLabel="Toggle Sensor Privasi Saldo"
+          onPressIn={() => handleButtonPressIn(eyeScale)}
+          onPressOut={() => handleButtonPressOut(eyeScale)}
+          hitSlop={8}
+          accessibilityLabel={privacyMode ? 'Tampilkan saldo' : 'Sembunyikan saldo'}
+          accessibilityRole="button"
         >
-          {privacyMode ? (
-            <Icon name="EyeOff" size={16} color="#F59E0B" />
-          ) : (
-            <Icon name="Eye" size={16} color="#94A3B8" />
-          )}
-        </TouchableOpacity>
+          <Animated.View
+            style={[
+              styles.iconButton,
+              privacyMode && styles.activeIconButton,
+              { transform: [{ scale: eyeScale }] },
+            ]}
+          >
+            {privacyMode ? (
+              <Icon name="EyeOff" size={16} color={color.accent} />
+            ) : (
+              <Icon name="Eye" size={16} color={color.textMuted} />
+            )}
+          </Animated.View>
+        </Pressable>
       </View>
     </View>
   );
@@ -153,75 +203,75 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 10,
+    paddingHorizontal: space.lg,
+    paddingBottom: space.sm,
     zIndex: 10,
   },
   leftGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: space.sm + 2,
   },
   brandLogo: {
     width: 32,
     height: 32,
-    borderRadius: 8,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: color.rim,
   },
   liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    paddingVertical: 6,
+    backgroundColor: color.glassFillInset,
+    paddingVertical: 5,
     paddingHorizontal: 10,
-    borderRadius: 20,
+    borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.25)',
+    borderColor: color.hairline,
     gap: 6,
   },
   pulseDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#10B981',
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: color.gain,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 2,
   },
   liveText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#10B981',
-    letterSpacing: 0.6,
+    fontSize: 11,
+    fontWeight: '600',
+    color: color.gain,
   },
   timeText: {
-    fontSize: 10,
-    color: '#64748B',
-    fontWeight: '500',
+    fontSize: 11,
+    color: color.textMuted,
     fontVariant: ['tabular-nums'],
   },
   actionGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: space.sm,
   },
   iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    width: 38,
+    height: 38,
+    borderRadius: radius.pill,
+    backgroundColor: color.glassFillRaised,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.10)',
+    borderColor: color.rim,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadow.e1,
   },
   refreshingButton: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    borderColor: 'rgba(16, 185, 129, 0.35)',
+    borderColor: color.accentRim,
   },
   activeIconButton: {
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
-    borderColor: 'rgba(245, 158, 11, 0.35)',
+    borderColor: color.accentRim,
+    backgroundColor: color.accentSoft,
   },
 });

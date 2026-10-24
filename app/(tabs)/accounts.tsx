@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   TextInput,
   ActivityIndicator,
   useWindowDimensions,
@@ -13,6 +13,7 @@ import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
 import { ScreenTransition } from '../../src/components/common/screen-transition';
+import { AmbientBackground } from '../../src/components/common/ambient-background';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
 import { AccountModal } from '../../src/components/modals/account-modal';
 import { CashMutationModal } from '../../src/components/modals/cash-mutation-modal';
@@ -20,8 +21,8 @@ import { useWealth } from '../../src/store/wealth-context';
 import { formatIDR, formatDate } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
 import { BankMutationResult, AccountType } from '../../src/types';
+import { color, space, radius, shadow } from '../../src/theme/tokens';
 
-type AccountFilter = 'ALL' | 'BANK' | 'RDN' | 'E-WALLET';
 type TxFilter = 'ALL' | 'INCOME' | 'EXPENSE';
 
 export default function AccountsScreen() {
@@ -41,7 +42,6 @@ export default function AccountsScreen() {
   const [mutationType, setMutationType] = useState<'INCOME' | 'EXPENSE'>('EXPENSE');
 
   // Interactive filters
-  const [selectedAccFilter, setSelectedAccFilter] = useState<AccountFilter>('ALL');
   const [selectedTxFilter, setSelectedTxFilter] = useState<TxFilter>('ALL');
 
   // AI Parser state
@@ -57,29 +57,26 @@ export default function AccountsScreen() {
       id: 'p1',
       title: 'QRIS Kopi Kenangan',
       amount: 'Rp 48.500',
-      tag: 'BCA Tahapan',
       text: 'Transaksi QRIS Rp 48.500 di Kopi Kenangan berhasil dari rekening BCA Tahapan',
     },
     {
       id: 'p2',
-      title: 'BI-FAST Gaji Bulanan',
+      title: 'Gaji Bulanan',
       amount: 'Rp 2.500.000',
-      tag: 'Mandiri Livin',
       text: 'Transfer masuk BI-FAST Rp 2.500.000 dari PT Karya Digital ke Mandiri Livin',
     },
     {
       id: 'p3',
-      title: 'Top Up RDN Stockbit',
+      title: 'Top Up RDN',
       amount: 'Rp 1.000.000',
-      tag: 'BCA Tahapan',
       text: 'Top up RDN Stockbit BCA sebesar Rp 1.000.000 dari BCA Tahapan berhasil',
     },
   ];
 
-  const filteredAccounts = accounts.filter((acc) => {
-    if (selectedAccFilter === 'ALL') return true;
-    return acc.type === selectedAccFilter;
-  });
+  // Group accounts by type: Bank, RDN, E-Wallet
+  const bankAccounts = accounts.filter((a) => a.type === 'BANK');
+  const rdnAccounts = accounts.filter((a) => a.type === 'RDN');
+  const ewalletAccounts = accounts.filter((a) => a.type === 'E-WALLET');
 
   const filteredTransactions = transactions.filter((tx) => {
     if (selectedTxFilter === 'ALL') return true;
@@ -108,7 +105,7 @@ export default function AccountsScreen() {
   };
 
   const handleSimulateAndroidListener = () => {
-    triggerHaptic('heavy');
+    triggerHaptic('medium');
     const merchants = ['Kopi Kenangan Senopati', 'Fore Coffee Grand Indonesia', 'Point Coffee Sudirman', 'FamilyMart Thamrin'];
     const randomAmount = Math.floor(Math.random() * 45000) + 25000;
     const randomMerchant = merchants[Math.floor(Math.random() * merchants.length)];
@@ -127,186 +124,133 @@ export default function AccountsScreen() {
     setMutationModalVisible(true);
   };
 
+  const renderAccountGroupCard = (title: string, groupAccounts: typeof accounts, iconName: any) => {
+    if (groupAccounts.length === 0) return null;
+
+    return (
+      <View style={styles.groupContainer} key={title}>
+        <View style={styles.groupHeaderRow}>
+          <Icon name={iconName} size={15} color={color.textMuted} />
+          <Text style={styles.groupTitleText}>{title}</Text>
+          <Text style={styles.groupCountText}>({groupAccounts.length})</Text>
+        </View>
+
+        <GlassCard level="base" noPadding style={styles.groupCard}>
+          {groupAccounts.map((acc, index) => {
+            const isLast = index === groupAccounts.length - 1;
+            return (
+              <View key={acc.id}>
+                <View style={styles.accountRow}>
+                  <View style={styles.accountLeft}>
+                    <Text style={styles.accountName}>{acc.name}</Text>
+                    <Text style={styles.accountMeta}>
+                      {acc.accountNumber || 'Aktif'}
+                    </Text>
+                  </View>
+
+                  <View style={styles.accountRight}>
+                    <PrivacyValue value={acc.balance} style={styles.accountBalanceText} />
+                    <View style={styles.quickActionPillRow}>
+                      <Pressable
+                        onPress={() => openMutationModal(acc.id, 'INCOME')}
+                        hitSlop={6}
+                        style={styles.actionPill}
+                      >
+                        <Text style={styles.actionPillIncome}>+ Masuk</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => openMutationModal(acc.id, 'EXPENSE')}
+                        hitSlop={6}
+                        style={styles.actionPill}
+                      >
+                        <Text style={styles.actionPillExpense}>− Keluar</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                </View>
+                {!isLast && <View style={styles.rowHairline} />}
+              </View>
+            );
+          })}
+        </GlassCard>
+      </View>
+    );
+  };
+
   return (
     <ScreenTransition style={styles.screenContainer}>
+      <AmbientBackground activeAssetClass="CASH" />
       <HeaderBar />
 
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingHorizontal: isSmall ? 12 : 16 },
+          { paddingHorizontal: isSmall ? space.md : space.lg },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Total Liquidity Pod */}
-        <GlassCard
-          style={styles.liquidityHeroCard}
-          borderTint="rgba(16, 185, 129, 0.25)"
-          gradientColors={['rgba(16, 185, 129, 0.10)', 'rgba(15, 23, 42, 0.55)']}
-        >
-          <View style={styles.liquidityHeader}>
+        {/* 1. LIQUIDITY HERO CARD */}
+        <GlassCard level="base" style={styles.heroCard}>
+          <View style={styles.heroHeader}>
             <View>
-              <Text style={styles.liquidityLabel}>TOTAL LIKUIDITAS KAS & RDN</Text>
-              <PrivacyValue value={totalCash} style={styles.liquidityAmount} />
-              <Text style={styles.liquiditySubtitle}>{accounts.length} rekening aktif terhubung</Text>
+              <Text style={styles.heroLabel}>Total likuiditas kas & RDN</Text>
+              <PrivacyValue value={totalCash} style={styles.heroAmount} />
+              <Text style={styles.heroSubtitle}>{accounts.length} rekening aktif terhubung</Text>
             </View>
-            <TouchableOpacity
+            <Pressable
               onPress={() => {
-                triggerHaptic('medium');
+                triggerHaptic('light');
                 setAccountModalVisible(true);
               }}
-              style={styles.addAccountBtn}
-              activeOpacity={0.7}
+              style={styles.addAccountButton}
             >
-              <Icon name="Plus" size={13} color="#080C14" />
-              <Text style={styles.addAccountBtnText}>+ Akun Baru</Text>
-            </TouchableOpacity>
+              <Text style={styles.addAccountButtonText}>+ Tambah rekening</Text>
+            </Pressable>
           </View>
         </GlassCard>
 
-        {/* BANK & RDN ACCOUNTS LIST WITH RESPONSIVE FILTER CHIPS */}
-        <View style={styles.sectionTitleRow}>
-          <Text style={styles.sectionTitle}>Rekening & Dompet Digital</Text>
-          <Text style={styles.sectionSubtitle}>{filteredAccounts.length} Akun</Text>
-        </View>
-
-        {/* Filter Chips Bar */}
-        <View style={styles.accountFilterRow}>
-          {(['ALL', 'BANK', 'RDN', 'E-WALLET'] as AccountFilter[]).map((filter) => {
-            const isActive = selectedAccFilter === filter;
-            const count = filter === 'ALL'
-              ? accounts.length
-              : accounts.filter((a) => a.type === filter).length;
-
-            return (
-              <TouchableOpacity
-                key={filter}
-                onPress={() => {
-                  triggerHaptic('selection');
-                  setSelectedAccFilter(filter);
-                }}
-                activeOpacity={0.65}
-                style={[styles.accFilterChip, isActive && styles.activeAccFilterChip]}
-              >
-                <Text style={[styles.accFilterChipText, isActive && styles.activeAccFilterChipText]}>
-                  {filter === 'ALL' ? 'Semua' : filter} ({count})
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Account Cards */}
-        {filteredAccounts.length === 0 ? (
-          <GlassCard style={styles.emptyCard} borderTint="rgba(16, 185, 129, 0.2)">
-            <View style={styles.emptyIconCircle}>
-              <Icon name="Wallet" size={22} color="#10B981" />
-            </View>
-            <Text style={styles.emptyCardTitle}>Belum Ada Rekening Kas</Text>
-            <Text style={styles.emptyCardDesc}>
-              Tambahkan rekening bank (BCA, Mandiri), RDN, atau e-wallet (GoPay, OVO) untuk memantau saldo kas dan likuiditas.
+        {/* 2. REKENING DIKELOMPOKKAN (SATU KARTU PER KELOMPOK DENGAN BARIS) */}
+        {accounts.length === 0 ? (
+          <GlassCard level="base" style={styles.emptyCard}>
+            <Text style={styles.emptyTitle}>Belum ada rekening kas</Text>
+            <Text style={styles.emptyDesc}>
+              Tambahkan rekening bank, rekening dana nasabah (RDN), atau dompet digital untuk memantau saldo likuid.
             </Text>
-            <TouchableOpacity
+            <Pressable
               onPress={() => {
-                triggerHaptic('medium');
+                triggerHaptic('light');
                 setAccountModalVisible(true);
               }}
-              style={styles.emptyAddBtn}
-              activeOpacity={0.75}
+              style={styles.addAccountButton}
             >
-              <Icon name="Plus" size={13} color="#080C14" />
-              <Text style={styles.emptyAddBtnText}>+ Tambah Akun Baru</Text>
-            </TouchableOpacity>
+              <Text style={styles.addAccountButtonText}>Tambah rekening pertama</Text>
+            </Pressable>
           </GlassCard>
         ) : (
-          <View style={styles.accountList}>
-            {filteredAccounts.map((acc) => (
-              <GlassCard
-                key={acc.id}
-                style={styles.accountCard}
-                borderTint="rgba(255, 255, 255, 0.10)"
-              >
-                <View style={styles.accountTopRow}>
-                  <View style={styles.accountLeft}>
-                    <View
-                      style={[
-                        styles.accountIconBadge,
-                        {
-                          backgroundColor:
-                            acc.type === 'BANK'
-                              ? 'rgba(56, 189, 248, 0.12)'
-                              : acc.type === 'RDN'
-                              ? 'rgba(16, 185, 129, 0.12)'
-                              : 'rgba(6, 182, 212, 0.12)',
-                        },
-                      ]}
-                    >
-                      {acc.type === 'BANK' && <Icon name="Landmark" size={18} color="#38BDF8" />}
-                      {acc.type === 'RDN' && <Icon name="TrendingUp" size={18} color="#10B981" />}
-                      {acc.type === 'E-WALLET' && <Icon name="Smartphone" size={18} color="#06B6D4" />}
-                    </View>
-                    <View style={styles.accountTextContainer}>
-                      <Text style={styles.accountName}>{acc.name}</Text>
-                      <Text style={styles.accountNumber}>
-                        {acc.type} • {acc.accountNumber || 'Aktif'}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.accountRight}>
-                    <PrivacyValue value={acc.balance} style={styles.accountBalance} />
-                  </View>
-                </View>
-
-                {/* Quick Adjustment Buttons */}
-                <View style={styles.quickButtonsRow}>
-                  <TouchableOpacity
-                    onPress={() => openMutationModal(acc.id, 'INCOME')}
-                    style={[styles.smallAdjustBtn, styles.incomeAdjustBtn]}
-                    activeOpacity={0.65}
-                  >
-                    <Icon name="ArrowDownLeft" size={12} color="#10B981" />
-                    <Text style={[styles.smallAdjustText, { color: '#10B981' }]}>+ Pemasukan</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => openMutationModal(acc.id, 'EXPENSE')}
-                    style={[styles.smallAdjustBtn, styles.expenseAdjustBtn]}
-                    activeOpacity={0.65}
-                  >
-                    <Icon name="ArrowUpRight" size={12} color="#F43F5E" />
-                    <Text style={[styles.smallAdjustText, { color: '#F43F5E' }]}>- Pengeluaran</Text>
-                  </TouchableOpacity>
-                </View>
-              </GlassCard>
-            ))}
+          <View style={styles.groupsWrapper}>
+            {renderAccountGroupCard('Bank', bankAccounts, 'Landmark')}
+            {renderAccountGroupCard('Rekening Dana Nasabah (RDN)', rdnAccounts, 'TrendingUp')}
+            {renderAccountGroupCard('Dompet digital', ewalletAccounts, 'Smartphone')}
           </View>
         )}
 
-        {/* SMART AI NOTIFICATION & QRIS MUTASI PARSER */}
-        <GlassCard
-          style={styles.aiParserCard}
-          borderTint="rgba(56, 189, 248, 0.22)"
-          gradientColors={['rgba(56, 189, 248, 0.08)', 'rgba(15, 23, 42, 0.50)']}
-        >
-          <View style={styles.aiParserHeader}>
-            <View style={styles.aiHeaderTitle}>
-              <Icon name="Sparkles" size={17} color="#38BDF8" />
-              <Text style={styles.aiTitle}>Smart Android Mutasi & QRIS Parser</Text>
-            </View>
-            <View style={styles.aiEngineTag}>
-              <Text style={styles.aiEngineTagText}>Gemini + Regex</Text>
+        {/* 3. KOTAK TEMPEL MUTASI & AI PARSER */}
+        <GlassCard level="base" style={styles.parserCard}>
+          <View style={styles.parserHeader}>
+            <Text style={styles.sectionHeadline}>Tempel mutasi</Text>
+            <View style={styles.aiTag}>
+              <Text style={styles.aiTagText}>AI Parser</Text>
             </View>
           </View>
 
-          <Text style={styles.aiInstruction}>
-            Pilih preset instan di bawah atau tempel teks SMS/QRIS bank Anda:
+          <Text style={styles.parserSubtext}>
+            Pilih preset instan atau tempel teks notifikasi transaksi bank:
           </Text>
 
-          {/* 3 PRESET BUTTONS (RESPONSIVE CHIPS) */}
-          <View style={styles.presetGrid}>
+          {/* Preset Chips (Inset surfaces) */}
+          <View style={styles.presetRow}>
             {PRESETS.map((p) => (
-              <TouchableOpacity
+              <Pressable
                 key={p.id}
                 onPress={() => {
                   triggerHaptic('selection');
@@ -314,22 +258,18 @@ export default function AccountsScreen() {
                   setParseResult(null);
                 }}
                 style={styles.presetChip}
-                activeOpacity={0.65}
               >
-                <View style={styles.presetChipTop}>
-                  <Icon name="Zap" size={11} color="#F59E0B" />
-                  <Text style={styles.presetChipTitle}>{p.title}</Text>
-                </View>
-                <Text style={styles.presetChipAmount}>{p.amount}</Text>
-              </TouchableOpacity>
+                <Text style={styles.presetTitle}>{p.title}</Text>
+                <Text style={styles.presetAmount}>{p.amount}</Text>
+              </Pressable>
             ))}
           </View>
 
-          {/* Multiline Input */}
+          {/* Large Inset Input Area */}
           <TextInput
-            style={styles.aiInputArea}
-            placeholder="Ketik atau tempel teks notifikasi mutasi bank..."
-            placeholderTextColor="#475569"
+            style={styles.parserInput}
+            placeholder="Ketik atau tempel teks mutasi bank di sini..."
+            placeholderTextColor={color.textFaint}
             multiline
             numberOfLines={3}
             value={parserText}
@@ -339,53 +279,47 @@ export default function AccountsScreen() {
             }}
           />
 
-          {/* Parse Result Feedback Banner */}
+          {/* Parse Result Confirmation Row */}
           {parseResult && (
-            <View style={styles.resultBanner}>
-              <Icon name="CheckCircle2" size={16} color="#10B981" />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.resultTitle}>
-                  {parseResult.type}: {formatIDR(parseResult.amount)}
+            <View style={styles.confirmationRow}>
+              <View style={styles.confirmLeft}>
+                <Text style={styles.confirmType}>
+                  {parseResult.type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'}: {formatIDR(parseResult.amount)}
                 </Text>
-                <Text style={styles.resultSubtitle}>
+                <Text style={styles.confirmAccount}>
                   {parseResult.bankName} • {parseResult.category} ({parseResult.merchantOrSender || 'Berhasil'})
                 </Text>
               </View>
+              <Text style={styles.confirmTag}>Mutasi dicatat</Text>
             </View>
           )}
 
-          {/* Process Button */}
-          <TouchableOpacity
+          {/* Action Button: Simpan Mutasi */}
+          <Pressable
             onPress={() => handleProcessMutation()}
             disabled={isProcessing || !parserText.trim()}
-            style={[styles.aiProcessBtn, (!parserText.trim() || isProcessing) && styles.disabledBtn]}
-            activeOpacity={0.7}
+            style={[
+              styles.saveMutationButton,
+              (!parserText.trim() || isProcessing) && styles.disabledButton,
+            ]}
           >
             {isProcessing ? (
-              <ActivityIndicator color="#080C14" size="small" />
+              <ActivityIndicator color={color.onAccent} size="small" />
             ) : (
-              <Text style={styles.aiProcessBtnText}>⚡ Proses & Perbarui Saldo</Text>
+              <Text style={styles.saveMutationText}>Simpan mutasi</Text>
             )}
-          </TouchableOpacity>
+          </Pressable>
         </GlassCard>
 
-        {/* ANDROID NOTIFICATION LISTENER SIMULATOR */}
-        <GlassCard
-          style={styles.listenerCard}
-          borderTint="rgba(245, 158, 11, 0.22)"
-          gradientColors={['rgba(245, 158, 11, 0.08)', 'rgba(15, 23, 42, 0.50)']}
-        >
-          <View style={styles.listenerHeader}>
-            <View style={styles.listenerIcon}>
-              <Icon name="BellRing" size={16} color="#F59E0B" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.listenerTitle}>Android Notification Interceptor</Text>
-              <Text style={styles.listenerSubtitle}>
-                Simulasi listener otomatis saat transaksi QRIS / SMS masuk
-              </Text>
-            </View>
+        {/* 4. ANDROID NOTIFICATION LISTENER SIMULATOR */}
+        <GlassCard level="base" style={styles.simulatorCard}>
+          <View style={styles.simulatorHeader}>
+            <Icon name="BellRing" size={16} color={color.accent} />
+            <Text style={styles.simulatorTitle}>Simulasi notifikasi Android</Text>
           </View>
+          <Text style={styles.simulatorDesc}>
+            Uji interseptor notifikasi otomatis saat transaksi QRIS atau SMS bank diterima.
+          </Text>
 
           {simulatedNotification && (
             <View style={styles.simulatedBox}>
@@ -393,111 +327,96 @@ export default function AccountsScreen() {
             </View>
           )}
 
-          <TouchableOpacity
+          <Pressable
             onPress={handleSimulateAndroidListener}
-            style={styles.simulateActionBtn}
-            activeOpacity={0.7}
+            style={styles.simulatorButton}
           >
-            <Icon name="Zap" size={13} color="#080C14" />
-            <Text style={styles.simulateActionBtnText}>Simulasi Notifikasi QRIS Masuk</Text>
-          </TouchableOpacity>
+            <Text style={styles.simulatorButtonText}>Simulasi notifikasi QRIS masuk</Text>
+          </Pressable>
         </GlassCard>
 
-        {/* RECENT TRANSACTIONS HISTORY WITH TYPE FILTER */}
-        <View style={styles.sectionTitleRow}>
-          <View style={styles.historyTitleRow}>
-            <Icon name="History" size={15} color="#94A3B8" />
-            <Text style={styles.sectionTitle}>Riwayat Transaksi Terbaru</Text>
-          </View>
+        {/* 5. RIWAYAT TRANSAKSI TERBARU (SINGLE CARD WITH ROWS SEPARATED BY HAIRLINE) */}
+        <View style={styles.historyHeaderRow}>
+          <Text style={styles.sectionHeadline}>Riwayat mutasi</Text>
 
           {/* Mini Tx Filter */}
           <View style={styles.txFilterGroup}>
             {(['ALL', 'INCOME', 'EXPENSE'] as TxFilter[]).map((f) => (
-              <TouchableOpacity
+              <Pressable
                 key={f}
                 onPress={() => {
                   triggerHaptic('light');
                   setSelectedTxFilter(f);
                 }}
-                activeOpacity={0.65}
-                style={[styles.txFilterBtn, selectedTxFilter === f && styles.txFilterBtnActive]}
+                style={[
+                  styles.txFilterBtn,
+                  selectedTxFilter === f && styles.txFilterBtnActive,
+                ]}
               >
-                <Text style={[styles.txFilterBtnText, selectedTxFilter === f && styles.txFilterBtnTextActive]}>
+                <Text
+                  style={[
+                    styles.txFilterBtnText,
+                    selectedTxFilter === f && styles.txFilterBtnTextActive,
+                  ]}
+                >
                   {f === 'ALL' ? 'Semua' : f === 'INCOME' ? 'Masuk' : 'Keluar'}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </View>
         </View>
 
         {filteredTransactions.length === 0 ? (
-          <GlassCard style={styles.emptyTxCard} borderTint="rgba(255, 255, 255, 0.08)">
-            <Icon name="History" size={18} color="#64748B" />
-            <Text style={styles.emptyTxText}>Belum ada riwayat transaksi kas</Text>
+          <GlassCard level="base" style={styles.emptyCard}>
+            <Text style={styles.emptyDesc}>Belum ada riwayat transaksi kas.</Text>
           </GlassCard>
         ) : (
-          <View style={styles.txList}>
-            {filteredTransactions.slice(0, 10).map((tx) => {
+          <GlassCard level="base" noPadding style={styles.txCard}>
+            {filteredTransactions.slice(0, 10).map((tx, index) => {
               const isInc = tx.type === 'INCOME';
-              const isTrans = tx.type === 'TRANSFER';
+              const isLast = index === Math.min(filteredTransactions.length, 10) - 1;
               return (
-                <GlassCard
-                  key={tx.id}
-                  style={styles.txCard}
-                  borderTint="rgba(255, 255, 255, 0.08)"
-                >
-                  <View style={styles.txLeft}>
-                    <View
+                <View key={tx.id}>
+                  <View style={styles.txRow}>
+                    <View style={styles.txLeft}>
+                      <Text style={styles.txDescription}>{tx.description}</Text>
+                      <Text style={styles.txMeta}>
+                        {formatDate(tx.transactionDate)} • {tx.accountName || 'Kas'}
+                      </Text>
+                    </View>
+
+                    <Text
                       style={[
-                        styles.txIconBadge,
-                        isInc ? styles.txBadgeGreen : isTrans ? styles.txBadgeSky : styles.txBadgeRed,
+                        styles.txAmountText,
+                        isInc ? styles.textGain : styles.textLoss,
                       ]}
                     >
-                      {isInc ? (
-                        <Icon name="ArrowDownLeft" size={13} color="#10B981" />
-                      ) : isTrans ? (
-                        <Icon name="TrendingUp" size={13} color="#38BDF8" />
-                      ) : (
-                        <Icon name="ArrowUpRight" size={13} color="#F43F5E" />
-                      )}
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.txDesc} numberOfLines={1}>
-                        {tx.description}
-                      </Text>
-                      <Text style={styles.txMeta}>
-                        {tx.accountName || 'Akun'} • {tx.category} • {formatDate(tx.transactionDate)}
-                      </Text>
-                    </View>
+                      {isInc ? '▲ +' : '▼ −'}
+                      {formatIDR(Math.abs(tx.amount))}
+                    </Text>
                   </View>
-
-                  <View style={styles.txRight}>
-                    <PrivacyValue
-                      value={tx.amount}
-                      prefix={isInc ? '+ ' : '- '}
-                      style={[styles.txAmount, isInc ? styles.textGreen : styles.textRed]}
-                    />
-                    <Text style={styles.txSourceTag}>{tx.source}</Text>
-                  </View>
-                </GlassCard>
+                  {!isLast && <View style={styles.rowHairline} />}
+                </View>
               );
             })}
-          </View>
+          </GlassCard>
         )}
       </ScrollView>
 
-      {/* Account Creation Modal */}
+      {/* Modals */}
       <AccountModal
         visible={accountModalVisible}
         onClose={() => setAccountModalVisible(false)}
       />
 
-      {/* Cash Mutation Modal */}
       <CashMutationModal
         visible={mutationModalVisible}
-        onClose={() => setMutationModalVisible(false)}
-        defaultAccountId={activeAccountForMutation}
-        defaultType={mutationType}
+        accountId={activeAccountForMutation}
+        initialType={mutationType}
+        onClose={() => {
+          setMutationModalVisible(false);
+          setActiveAccountForMutation(undefined);
+        }}
       />
     </ScreenTransition>
   );
@@ -506,477 +425,377 @@ export default function AccountsScreen() {
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: '#080C14',
+    backgroundColor: color.obsidian,
   },
   scrollContent: {
-    paddingBottom: 120,
-    gap: 14,
+    paddingBottom: 110,
+    gap: space.lg,
   },
-  liquidityHeroCard: {
-    borderRadius: 24,
+  heroCard: {
+    padding: space.lg,
   },
-  liquidityHeader: {
+  heroHeader: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
   },
-  liquidityLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#94A3B8',
-    letterSpacing: 1.1,
-  },
-  liquidityAmount: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#10B981',
-    marginTop: 3,
-  },
-  liquiditySubtitle: {
-    fontSize: 10,
-    color: '#64748B',
-    marginTop: 2,
-    fontWeight: '500',
-  },
-  addAccountBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: '#38BDF8',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-  },
-  addAccountBtnText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#080C14',
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  historyTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  sectionTitle: {
+  heroLabel: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#F8FAFC',
-    letterSpacing: 0.3,
+    color: color.textMuted,
+    fontWeight: '500',
+    marginBottom: space.xs,
   },
-  sectionSubtitle: {
-    fontSize: 11,
-    color: '#64748B',
+  heroAmount: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: color.text,
+    letterSpacing: -0.5,
+  },
+  heroSubtitle: {
+    fontSize: 12,
+    color: color.textMuted,
+    marginTop: space.xs,
+  },
+  addAccountButton: {
+    backgroundColor: color.accent,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: radius.pill,
+    ...shadow.e1,
+  },
+  addAccountButtonText: {
+    fontSize: 12,
     fontWeight: '600',
+    color: color.onAccent,
   },
-  accountFilterRow: {
+
+  // Groups
+  groupsWrapper: {
+    gap: space.md,
+  },
+  groupContainer: {
+    gap: space.xs,
+  },
+  groupHeaderRow: {
     flexDirection: 'row',
-    gap: 6,
-    flexWrap: 'wrap',
-  },
-  accFilterChip: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  activeAccFilterChip: {
-    backgroundColor: 'rgba(56, 189, 248, 0.16)',
-    borderColor: 'rgba(56, 189, 248, 0.35)',
-  },
-  accFilterChipText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  activeAccFilterChipText: {
-    color: '#38BDF8',
-  },
-  accountList: {
-    gap: 8,
-  },
-  accountCard: {
-    borderRadius: 20,
-  },
-  accountTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 4,
+  },
+  groupTitleText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: color.text,
+  },
+  groupCountText: {
+    fontSize: 12,
+    color: color.textMuted,
+  },
+  groupCard: {
+    borderRadius: radius.lg,
+  },
+  accountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: space.md,
+    paddingHorizontal: space.lg,
   },
   accountLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1,
-  },
-  accountIconBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  accountTextContainer: {
     flex: 1,
   },
   accountName: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#F8FAFC',
+    fontSize: 15,
+    fontWeight: '600',
+    color: color.text,
   },
-  accountNumber: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 1,
+  accountMeta: {
+    fontSize: 12,
+    color: color.textMuted,
+    marginTop: 2,
   },
   accountRight: {
     alignItems: 'flex-end',
   },
-  accountBalance: {
+  accountBalanceText: {
     fontSize: 15,
-    fontWeight: '800',
-    color: '#F8FAFC',
+    fontWeight: '700',
+    color: color.text,
+    textAlign: 'right',
   },
-  quickButtonsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 10,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  smallAdjustBtn: {
-    flex: 1,
+  quickActionPillRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    paddingVertical: 6,
-    borderRadius: 10,
-    borderWidth: 1,
+    gap: space.xs,
+    marginTop: 4,
   },
-  incomeAdjustBtn: {
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
-    borderColor: 'rgba(16, 185, 129, 0.22)',
+  actionPill: {
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: radius.pill,
+    backgroundColor: color.glassFillInset,
   },
-  expenseAdjustBtn: {
-    backgroundColor: 'rgba(244, 63, 94, 0.08)',
-    borderColor: 'rgba(244, 63, 94, 0.22)',
-  },
-  smallAdjustText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  aiParserCard: {
-    borderRadius: 22,
-  },
-  aiParserHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  aiHeaderTitle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  aiTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#F8FAFC',
-  },
-  aiEngineTag: {
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-  },
-  aiEngineTagText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#38BDF8',
-  },
-  aiInstruction: {
+  actionPillIncome: {
     fontSize: 11,
-    color: '#94A3B8',
-    marginBottom: 10,
-    lineHeight: 16,
+    color: color.gain,
+    fontWeight: '600',
   },
-  presetGrid: {
+  actionPillExpense: {
+    fontSize: 11,
+    color: color.loss,
+    fontWeight: '600',
+  },
+  rowHairline: {
+    height: 1,
+    backgroundColor: color.hairline,
+    marginHorizontal: space.lg,
+  },
+
+  // Parser Card
+  parserCard: {
+    padding: space.lg,
+  },
+  parserHeader: {
     flexDirection: 'row',
-    gap: 6,
-    marginBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: space.xs,
+  },
+  sectionHeadline: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: color.text,
+  },
+  aiTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    backgroundColor: color.accentSoft,
+    borderWidth: 1,
+    borderColor: color.accentRim,
+  },
+  aiTagText: {
+    fontSize: 11,
+    color: color.accent,
+    fontWeight: '600',
+  },
+  parserSubtext: {
+    fontSize: 13,
+    color: color.textMuted,
+    marginBottom: space.md,
+  },
+  presetRow: {
+    flexDirection: 'row',
+    gap: space.xs + 2,
+    marginBottom: space.md,
   },
   presetChip: {
     flex: 1,
-    paddingVertical: 7,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: radius.md,
+    backgroundColor: color.glassFillInset,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.20)',
-    justifyContent: 'space-between',
+    borderColor: color.hairline,
   },
-  presetChipTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 3,
+  presetTitle: {
+    fontSize: 11,
+    color: color.textMuted,
+    fontWeight: '500',
   },
-  presetChipTitle: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#F8FAFC',
-    flex: 1,
-  },
-  presetChipAmount: {
-    fontSize: 10,
-    color: '#F59E0B',
-    fontWeight: '700',
+  presetAmount: {
+    fontSize: 12,
+    color: color.text,
+    fontWeight: '600',
+    marginTop: 2,
     fontVariant: ['tabular-nums'],
   },
-  aiInputArea: {
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
-    borderRadius: 14,
+  parserInput: {
+    backgroundColor: color.glassFillInset,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.10)',
-    color: '#F8FAFC',
-    padding: 10,
-    fontSize: 12,
-    minHeight: 64,
+    borderColor: color.hairline,
+    padding: space.md,
+    color: color.text,
+    fontSize: 14,
+    minHeight: 70,
     textAlignVertical: 'top',
+    marginBottom: space.md,
   },
-  resultBanner: {
+  confirmationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    justifyContent: 'space-between',
+    padding: space.md,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(16, 185, 129, 0.10)',
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.30)',
-    borderRadius: 12,
-    padding: 10,
-    marginTop: 8,
+    borderColor: 'rgba(16, 185, 129, 0.22)',
+    marginBottom: space.md,
   },
-  resultTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#10B981',
+  confirmLeft: {
+    flex: 1,
   },
-  resultSubtitle: {
-    fontSize: 10,
-    color: '#94A3B8',
-    marginTop: 1,
+  confirmType: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: color.gain,
   },
-  aiProcessBtn: {
-    backgroundColor: '#38BDF8',
-    borderRadius: 12,
-    paddingVertical: 10,
+  confirmAccount: {
+    fontSize: 11,
+    color: color.textMuted,
+    marginTop: 2,
+  },
+  confirmTag: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: color.gain,
+  },
+  saveMutationButton: {
+    backgroundColor: color.accent,
+    paddingVertical: 12,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 10,
+    ...shadow.e1,
   },
-  disabledBtn: {
-    opacity: 0.45,
+  disabledButton: {
+    opacity: 0.5,
   },
-  aiProcessBtnText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#080C14',
+  saveMutationText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: color.onAccent,
   },
-  listenerCard: {
-    borderRadius: 22,
+
+  // Simulator Card
+  simulatorCard: {
+    padding: space.lg,
   },
-  listenerHeader: {
+  simulatorHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 8,
+    gap: space.xs + 2,
+    marginBottom: 4,
   },
-  listenerIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
+  simulatorTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: color.text,
   },
-  listenerTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#F8FAFC',
-  },
-  listenerSubtitle: {
-    fontSize: 10,
-    color: '#64748B',
-    marginTop: 1,
+  simulatorDesc: {
+    fontSize: 12,
+    color: color.textMuted,
+    lineHeight: 17,
+    marginBottom: space.md,
   },
   simulatedBox: {
-    backgroundColor: 'rgba(245, 158, 11, 0.10)',
-    borderRadius: 10,
-    padding: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#F59E0B',
-    marginBottom: 8,
+    padding: space.sm,
+    backgroundColor: color.glassFillInset,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: color.hairline,
+    marginBottom: space.sm,
   },
   simulatedText: {
     fontSize: 11,
-    color: '#F8FAFC',
+    color: color.accent,
     fontStyle: 'italic',
   },
-  simulateActionBtn: {
+  simulatorButton: {
+    backgroundColor: color.glassFillInset,
+    borderWidth: 1,
+    borderColor: color.hairline,
+    paddingVertical: 10,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+  },
+  simulatorButtonText: {
+    fontSize: 12,
+    color: color.text,
+    fontWeight: '500',
+  },
+
+  // History
+  historyHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: '#F59E0B',
-    borderRadius: 12,
-    paddingVertical: 9,
-  },
-  simulateActionBtnText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#080C14',
+    justifyContent: 'space-between',
   },
   txFilterGroup: {
     flexDirection: 'row',
-    gap: 4,
+    backgroundColor: color.glassFillInset,
+    borderRadius: radius.pill,
+    padding: 2,
+    borderWidth: 1,
+    borderColor: color.hairline,
   },
   txFilterBtn: {
-    paddingVertical: 2,
-    paddingHorizontal: 6,
-    borderRadius: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: radius.pill,
   },
   txFilterBtnActive: {
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    backgroundColor: color.accentSoft,
   },
   txFilterBtnText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#64748B',
+    fontSize: 11,
+    color: color.textMuted,
+    fontWeight: '500',
   },
   txFilterBtnTextActive: {
-    color: '#38BDF8',
-  },
-  txList: {
-    gap: 6,
+    color: color.accent,
+    fontWeight: '600',
   },
   txCard: {
-    borderRadius: 16,
+    borderRadius: radius.lg,
+  },
+  txRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: space.md,
+    paddingHorizontal: space.lg,
   },
   txLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
     flex: 1,
   },
-  txIconBadge: {
-    width: 30,
-    height: 30,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  txBadgeGreen: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-  },
-  txBadgeSky: {
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
-  },
-  txBadgeRed: {
-    backgroundColor: 'rgba(244, 63, 94, 0.15)',
-  },
-  txDesc: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#F8FAFC',
+  txDescription: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: color.text,
   },
   txMeta: {
-    fontSize: 10,
-    color: '#64748B',
-    marginTop: 1,
+    fontSize: 11,
+    color: color.textMuted,
+    marginTop: 2,
   },
-  txRight: {
-    alignItems: 'flex-end',
-  },
-  txAmount: {
-    fontSize: 12,
-    fontWeight: '800',
+  txAmountText: {
+    fontSize: 14,
+    fontWeight: '600',
     fontVariant: ['tabular-nums'],
   },
-  txSourceTag: {
-    fontSize: 9,
-    color: '#475569',
-    marginTop: 1,
+  textGain: {
+    color: color.gain,
   },
-  textGreen: {
-    color: '#10B981',
-  },
-  textRed: {
-    color: '#F43F5E',
+  textLoss: {
+    color: color.loss,
   },
   emptyCard: {
-    padding: 24,
+    padding: space.lg,
     alignItems: 'center',
-    borderRadius: 20,
-    gap: 8,
-    marginVertical: 4,
   },
-  emptyIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: color.text,
+    marginBottom: space.xs,
   },
-  emptyCardTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#F8FAFC',
-  },
-  emptyCardDesc: {
-    fontSize: 11,
-    lineHeight: 16,
-    color: '#94A3B8',
+  emptyDesc: {
+    fontSize: 13,
+    color: color.textMuted,
     textAlign: 'center',
-    paddingHorizontal: 12,
-  },
-  emptyAddBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#10B981',
-    paddingVertical: 9,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    marginTop: 6,
-  },
-  emptyAddBtnText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#080C14',
-  },
-  emptyTxCard: {
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 16,
-    flexDirection: 'row',
-    gap: 8,
-  },
-  emptyTxText: {
-    fontSize: 11,
-    color: '#64748B',
-    fontWeight: '500',
+    lineHeight: 18,
+    marginBottom: space.md,
   },
 });

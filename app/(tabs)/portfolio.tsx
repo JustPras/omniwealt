@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   RefreshControl,
   TextInput,
   useWindowDimensions,
@@ -14,14 +14,16 @@ import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
 import { ScreenTransition } from '../../src/components/common/screen-transition';
+import { AmbientBackground } from '../../src/components/common/ambient-background';
 import { Sparkline } from '../../src/components/common/sparkline';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
 import { StockModal } from '../../src/components/modals/stock-modal';
 import { CryptoModal } from '../../src/components/modals/crypto-modal';
 import { useWealth } from '../../src/store/wealth-context';
-import { formatPercent } from '../../src/utils/format';
+import { formatPercent, formatChangePercent, formatIDR } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
 import { StockAsset, CryptoAsset } from '../../src/types';
+import { color, space, radius, shadow } from '../../src/theme/tokens';
 
 type AssetFilter = 'ALL' | 'STOCKS' | 'CRYPTO';
 type SortMode = 'VALUE' | 'PNL' | 'NAME';
@@ -45,6 +47,9 @@ export default function PortfolioScreen() {
   const [activeFilter, setActiveFilter] = useState<AssetFilter>('ALL');
   const [sortMode, setSortMode] = useState<SortMode>('VALUE');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // In-place expanded asset IDs
+  const [expandedAssetId, setExpandedAssetId] = useState<string | null>(null);
 
   const [stockModalVisible, setStockModalVisible] = useState(false);
   const [selectedStock, setSelectedStock] = useState<StockAsset | null>(null);
@@ -77,7 +82,6 @@ export default function PortfolioScreen() {
     return a.ticker.localeCompare(b.ticker);
   });
 
-  // Filtered by Search Query
   const displayedStocks = sortedStocks.filter((s) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -115,89 +119,86 @@ export default function PortfolioScreen() {
     else setSortMode('VALUE');
   };
 
+  const toggleExpand = (id: string) => {
+    triggerHaptic('light');
+    setExpandedAssetId(expandedAssetId === id ? null : id);
+  };
+
   return (
     <ScreenTransition style={styles.screenContainer}>
+      <AmbientBackground activeAssetClass={activeFilter === 'CRYPTO' ? 'CRYPTO' : 'STOCK'} />
       <HeaderBar />
 
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingHorizontal: isSmall ? 12 : 16 },
+          { paddingHorizontal: isSmall ? space.md : space.lg },
         ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={refreshMarketPrices}
-            tintColor="#38BDF8"
-            colors={['#38BDF8']}
+            tintColor={color.accent}
+            colors={[color.accent]}
           />
         }
       >
-        {/* INVESTMENT HERO STATS */}
-        <GlassCard
-          style={styles.heroCard}
-          borderTint="rgba(56, 189, 248, 0.25)"
-          gradientColors={['rgba(56, 189, 248, 0.10)', 'rgba(15, 23, 42, 0.55)']}
-        >
-          {/* Hero Top: Label and Action Buttons */}
+        {/* 1. INVESTMENT HERO STATS */}
+        <GlassCard level="base" style={styles.heroCard}>
           <View style={styles.heroHeaderRow}>
-            <Text style={styles.heroLabel}>TOTAL NILAI INVESTASI</Text>
+            <View>
+              <Text style={styles.heroLabel}>Nilai investasi</Text>
+              <PrivacyValue value={totalInvestments} style={styles.heroAmount} />
+            </View>
             <View style={styles.heroActions}>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => {
-                  triggerHaptic('medium');
+                  triggerHaptic('light');
                   setSelectedStock(null);
                   setStockModalVisible(true);
                 }}
-                style={styles.addBtnSky}
-                activeOpacity={0.7}
+                style={styles.actionBtn}
               >
-                <Icon name="Plus" size={12} color="#080C14" />
-                <Text style={styles.addBtnText}>+ Saham</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
+                <Text style={styles.actionBtnText}>+ Saham</Text>
+              </Pressable>
+              <Pressable
                 onPress={() => {
-                  triggerHaptic('medium');
+                  triggerHaptic('light');
                   setSelectedCrypto(null);
                   setCryptoModalVisible(true);
                 }}
-                style={styles.addBtnAmber}
-                activeOpacity={0.7}
+                style={styles.actionBtn}
               >
-                <Icon name="Plus" size={12} color="#080C14" />
-                <Text style={styles.addBtnText}>+ Kripto</Text>
-              </TouchableOpacity>
+                <Text style={styles.actionBtnText}>+ Kripto</Text>
+              </Pressable>
             </View>
           </View>
 
-          {/* Full-width Investment Value */}
-          <PrivacyValue value={totalInvestments} style={styles.heroAmount} />
-
-          {/* Unrealized PnL Pod */}
-          <View style={styles.pnlPod}>
-            <Text style={styles.pnlPodLabel}>Total Unrealized Profit / Loss</Text>
-            <View style={styles.pnlValuesRow}>
+          {/* Unrealized PnL Row */}
+          <View style={styles.pnlRow}>
+            <Text style={styles.pnlLabel}>Laba belum terealisasi</Text>
+            <View style={styles.pnlValues}>
+              <Text
+                style={[
+                  styles.pnlPercent,
+                  isOverallProfit ? styles.textGain : styles.textLoss,
+                ]}
+              >
+                {formatChangePercent(totalUnrealizedPnLPercent)}
+              </Text>
               <PrivacyValue
                 value={totalUnrealizedPnL}
-                prefix={isOverallProfit ? '+ ' : ''}
-                style={[styles.pnlAmount, isOverallProfit ? styles.textGreen : styles.textRed]}
+                prefix={isOverallProfit ? '▲ +' : '▼ −'}
+                style={[
+                  styles.pnlAmount,
+                  isOverallProfit ? styles.textGain : styles.textLoss,
+                ]}
               />
-              <View style={[styles.pnlChip, isOverallProfit ? styles.chipGreen : styles.chipRed]}>
-                <Icon
-                  name={isOverallProfit ? 'ArrowUpRight' : 'ArrowDownRight'}
-                  size={12}
-                  color={isOverallProfit ? '#10B981' : '#F43F5E'}
-                />
-                <Text style={[styles.pnlChipText, isOverallProfit ? styles.textGreen : styles.textRed]}>
-                  {formatPercent(totalUnrealizedPnLPercent)}
-                </Text>
-              </View>
             </View>
           </View>
 
-          {/* Micro Sparkline Trend */}
+          {/* Micro Sparkline */}
           <Sparkline
             data={portfolioSparkline}
             isPositive={isOverallProfit}
@@ -206,11 +207,12 @@ export default function PortfolioScreen() {
           />
         </GlassCard>
 
-        {/* FLUID ASSET FILTER & SORT BAR */}
-        <View style={styles.filterAndSortRow}>
-          <View style={styles.filterContainer}>
+        {/* 2. SLIDING SEGMENT FILTER (Saham | Kripto) & SORT */}
+        <View style={styles.filterRow}>
+          <View style={styles.segmentContainer}>
             {(['ALL', 'STOCKS', 'CRYPTO'] as AssetFilter[]).map((f) => {
               const isActive = activeFilter === f;
+              const label = f === 'ALL' ? 'Semua' : f === 'STOCKS' ? 'Saham' : 'Kripto';
               const count = f === 'ALL'
                 ? stocks.length + cryptos.length
                 : f === 'STOCKS'
@@ -218,345 +220,306 @@ export default function PortfolioScreen() {
                 : cryptos.length;
 
               return (
-                <TouchableOpacity
+                <Pressable
                   key={f}
                   onPress={() => {
                     triggerHaptic('selection');
                     setActiveFilter(f);
                   }}
-                  style={[styles.filterTab, isActive && styles.activeFilterTab]}
-                  activeOpacity={0.65}
+                  style={[styles.segmentBtn, isActive && styles.activeSegmentBtn]}
                 >
-                  <Text style={[styles.filterTabText, isActive && styles.activeFilterTabText]}>
-                    {f === 'ALL' ? 'Semua' : f === 'STOCKS' ? 'Saham' : 'Kripto'} ({count})
+                  <Text style={[styles.segmentText, isActive && styles.activeSegmentText]}>
+                    {label} ({count})
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
           </View>
 
-          {/* Interactive Sort Button */}
-          <TouchableOpacity
-            onPress={toggleSort}
-            style={styles.sortBtn}
-            activeOpacity={0.65}
-          >
+          <Pressable onPress={toggleSort} style={styles.sortBtn} hitSlop={6}>
             <Text style={styles.sortBtnText}>
-              Urut: {sortMode === 'VALUE' ? 'Nilai' : sortMode === 'PNL' ? 'PnL %' : 'Nama'}
+              Urut: {sortMode === 'VALUE' ? 'Nilai' : sortMode === 'PNL' ? 'PnL' : 'Nama'}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
-        {/* Instant Search Bar */}
-        <View style={styles.searchBarContainer}>
-          <Icon name="Search" size={15} color="#64748B" />
+        {/* 3. PENCARIAN DI ATAS DAFTAR */}
+        <View style={styles.searchBar}>
+          <Icon name="Search" size={15} color={color.textMuted} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Cari kode saham (BBRI, ARCI...) atau koin..."
-            placeholderTextColor="#64748B"
+            placeholder="Cari kode (BBRI, BTC) atau nama..."
+            placeholderTextColor={color.textFaint}
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCapitalize="characters"
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity
-              onPress={() => setSearchQuery('')}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Icon name="X" size={14} color="#94A3B8" />
-            </TouchableOpacity>
+            <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
+              <Icon name="X" size={14} color={color.textMuted} />
+            </Pressable>
           )}
         </View>
 
-        {/* IDX STOCKS SECTION */}
+        {/* 4. DAFTAR SAHAM (SATU KARTU BERISI BARIS DIPISAH HAIRLINE) */}
         {(activeFilter === 'ALL' || activeFilter === 'STOCKS') && (
-          <View style={styles.sectionBlock}>
+          <View style={styles.sectionContainer}>
             <View style={styles.sectionTitleRow}>
-              <View style={styles.titleWithIcon}>
-                <Icon name="TrendingUp" size={15} color="#38BDF8" />
-                <Text style={styles.sectionTitle}>Saham Indonesia (IDX)</Text>
-              </View>
-              <View style={styles.sectionRightRow}>
-                <PrivacyValue value={totalStocks} style={styles.sectionTotalVal} />
-                <TouchableOpacity
-                  onPress={() => {
-                    triggerHaptic('medium');
-                    setSelectedStock(null);
-                    setStockModalVisible(true);
-                  }}
-                  style={styles.sectionAddBtnSky}
-                  activeOpacity={0.7}
-                >
-                  <Icon name="Plus" size={10} color="#38BDF8" />
-                  <Text style={styles.sectionAddBtnSkyText}>Tambah</Text>
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.sectionHeadline}>Saham Indonesia (IDX)</Text>
+              <PrivacyValue value={totalStocks} style={styles.sectionTotal} />
             </View>
 
             {displayedStocks.length === 0 ? (
-              <GlassCard style={styles.emptyCard} borderTint="rgba(56, 189, 248, 0.2)">
-                <View style={styles.emptyIconCircle}>
-                  <Icon name="TrendingUp" size={20} color="#38BDF8" />
-                </View>
-                <Text style={styles.emptyCardTitle}>
-                  {searchQuery ? 'Saham Tidak Ditemukan' : 'Belum Ada Saham'}
+              <GlassCard level="base" style={styles.emptyCard}>
+                <Text style={styles.emptyDesc}>
+                  {stocks.length === 0
+                    ? 'Belum ada aset saham. Tambahkan lot atau impor dari SoA broker.'
+                    : 'Tidak ada saham yang sesuai pencarian.'}
                 </Text>
-                <Text style={styles.emptyCardDesc}>
-                  {searchQuery
-                    ? `Tidak ada saham dengan kata kunci "${searchQuery}". Coba cari ticker lain.`
-                    : 'Sinkronkan dokumen SoA Stockbit atau catat saham IDX Anda manual.'}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    triggerHaptic('medium');
-                    setSelectedStock(null);
-                    setStockModalVisible(true);
-                  }}
-                  style={styles.emptyActionBtnSky}
-                  activeOpacity={0.75}
-                >
-                  <Icon name="Plus" size={13} color="#080C14" />
-                  <Text style={styles.emptyActionBtnText}>+ Tambah Saham Manual</Text>
-                </TouchableOpacity>
               </GlassCard>
             ) : (
-              <View style={styles.assetList}>
-              {displayedStocks.map((stock) => {
-                const totalCost = (Number(stock.lots) || 0) * 100 * (Number(stock.avgBuyPrice) || 0);
-                const marketVal = (Number(stock.lots) || 0) * 100 * (Number(stock.currentPrice) || 0);
-                const pnlRp = marketVal - totalCost;
-                const pnlPct = totalCost > 0 ? pnlRp / totalCost : 0;
-                const isProfit = pnlRp >= 0;
+              <GlassCard level="base" noPadding style={styles.listCard}>
+                {displayedStocks.map((stock, index) => {
+                  const isExpanded = expandedAssetId === stock.id;
+                  const isLast = index === displayedStocks.length - 1;
+                  const totalValue = (Number(stock.lots) || 0) * 100 * (Number(stock.currentPrice) || 0);
+                  const totalCost = (Number(stock.lots) || 0) * 100 * (Number(stock.avgBuyPrice) || 0);
+                  const pnlRp = totalValue - totalCost;
+                  const pnlPct = totalCost > 0 ? pnlRp / totalCost : 0;
+                  const isUp = pnlPct >= 0;
+                  const cleanTicker = stock.ticker.replace('.JK', '');
 
-                return (
-                  <GlassCard
-                    key={stock.id}
-                    style={styles.assetCard}
-                    borderTint="rgba(56, 189, 248, 0.16)"
-                    onPress={() => {
-                      triggerHaptic('light');
-                      setSelectedStock(stock);
-                      setStockModalVisible(true);
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.cardTopRow}>
-                      <View style={{ flex: 1 }}>
-                        <View style={styles.tickerBadgeRow}>
-                          <Text style={styles.tickerText}>{stock.ticker.replace('.JK', '')}</Text>
-                          <View style={styles.idxTag}>
-                            <Text style={styles.idxTagText}>IDX</Text>
+                  return (
+                    <View key={stock.id}>
+                      <Pressable
+                        onPress={() => toggleExpand(stock.id)}
+                        onLongPress={() => {
+                          triggerHaptic('medium');
+                          setSelectedStock(stock);
+                          setStockModalVisible(true);
+                        }}
+                        style={[styles.assetRow, isExpanded && styles.assetRowExpanded]}
+                      >
+                        {/* Left: Ticker & Name & Lots */}
+                        <View style={styles.assetLeft}>
+                          <View style={[styles.assetDot, { backgroundColor: color.asset.stock }]} />
+                          <View>
+                            <Text style={styles.assetTicker}>{cleanTicker}</Text>
+                            <Text style={styles.assetName} numberOfLines={1}>
+                              {stock.name}
+                            </Text>
+                            <Text style={styles.assetLots}>
+                              {stock.lots} lot <Text style={styles.assetShares}>({stock.lots * 100} lembar)</Text>
+                            </Text>
                           </View>
                         </View>
-                        <Text style={styles.assetName} numberOfLines={1}>
-                          {stock.name}
-                        </Text>
-                      </View>
 
-                      <View style={styles.topRightActions}>
-                        <PrivacyValue value={marketVal} style={styles.marketValText} />
-                        <View style={styles.editPill}>
-                          <Icon name="Edit2" size={11} color="#94A3B8" />
-                          <Text style={styles.editPillText}>Edit</Text>
+                        {/* Right: Value & PnL */}
+                        <View style={styles.assetRight}>
+                          <PrivacyValue value={totalValue} style={styles.assetValueText} />
+                          <Text style={[styles.assetPnlText, isUp ? styles.textGain : styles.textLoss]}>
+                            {formatChangePercent(pnlPct)}
+                          </Text>
+                          <PrivacyValue
+                            value={pnlRp}
+                            prefix={isUp ? '▲ +' : '▼ −'}
+                            style={[styles.assetPnlAmount, isUp ? styles.textGain : styles.textLoss]}
+                          />
                         </View>
-                      </View>
+                      </Pressable>
+
+                      {/* IN-PLACE EXPANDED DETAIL */}
+                      {isExpanded && (
+                        <View style={styles.expandedDetailBox}>
+                          <View style={styles.expandedMetricsRow}>
+                            <View style={styles.metricItem}>
+                              <Text style={styles.metricLabel}>Harga beli rata-rata</Text>
+                              <Text style={styles.metricValue}>{formatIDR(stock.avgBuyPrice)}</Text>
+                            </View>
+                            <View style={styles.metricItem}>
+                              <Text style={styles.metricLabel}>Harga live pasar</Text>
+                              <Text style={styles.metricValue}>{formatIDR(stock.currentPrice)}</Text>
+                            </View>
+                          </View>
+
+                          <View style={styles.expandedMetricsRow}>
+                            <View style={styles.metricItem}>
+                              <Text style={styles.metricLabel}>Modal investasi</Text>
+                              <PrivacyValue value={totalCost} style={styles.metricValue} />
+                            </View>
+                            <View style={styles.metricItem}>
+                              <Text style={styles.metricLabel}>Laba / rugi</Text>
+                              <PrivacyValue
+                                value={pnlRp}
+                                prefix={isUp ? '▲ +' : '▼ −'}
+                                style={[styles.metricValue, isUp ? styles.textGain : styles.textLoss]}
+                              />
+                            </View>
+                          </View>
+
+                          <View style={styles.expandedActionRow}>
+                            <Pressable
+                              onPress={() => {
+                                triggerHaptic('light');
+                                setSelectedStock(stock);
+                                setStockModalVisible(true);
+                              }}
+                              style={styles.expandedEditBtn}
+                            >
+                              <Icon name="Edit2" size={12} color={color.accent} />
+                              <Text style={styles.expandedEditBtnText}>Ubah transaksi</Text>
+                            </Pressable>
+                          </View>
+                        </View>
+                      )}
+
+                      {!isLast && <View style={styles.rowHairline} />}
                     </View>
-
-                    {/* Stock Metrics Grid (Fluid 4-cell row) */}
-                    <View style={styles.metricsGrid}>
-                      <View style={styles.metricItem}>
-                        <Text style={styles.metricLabel}>Jumlah</Text>
-                        <Text style={styles.metricValue}>{stock.lots} Lot</Text>
-                        <Text style={styles.metricSub}>{stock.lots * 100} lbr</Text>
-                      </View>
-
-                      <View style={styles.metricItem}>
-                        <Text style={styles.metricLabel}>Harga Rata2</Text>
-                        <PrivacyValue value={stock.avgBuyPrice} style={styles.metricValue} compact />
-                        <Text style={styles.metricSub}>Modal</Text>
-                      </View>
-
-                      <View style={styles.metricItem}>
-                        <Text style={styles.metricLabel}>Harga Pasar</Text>
-                        <PrivacyValue value={stock.currentPrice} style={styles.metricValue} compact />
-                        <Text style={[styles.metricSub, stock.change24h >= 0 ? styles.textGreen : styles.textRed]}>
-                          {formatPercent(stock.change24h)}
-                        </Text>
-                      </View>
-
-                      <View style={styles.metricItem}>
-                        <Text style={styles.metricLabel}>Unrealized PnL</Text>
-                        <Text style={[styles.metricValue, isProfit ? styles.textGreen : styles.textRed]}>
-                          {isProfit ? '+' : ''}
-                          {formatPercent(pnlPct)}
-                        </Text>
-                        <PrivacyValue
-                          value={pnlRp}
-                          prefix={isProfit ? '+' : ''}
-                          style={[styles.metricSub, isProfit ? styles.textGreen : styles.textRed]}
-                          compact
-                        />
-                      </View>
-                    </View>
-                  </GlassCard>
-                );
-              })}
-            </View>
-          )}
-        </View>
-      )}
-
-      {/* CRYPTO ASSETS SECTION */}
-      {(activeFilter === 'ALL' || activeFilter === 'CRYPTO') && (
-        <View style={styles.sectionBlock}>
-          <View style={styles.sectionTitleRow}>
-            <View style={styles.titleWithIcon}>
-              <Icon name="Coins" size={15} color="#F59E0B" />
-              <Text style={styles.sectionTitle}>Aset Kripto (IDR)</Text>
-            </View>
-            <View style={styles.sectionRightRow}>
-              <PrivacyValue value={totalCryptos} style={styles.sectionTotalVal} />
-              <TouchableOpacity
-                onPress={() => {
-                  triggerHaptic('medium');
-                  setSelectedCrypto(null);
-                  setCryptoModalVisible(true);
-                }}
-                style={styles.sectionAddBtnAmber}
-                activeOpacity={0.7}
-              >
-                <Icon name="Plus" size={10} color="#F59E0B" />
-                <Text style={styles.sectionAddBtnAmberText}>Tambah</Text>
-              </TouchableOpacity>
-            </View>
+                  );
+                })}
+              </GlassCard>
+            )}
           </View>
+        )}
 
-          {displayedCryptos.length === 0 ? (
-            <GlassCard style={styles.emptyCard} borderTint="rgba(245, 158, 11, 0.2)">
-              <View style={styles.emptyIconCircle}>
-                <Icon name="Coins" size={20} color="#F59E0B" />
-              </View>
-              <Text style={styles.emptyCardTitle}>
-                {searchQuery ? 'Kripto Tidak Ditemukan' : 'Belum Ada Aset Kripto'}
-              </Text>
-              <Text style={styles.emptyCardDesc}>
-                {searchQuery
-                  ? `Tidak ada aset kripto dengan kata kunci "${searchQuery}".`
-                  : 'Catat portofolio koin crypto seperti BTC, ETH, SOL, USDT, dll.'}
-              </Text>
-              <TouchableOpacity
-                onPress={() => {
-                  triggerHaptic('medium');
-                  setSelectedCrypto(null);
-                  setCryptoModalVisible(true);
-                }}
-                style={styles.emptyActionBtn}
-                activeOpacity={0.75}
-              >
-                <Icon name="Plus" size={13} color="#080C14" />
-                <Text style={styles.emptyActionBtnText}>+ Tambah Kripto Baru</Text>
-              </TouchableOpacity>
-            </GlassCard>
-          ) : (
-            <View style={styles.assetList}>
-              {displayedCryptos.map((crypto) => {
-                const totalCost = (Number(crypto.holdings) || 0) * (Number(crypto.avgBuyPriceIdr) || 0);
-                const marketVal = (Number(crypto.holdings) || 0) * (Number(crypto.currentPriceIdr) || 0);
-                const pnlRp = marketVal - totalCost;
-                const pnlPct = totalCost > 0 ? pnlRp / totalCost : 0;
-                const isProfit = pnlRp >= 0;
+        {/* 5. DAFTAR KRIPTO (SATU KARTU BERISI BARIS DIPISAH HAIRLINE) */}
+        {(activeFilter === 'ALL' || activeFilter === 'CRYPTO') && (
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionTitleRow}>
+              <Text style={styles.sectionHeadline}>Aset kripto</Text>
+              <PrivacyValue value={totalCryptos} style={styles.sectionTotal} />
+            </View>
 
-                return (
-                  <GlassCard
-                    key={crypto.id}
-                    style={styles.assetCard}
-                    borderTint="rgba(245, 158, 11, 0.16)"
-                    onPress={() => {
-                      triggerHaptic('light');
-                      setSelectedCrypto(crypto);
-                      setCryptoModalVisible(true);
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.cardTopRow}>
-                      <View style={{ flex: 1 }}>
-                        <View style={styles.tickerBadgeRow}>
-                          <Text style={styles.tickerText}>{crypto.symbol}</Text>
-                          <View style={styles.cryptoTag}>
-                            <Text style={styles.cryptoTagText}>CRYPTO</Text>
+            {displayedCryptos.length === 0 ? (
+              <GlassCard level="base" style={styles.emptyCard}>
+                <Text style={styles.emptyDesc}>
+                  {cryptos.length === 0
+                    ? 'Belum ada aset kripto terdaftar.'
+                    : 'Tidak ada kripto yang sesuai pencarian.'}
+                </Text>
+              </GlassCard>
+            ) : (
+              <GlassCard level="base" noPadding style={styles.listCard}>
+                {displayedCryptos.map((crypto, index) => {
+                  const isExpanded = expandedAssetId === crypto.id;
+                  const isLast = index === displayedCryptos.length - 1;
+                  const totalValue = (Number(crypto.holdings) || 0) * (Number(crypto.currentPriceIdr) || 0);
+                  const totalCost = (Number(crypto.holdings) || 0) * (Number(crypto.avgBuyPriceIdr) || 0);
+                  const pnlRp = totalValue - totalCost;
+                  const pnlPct = totalCost > 0 ? pnlRp / totalCost : 0;
+                  const isUp = pnlPct >= 0;
+
+                  return (
+                    <View key={crypto.id}>
+                      <Pressable
+                        onPress={() => toggleExpand(crypto.id)}
+                        onLongPress={() => {
+                          triggerHaptic('medium');
+                          setSelectedCrypto(crypto);
+                          setCryptoModalVisible(true);
+                        }}
+                        style={[styles.assetRow, isExpanded && styles.assetRowExpanded]}
+                      >
+                        {/* Left: Symbol & Name */}
+                        <View style={styles.assetLeft}>
+                          <View style={[styles.assetDot, { backgroundColor: color.asset.crypto }]} />
+                          <View>
+                            <Text style={styles.assetTicker}>{crypto.symbol}</Text>
+                            <Text style={styles.assetName} numberOfLines={1}>
+                              {crypto.name}
+                            </Text>
+                            <Text style={styles.assetLots}>
+                              {crypto.holdings} {crypto.symbol}
+                            </Text>
                           </View>
                         </View>
-                        <Text style={styles.assetName}>{crypto.name}</Text>
-                      </View>
 
-                      <View style={styles.topRightActions}>
-                        <PrivacyValue value={marketVal} style={styles.marketValText} />
-                        <View style={styles.editPill}>
-                          <Icon name="Edit2" size={11} color="#94A3B8" />
-                          <Text style={styles.editPillText}>Edit</Text>
+                        {/* Right: Value & PnL */}
+                        <View style={styles.assetRight}>
+                          <PrivacyValue value={totalValue} style={styles.assetValueText} />
+                          <Text style={[styles.assetPnlText, isUp ? styles.textGain : styles.textLoss]}>
+                            {formatChangePercent(pnlPct)}
+                          </Text>
+                          <PrivacyValue
+                            value={pnlRp}
+                            prefix={isUp ? '▲ +' : '▼ −'}
+                            style={[styles.assetPnlAmount, isUp ? styles.textGain : styles.textLoss]}
+                          />
                         </View>
-                      </View>
+                      </Pressable>
+
+                      {/* IN-PLACE EXPANDED DETAIL */}
+                      {isExpanded && (
+                        <View style={styles.expandedDetailBox}>
+                          <View style={styles.expandedMetricsRow}>
+                            <View style={styles.metricItem}>
+                              <Text style={styles.metricLabel}>Harga beli rata-rata</Text>
+                              <Text style={styles.metricValue}>{formatIDR(crypto.avgBuyPriceIdr)}</Text>
+                            </View>
+                            <View style={styles.metricItem}>
+                              <Text style={styles.metricLabel}>Harga live pasar</Text>
+                              <Text style={styles.metricValue}>{formatIDR(crypto.currentPriceIdr)}</Text>
+                            </View>
+                          </View>
+
+                          <View style={styles.expandedMetricsRow}>
+                            <View style={styles.metricItem}>
+                              <Text style={styles.metricLabel}>Modal investasi</Text>
+                              <PrivacyValue value={totalCost} style={styles.metricValue} />
+                            </View>
+                            <View style={styles.metricItem}>
+                              <Text style={styles.metricLabel}>Laba / rugi</Text>
+                              <PrivacyValue
+                                value={pnlRp}
+                                prefix={isUp ? '▲ +' : '▼ −'}
+                                style={[styles.metricValue, isUp ? styles.textGain : styles.textLoss]}
+                              />
+                            </View>
+                          </View>
+
+                          <View style={styles.expandedActionRow}>
+                            <Pressable
+                              onPress={() => {
+                                triggerHaptic('light');
+                                setSelectedCrypto(crypto);
+                                setCryptoModalVisible(true);
+                              }}
+                              style={styles.expandedEditBtn}
+                            >
+                              <Icon name="Edit2" size={12} color={color.accent} />
+                              <Text style={styles.expandedEditBtnText}>Ubah transaksi</Text>
+                            </Pressable>
+                          </View>
+                        </View>
+                      )}
+
+                      {!isLast && <View style={styles.rowHairline} />}
                     </View>
-
-                    {/* Crypto Metrics Grid */}
-                    <View style={styles.metricsGrid}>
-                      <View style={styles.metricItem}>
-                        <Text style={styles.metricLabel}>Holdings</Text>
-                        <Text style={styles.metricValue}>
-                          {crypto.holdings} {crypto.symbol}
-                        </Text>
-                        <Text style={styles.metricSub}>Koin</Text>
-                      </View>
-
-                      <View style={styles.metricItem}>
-                        <Text style={styles.metricLabel}>Harga Beli</Text>
-                        <PrivacyValue value={crypto.avgBuyPriceIdr} style={styles.metricValue} compact />
-                        <Text style={styles.metricSub}>IDR</Text>
-                      </View>
-
-                      <View style={styles.metricItem}>
-                        <Text style={styles.metricLabel}>Live Rate</Text>
-                        <PrivacyValue value={crypto.currentPriceIdr} style={styles.metricValue} compact />
-                        <Text style={[styles.metricSub, crypto.change24h >= 0 ? styles.textGreen : styles.textRed]}>
-                          {formatPercent(crypto.change24h)}
-                        </Text>
-                      </View>
-
-                      <View style={styles.metricItem}>
-                        <Text style={styles.metricLabel}>Unrealized PnL</Text>
-                        <Text style={[styles.metricValue, isProfit ? styles.textGreen : styles.textRed]}>
-                          {isProfit ? '+' : ''}
-                          {formatPercent(pnlPct)}
-                        </Text>
-                        <PrivacyValue
-                          value={pnlRp}
-                          prefix={isProfit ? '+' : ''}
-                          style={[styles.metricSub, isProfit ? styles.textGreen : styles.textRed]}
-                          compact
-                        />
-                      </View>
-                    </View>
-                  </GlassCard>
-                );
-              })}
-            </View>
-          )}
-        </View>
-      )}
+                  );
+                })}
+              </GlassCard>
+            )}
+          </View>
+        )}
       </ScrollView>
 
-      {/* Stock Modal */}
+      {/* Modals */}
       <StockModal
         visible={stockModalVisible}
-        onClose={() => setStockModalVisible(false)}
-        stockToEdit={selectedStock}
+        stock={selectedStock}
+        onClose={() => {
+          setStockModalVisible(false);
+          setSelectedStock(null);
+        }}
       />
 
-      {/* Crypto Modal */}
       <CryptoModal
         visible={cryptoModalVisible}
-        onClose={() => setCryptoModalVisible(false)}
-        cryptoToEdit={selectedCrypto}
+        crypto={selectedCrypto}
+        onClose={() => {
+          setCryptoModalVisible(false);
+          setSelectedCrypto(null);
+        }}
       />
     </ScreenTransition>
   );
@@ -565,395 +528,293 @@ export default function PortfolioScreen() {
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: '#080C14',
+    backgroundColor: color.obsidian,
   },
   scrollContent: {
-    paddingBottom: 120,
-    gap: 14,
+    paddingBottom: 110,
+    gap: space.lg,
   },
   heroCard: {
-    borderRadius: 24,
+    padding: space.lg,
   },
   heroHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    marginBottom: space.xs,
   },
   heroLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#94A3B8',
-    letterSpacing: 1.1,
+    fontSize: 13,
+    color: color.textMuted,
+    fontWeight: '500',
   },
   heroAmount: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '800',
-    color: '#F8FAFC',
-    marginTop: 4,
-  },
-  heroSparkline: {
-    marginTop: 10,
-    marginBottom: 2,
-    paddingHorizontal: 2,
+    color: color.text,
+    letterSpacing: -0.5,
+    marginVertical: space.xs,
   },
   heroActions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flexShrink: 0,
+    gap: space.xs + 2,
   },
-  addBtnSky: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#38BDF8',
-    paddingVertical: 6,
-    paddingHorizontal: 9,
-    borderRadius: 9,
-  },
-  addBtnAmber: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#F59E0B',
-    paddingVertical: 6,
-    paddingHorizontal: 9,
-    borderRadius: 9,
-  },
-  addBtnText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#080C14',
-  },
-  pnlPod: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: 14,
-    padding: 10,
-    marginTop: 12,
+  actionBtn: {
+    backgroundColor: color.glassFillInset,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: color.hairline,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: radius.pill,
   },
-  pnlPodLabel: {
-    fontSize: 10,
-    color: '#94A3B8',
+  actionBtnText: {
+    fontSize: 12,
     fontWeight: '600',
+    color: color.text,
   },
-  pnlValuesRow: {
+  pnlRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 3,
+    marginTop: 4,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: color.hairline,
   },
-  pnlAmount: {
-    fontSize: 15,
-    fontWeight: '800',
+  pnlLabel: {
+    fontSize: 12,
+    color: color.textMuted,
   },
-  pnlChip: {
+  pnlValues: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-    paddingVertical: 3,
-    paddingHorizontal: 7,
-    borderRadius: 8,
+    gap: space.sm,
   },
-  chipGreen: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-  },
-  chipRed: {
-    backgroundColor: 'rgba(244, 63, 94, 0.15)',
-  },
-  pnlChipText: {
-    fontSize: 11,
-    fontWeight: '800',
+  pnlPercent: {
+    fontSize: 13,
+    fontWeight: '600',
     fontVariant: ['tabular-nums'],
   },
-  filterAndSortRow: {
+  pnlAmount: {
+    fontSize: 13,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
+  heroSparkline: {
+    marginTop: space.sm,
+  },
+
+  // Segment Filter & Sort
+  filterRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 8,
   },
-  filterContainer: {
-    flex: 1,
+  segmentContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: 12,
+    backgroundColor: color.glassFillInset,
+    borderRadius: radius.pill,
     padding: 3,
-    gap: 3,
-  },
-  filterTab: {
-    flex: 1,
-    paddingVertical: 7,
-    alignItems: 'center',
-    borderRadius: 9,
-  },
-  activeFilterTab: {
-    backgroundColor: 'rgba(56, 189, 248, 0.18)',
     borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.35)',
+    borderColor: color.hairline,
   },
-  filterTabText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#64748B',
+  segmentBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: radius.pill,
   },
-  activeFilterTabText: {
-    color: '#38BDF8',
+  activeSegmentBtn: {
+    backgroundColor: color.accentSoft,
+    borderWidth: 1,
+    borderColor: color.accentRim,
+  },
+  segmentText: {
+    fontSize: 12,
+    color: color.textMuted,
+    fontWeight: '500',
+  },
+  activeSegmentText: {
+    color: color.accent,
+    fontWeight: '600',
   },
   sortBtn: {
-    paddingVertical: 8,
+    paddingVertical: 6,
     paddingHorizontal: 10,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   sortBtnText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#94A3B8',
+    fontSize: 12,
+    color: color.textMuted,
+    fontWeight: '500',
   },
-  searchBarContainer: {
+
+  // Search
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 14,
+    backgroundColor: color.glassFillInset,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 8,
+    borderColor: color.hairline,
+    paddingHorizontal: space.md,
+    height: 42,
+    gap: space.sm,
   },
   searchInput: {
     flex: 1,
-    fontSize: 12,
-    color: '#F8FAFC',
-    fontWeight: '500',
-    padding: 0,
+    color: color.text,
+    fontSize: 13,
   },
-  sectionBlock: {
-    gap: 8,
+
+  // Section
+  sectionContainer: {
+    gap: space.sm,
   },
   sectionTitleRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    paddingHorizontal: 2,
   },
-  titleWithIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  sectionHeadline: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: color.text,
   },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#F8FAFC',
-  },
-  sectionTotalVal: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#94A3B8',
-  },
-  sectionRightRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  sectionAddBtnSky: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.35)',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-  },
-  sectionAddBtnSkyText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#38BDF8',
-  },
-  sectionAddBtnAmber: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.35)',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-  },
-  sectionAddBtnAmberText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#F59E0B',
-  },
-  emptyCard: {
-    borderRadius: 20,
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-  },
-  emptyIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  emptyCardTitle: {
+  sectionTotal: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#F8FAFC',
+    fontWeight: '600',
+    color: color.textMuted,
   },
-  emptyCardDesc: {
-    fontSize: 11,
-    color: '#94A3B8',
-    textAlign: 'center',
-    lineHeight: 16,
-    maxWidth: 260,
+  listCard: {
+    borderRadius: radius.lg,
   },
-  emptyActionBtn: {
+  assetRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#F59E0B',
-    paddingVertical: 9,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    marginTop: 6,
-  },
-  emptyActionBtnSky: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#38BDF8',
-    paddingVertical: 9,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    marginTop: 6,
-  },
-  emptyActionBtnText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#080C14',
-  },
-  assetList: {
-    gap: 8,
-  },
-  assetCard: {
-    borderRadius: 20,
-  },
-  cardTopRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 10,
+    paddingVertical: space.md,
+    paddingHorizontal: space.lg,
   },
-  tickerBadgeRow: {
+  assetRowExpanded: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  },
+  assetLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: space.md,
+    flex: 1,
   },
-  tickerText: {
+  assetDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  assetTicker: {
     fontSize: 15,
-    fontWeight: '800',
-    color: '#F8FAFC',
-  },
-  idxTag: {
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
-    paddingVertical: 2,
-    paddingHorizontal: 5,
-    borderRadius: 5,
-  },
-  idxTagText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#38BDF8',
-  },
-  cryptoTag: {
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    paddingVertical: 2,
-    paddingHorizontal: 5,
-    borderRadius: 5,
-  },
-  cryptoTagText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#F59E0B',
+    fontWeight: '700',
+    color: color.text,
   },
   assetName: {
+    fontSize: 12,
+    color: color.textMuted,
+    maxWidth: 160,
+    marginTop: 1,
+  },
+  assetLots: {
     fontSize: 11,
-    color: '#64748B',
+    color: color.textMuted,
     marginTop: 2,
   },
-  topRightActions: {
+  assetShares: {
+    fontSize: 10,
+    color: color.textFaint,
+  },
+  assetRight: {
     alignItems: 'flex-end',
-    gap: 4,
   },
-  marketValText: {
+  assetValueText: {
     fontSize: 14,
-    fontWeight: '800',
-    color: '#F8FAFC',
-  },
-  editPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    paddingVertical: 2,
-    paddingHorizontal: 6,
-    borderRadius: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  editPillText: {
-    fontSize: 9,
-    color: '#94A3B8',
     fontWeight: '600',
+    color: color.text,
+    textAlign: 'right',
   },
-  metricsGrid: {
+  assetPnlText: {
+    fontSize: 12,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+    marginTop: 2,
+  },
+  assetPnlAmount: {
+    fontSize: 11,
+    fontWeight: '500',
+    fontVariant: ['tabular-nums'],
+  },
+  rowHairline: {
+    height: 1,
+    backgroundColor: color.hairline,
+    marginHorizontal: space.lg,
+  },
+
+  // In-Place Expanded Box
+  expandedDetailBox: {
+    paddingHorizontal: space.lg,
+    paddingVertical: space.md,
+    backgroundColor: color.glassFillInset,
+    gap: space.sm,
+  },
+  expandedMetricsRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 12,
-    paddingVertical: 7,
-    paddingHorizontal: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    justifyContent: 'space-between',
   },
   metricItem: {
     flex: 1,
-    alignItems: 'center',
   },
   metricLabel: {
-    fontSize: 9,
-    color: '#64748B',
-    fontWeight: '600',
+    fontSize: 11,
+    color: color.textMuted,
     marginBottom: 2,
   },
   metricValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: color.text,
+    fontVariant: ['tabular-nums'],
+  },
+  expandedActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 4,
+  },
+  expandedEditBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: radius.pill,
+    backgroundColor: color.accentSoft,
+    borderWidth: 1,
+    borderColor: color.accentRim,
+  },
+  expandedEditBtnText: {
     fontSize: 11,
-    fontWeight: '800',
-    color: '#F8FAFC',
-    fontVariant: ['tabular-nums'],
+    fontWeight: '600',
+    color: color.accent,
   },
-  metricSub: {
-    fontSize: 9,
-    color: '#64748B',
-    fontWeight: '500',
-    marginTop: 1,
-    fontVariant: ['tabular-nums'],
+
+  textGain: {
+    color: color.gain,
   },
-  textGreen: {
-    color: '#10B981',
+  textLoss: {
+    color: color.loss,
   },
-  textRed: {
-    color: '#F43F5E',
+  emptyCard: {
+    padding: space.lg,
+    alignItems: 'center',
+  },
+  emptyDesc: {
+    fontSize: 13,
+    color: color.textMuted,
+    textAlign: 'center',
   },
 });

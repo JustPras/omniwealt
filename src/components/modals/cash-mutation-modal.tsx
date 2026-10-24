@@ -1,28 +1,34 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, Pressable, ScrollView } from 'react-native';
 import { Icon } from '../common/icon';
 import { GlassCard } from '../common/glass-card';
 import { useWealth } from '../../store/wealth-context';
 import { triggerHaptic } from '../../utils/haptics';
+import { color, space, radius, shadow } from '../../theme/tokens';
 
 interface CashMutationModalProps {
   visible: boolean;
   onClose: () => void;
-  defaultAccountId?: string;
-  defaultType?: 'INCOME' | 'EXPENSE';
+  accountId?: string;
+  initialType?: 'INCOME' | 'EXPENSE';
 }
 
 export const CashMutationModal: React.FC<CashMutationModalProps> = ({
   visible,
   onClose,
-  defaultAccountId,
-  defaultType = 'EXPENSE',
+  accountId,
+  initialType = 'EXPENSE',
 }) => {
   const { accounts, updateAccountBalance } = useWealth();
-  const [selectedAccId, setSelectedAccId] = useState<string>(defaultAccountId || accounts[0]?.id || '');
-  const [type, setType] = useState<'INCOME' | 'EXPENSE'>(defaultType);
+  const [selectedAccId, setSelectedAccId] = useState<string>(accountId || accounts[0]?.id || '');
+  const [type, setType] = useState<'INCOME' | 'EXPENSE'>(initialType);
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
+
+  React.useEffect(() => {
+    if (accountId) setSelectedAccId(accountId);
+    if (initialType) setType(initialType);
+  }, [accountId, initialType, visible]);
 
   const targetAccount = accounts.find((a) => a.id === selectedAccId) || accounts[0];
 
@@ -35,10 +41,11 @@ export const CashMutationModal: React.FC<CashMutationModalProps> = ({
     await updateAccountBalance(
       targetAccount.id,
       delta,
-      description.trim() || (type === 'INCOME' ? 'Pemasukan Tunai' : 'Pengeluaran Tunai'),
+      description.trim() || (type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'),
       type
     );
 
+    triggerHaptic('success');
     setAmount('');
     setDescription('');
     onClose();
@@ -48,110 +55,98 @@ export const CashMutationModal: React.FC<CashMutationModalProps> = ({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.modalContent}>
-          <GlassCard style={styles.cardContainer}>
+          <GlassCard level="raised" style={styles.cardContainer}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.title}>Catat Mutasi Saldo</Text>
-              <TouchableOpacity
+              <Text style={styles.title}>Catat mutasi kas</Text>
+              <Pressable
                 onPress={() => {
                   triggerHaptic('light');
                   onClose();
                 }}
+                hitSlop={8}
                 style={styles.closeBtn}
               >
-                <Icon name="X" size={20} color="#94A3B8" />
-              </TouchableOpacity>
+                <Icon name="X" size={18} color={color.textMuted} />
+              </Pressable>
             </View>
 
             {/* Income vs Expense Toggle */}
             <View style={styles.typeRow}>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => {
                   triggerHaptic('selection');
                   setType('EXPENSE');
                 }}
                 style={[styles.typeButton, type === 'EXPENSE' && styles.expenseActive]}
               >
-                <Icon name="ArrowUpRight" size={16} color={type === 'EXPENSE' ? '#F43F5E' : '#64748B'} />
                 <Text style={[styles.typeText, type === 'EXPENSE' && styles.expenseTextActive]}>
                   Pengeluaran
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
 
-              <TouchableOpacity
+              <Pressable
                 onPress={() => {
                   triggerHaptic('selection');
                   setType('INCOME');
                 }}
                 style={[styles.typeButton, type === 'INCOME' && styles.incomeActive]}
               >
-                <Icon name="ArrowDownLeft" size={16} color={type === 'INCOME' ? '#10B981' : '#64748B'} />
                 <Text style={[styles.typeText, type === 'INCOME' && styles.incomeTextActive]}>
                   Pemasukan
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
 
             {/* Select Target Account */}
-            <Text style={styles.inputLabel}>Pilih Rekening</Text>
-            <View style={styles.accountSelectorList}>
-              {accounts.map((acc) => (
-                <TouchableOpacity
-                  key={acc.id}
-                  onPress={() => {
-                    triggerHaptic('selection');
-                    setSelectedAccId(acc.id);
-                  }}
-                  style={[
-                    styles.accountChip,
-                    (selectedAccId === acc.id || (!selectedAccId && targetAccount?.id === acc.id)) &&
-                      styles.activeAccountChip,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.accountChipText,
-                      (selectedAccId === acc.id || (!selectedAccId && targetAccount?.id === acc.id)) &&
-                        styles.activeAccountChipText,
-                    ]}
-                  >
-                    {acc.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <Text style={styles.inputLabel}>Pilih rekening</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.accountSelectorScroll}>
+              <View style={styles.accountSelectorRow}>
+                {accounts.map((acc) => {
+                  const isSelected = (selectedAccId || targetAccount?.id) === acc.id;
+                  return (
+                    <Pressable
+                      key={acc.id}
+                      onPress={() => {
+                        triggerHaptic('selection');
+                        setSelectedAccId(acc.id);
+                      }}
+                      style={[styles.accountChip, isSelected && styles.accountChipActive]}
+                    >
+                      <Text style={[styles.accountChipText, isSelected && styles.accountChipTextActive]}>
+                        {acc.name}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </ScrollView>
 
-            {/* Amount */}
-            <Text style={styles.inputLabel}>Nominal (Rp)</Text>
+            {/* Nominal Input */}
+            <Text style={styles.inputLabel}>Nominal mutasi (Rp)</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. 50000"
-              placeholderTextColor="#475569"
+              placeholder="0"
+              placeholderTextColor={color.textFaint}
               keyboardType="number-pad"
               value={amount}
               onChangeText={setAmount}
             />
 
-            {/* Description */}
-            <Text style={styles.inputLabel}>Keterangan Transaksi</Text>
+            {/* Description Input */}
+            <Text style={styles.inputLabel}>Keterangan (opsional)</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. Makan Siang, Gaji Bulanan, Tagihan Listrik"
-              placeholderTextColor="#475569"
+              placeholder="Contoh: Belanja mingguan, makan siang..."
+              placeholderTextColor={color.textFaint}
               value={description}
               onChangeText={setDescription}
             />
 
-            {/* Submit */}
-            <TouchableOpacity
-              onPress={handleSubmit}
-              style={[styles.submitBtn, type === 'INCOME' ? styles.submitIncome : styles.submitExpense]}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.submitText}>
-                {type === 'INCOME' ? '+ Simpan Pemasukan' : '- Potong Pengeluaran'}
-              </Text>
-            </TouchableOpacity>
+            {/* Submit Button */}
+            <Pressable onPress={handleSubmit} style={styles.submitBtn}>
+              <Text style={styles.submitText}>Simpan mutasi</Text>
+            </Pressable>
           </GlassCard>
         </View>
       </View>
@@ -167,124 +162,121 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '100%',
-    padding: 16,
+    padding: space.md,
     paddingBottom: 34,
   },
   cardContainer: {
-    backgroundColor: '#0F172A',
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    padding: space.lg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: space.md,
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: color.text,
   },
   closeBtn: {
     padding: 6,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: radius.pill,
+    backgroundColor: color.glassFillInset,
   },
   typeRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 14,
+    gap: space.xs + 2,
+    marginBottom: space.sm,
   },
   typeButton: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingVertical: 10,
+    borderRadius: radius.md,
+    backgroundColor: color.glassFillInset,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  expenseActive: {
-    backgroundColor: 'rgba(244, 63, 94, 0.12)',
-    borderColor: '#F43F5E',
-  },
-  incomeActive: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    borderColor: '#10B981',
+    borderColor: color.hairline,
   },
   typeText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#64748B',
+    fontWeight: '500',
+    color: color.textMuted,
+  },
+  expenseActive: {
+    backgroundColor: 'rgba(244, 63, 94, 0.12)',
+    borderColor: 'rgba(244, 63, 94, 0.32)',
   },
   expenseTextActive: {
-    color: '#F43F5E',
+    color: color.loss,
+    fontWeight: '600',
+  },
+  incomeActive: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    borderColor: 'rgba(16, 185, 129, 0.32)',
   },
   incomeTextActive: {
-    color: '#10B981',
+    color: color.gain,
+    fontWeight: '600',
   },
   inputLabel: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#94A3B8',
+    fontWeight: '500',
+    color: color.textMuted,
     marginBottom: 6,
-    marginTop: 8,
+    marginTop: space.sm,
   },
-  accountSelectorList: {
+  accountSelectorScroll: {
+    marginBottom: space.xs,
+  },
+  accountSelectorRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 6,
+    gap: space.xs + 2,
   },
   accountChip: {
     paddingVertical: 6,
     paddingHorizontal: 12,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: radius.pill,
+    backgroundColor: color.glassFillInset,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: color.hairline,
   },
-  activeAccountChip: {
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
-    borderColor: '#38BDF8',
+  accountChipActive: {
+    backgroundColor: color.accentSoft,
+    borderColor: color.accentRim,
   },
   accountChipText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#94A3B8',
+    fontSize: 12,
+    color: color.textMuted,
+    fontWeight: '500',
   },
-  activeAccountChipText: {
-    color: '#38BDF8',
+  accountChipTextActive: {
+    color: color.accent,
+    fontWeight: '600',
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: color.glassFillInset,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 14,
+    borderColor: color.hairline,
+    borderRadius: radius.md,
+    paddingHorizontal: space.md,
     paddingVertical: 12,
-    color: '#F8FAFC',
+    color: color.text,
     fontSize: 14,
     fontVariant: ['tabular-nums'],
   },
   submitBtn: {
-    borderRadius: 14,
-    paddingVertical: 14,
+    backgroundColor: color.accent,
+    borderRadius: radius.pill,
+    paddingVertical: 13,
     alignItems: 'center',
-    marginTop: 20,
-  },
-  submitExpense: {
-    backgroundColor: '#F43F5E',
-  },
-  submitIncome: {
-    backgroundColor: '#10B981',
+    marginTop: space.lg,
+    ...shadow.e1,
   },
   submitText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 15,
+    color: color.onAccent,
+    fontWeight: '600',
+    fontSize: 14,
   },
 });

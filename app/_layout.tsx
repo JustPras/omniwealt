@@ -7,16 +7,17 @@ import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { WealthProvider, useWealth } from '../src/store/wealth-context';
 import { AmbientBackground } from '../src/components/common/ambient-background';
 import { LuxuryLoader } from '../src/components/common/luxury-loader';
+import { color, motion } from '../src/theme/tokens';
 
 // Ensure React Navigation theme is strictly dark obsidian
 const CustomDarkTheme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    background: '#080C14',
-    card: '#080C14',
-    text: '#F8FAFC',
-    border: 'rgba(255, 255, 255, 0.08)',
+    background: color.obsidian,
+    card: color.obsidian,
+    text: color.text,
+    border: color.hairline,
   },
 };
 
@@ -32,31 +33,30 @@ function RootContent() {
 
   useEffect(() => {
     if (isHydrated) {
-      // Cinematic dissolving reveal: Splash scales up & fades, Content blooms into place
       Animated.sequence([
         Animated.delay(180),
         Animated.parallel([
           Animated.timing(splashFadeAnim, {
             toValue: 0,
-            duration: 480,
+            duration: motion.count,
             easing: Easing.inOut(Easing.cubic),
             useNativeDriver: true,
           }),
           Animated.timing(splashScaleAnim, {
-            toValue: 1.08,
-            duration: 480,
+            toValue: 1.06,
+            duration: motion.count,
             easing: Easing.out(Easing.cubic),
             useNativeDriver: true,
           }),
           Animated.timing(contentFadeAnim, {
             toValue: 1,
-            duration: 480,
+            duration: motion.count,
             easing: Easing.out(Easing.cubic),
             useNativeDriver: true,
           }),
           Animated.timing(contentScaleAnim, {
             toValue: 1,
-            duration: 480,
+            duration: motion.count,
             easing: Easing.out(Easing.back(1.1)),
             useNativeDriver: true,
           }),
@@ -70,7 +70,7 @@ function RootContent() {
   return (
     <ThemeProvider value={CustomDarkTheme}>
       <View style={styles.container}>
-        <StatusBar style="light" translucent backgroundColor="#080C14" />
+        <StatusBar style="light" translucent backgroundColor={color.obsidian} />
         <AmbientBackground />
 
         {/* Animated Root Content with subtle scale & opacity entrance */}
@@ -86,7 +86,7 @@ function RootContent() {
           <Stack
             screenOptions={{
               headerShown: false,
-              contentStyle: { backgroundColor: '#080C14' },
+              contentStyle: { backgroundColor: color.obsidian },
               animation: 'fade',
             }}
           >
@@ -94,7 +94,7 @@ function RootContent() {
           </Stack>
         </Animated.View>
 
-        {/* High-End Fluid Organic Initial Loading Screen */}
+        {/* Cold Start Luxury Loader (Pure Obsidian Glass) */}
         {showSplash && (
           <Animated.View
             style={[
@@ -109,8 +109,8 @@ function RootContent() {
           >
             <LuxuryLoader
               fullscreen
-              title="OMNIWEALTH"
-              subtitle="Menyiapkan Portofolio & Harga Pasar..."
+              title="OmniWealth"
+              subtitle="Menyiapkan portofolio..."
             />
           </Animated.View>
         )}
@@ -132,17 +132,17 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#080C14',
+    backgroundColor: color.obsidian,
   },
   container: {
     flex: 1,
-    backgroundColor: '#080C14',
+    backgroundColor: color.obsidian,
   },
   contentWrapper: {
     flex: 1,
   },
   splashOverlay: {
     zIndex: 9999,
-    backgroundColor: '#080C14',
+    backgroundColor: color.obsidian,
   },
 });

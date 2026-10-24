@@ -19,7 +19,7 @@ export const StockModal: React.FC<StockModalProps> = ({ visible, onClose, stockT
   const [name, setName] = useState(stockToEdit ? stockToEdit.name : '');
   const [lots, setLots] = useState(stockToEdit ? stockToEdit.lots.toString() : '');
   const [avgBuyPrice, setAvgBuyPrice] = useState(stockToEdit ? stockToEdit.avgBuyPrice.toString() : '');
-  const [currentPrice, setCurrentPrice] = useState(stockToEdit ? stockToEdit.currentPrice.toString() : '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   React.useEffect(() => {
     if (stockToEdit) {
@@ -27,13 +27,11 @@ export const StockModal: React.FC<StockModalProps> = ({ visible, onClose, stockT
       setName(stockToEdit.name);
       setLots(stockToEdit.lots.toString());
       setAvgBuyPrice(stockToEdit.avgBuyPrice.toString());
-      setCurrentPrice(stockToEdit.currentPrice.toString());
     } else {
       setTicker('');
       setName('');
       setLots('');
       setAvgBuyPrice('');
-      setCurrentPrice('');
     }
   }, [stockToEdit]);
 
@@ -44,25 +42,28 @@ export const StockModal: React.FC<StockModalProps> = ({ visible, onClose, stockT
 
     const numLots = parseFloat(lots) || 0;
     const numAvgPrice = parseFloat(avgBuyPrice.replace(/\D/g, '')) || 0;
-    const numCurPrice = parseFloat(currentPrice.replace(/\D/g, '')) || numAvgPrice;
 
     const rdnAcc = accounts.find((a) => a.type === 'RDN') || accounts[0];
 
-    await saveStock(
-      {
-        ticker: cleanTicker,
-        name: name.trim() || `${cleanTicker.replace('.JK', '')} Asset`,
-        lots: numLots,
-        avgBuyPrice: numAvgPrice,
-        currentPrice: numCurPrice,
-        change24h: 0.015,
-        currency: 'IDR',
-        rdnAccountId: rdnAcc?.id,
-      },
-      stockToEdit?.id
-    );
-
-    onClose();
+    setIsSubmitting(true);
+    try {
+      await saveStock(
+        {
+          ticker: cleanTicker,
+          name: name.trim() || `${cleanTicker.replace('.JK', '')} Asset`,
+          lots: numLots,
+          avgBuyPrice: numAvgPrice,
+          currentPrice: stockToEdit?.currentPrice || numAvgPrice,
+          change24h: stockToEdit?.change24h || 0,
+          currency: 'IDR',
+          rdnAccountId: rdnAcc?.id,
+        },
+        stockToEdit?.id
+      );
+      onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -137,16 +138,18 @@ export const StockModal: React.FC<StockModalProps> = ({ visible, onClose, stockT
               onChangeText={setAvgBuyPrice}
             />
 
-            {/* Current Price */}
-            <Text style={styles.inputLabel}>Harga Pasar Saat Ini (Rp)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. 9950"
-              placeholderTextColor="#475569"
-              keyboardType="number-pad"
-              value={currentPrice}
-              onChangeText={setCurrentPrice}
-            />
+            {/* Automatic Real-Time Market Price Notice (No manual input needed) */}
+            <View style={styles.autoPricePill}>
+              <Icon name="Sparkles" size={15} color="#38BDF8" />
+              <View style={styles.autoPriceTextGroup}>
+                <Text style={styles.autoPriceTitle}>Harga Pasar Real-Time Otomatis</Text>
+                <Text style={styles.autoPriceSubtitle}>
+                  {stockToEdit
+                    ? `Harga pasar saat ini (Rp ${stockToEdit.currentPrice.toLocaleString('id-ID')}) diperbarui otomatis live dari IDX.`
+                    : 'Harga pasar live langsung diambil otomatis dari Bursa Efek Indonesia (IDX).'}
+                </Text>
+              </View>
+            </View>
 
             {/* Submit & Delete Buttons */}
             <View style={styles.actionRow}>
@@ -155,9 +158,18 @@ export const StockModal: React.FC<StockModalProps> = ({ visible, onClose, stockT
                   <Text style={styles.deleteText}>Hapus</Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity onPress={handleSubmit} style={styles.submitBtn} activeOpacity={0.8}>
+              <TouchableOpacity
+                onPress={handleSubmit}
+                style={[styles.submitBtn, isSubmitting && styles.submitBtnDisabled]}
+                activeOpacity={0.8}
+                disabled={isSubmitting}
+              >
                 <Text style={styles.submitText}>
-                  {stockToEdit ? 'Simpan Perubahan' : '+ Tambah Saham'}
+                  {isSubmitting
+                    ? 'Memperbarui Harga...'
+                    : stockToEdit
+                    ? 'Simpan Perubahan'
+                    : '+ Tambah Saham'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -222,6 +234,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontVariant: ['tabular-nums'],
   },
+  autoPricePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(56, 189, 248, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 12,
+  },
+  autoPriceTextGroup: {
+    flex: 1,
+  },
+  autoPriceTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#38BDF8',
+  },
+  autoPriceSubtitle: {
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 2,
+    lineHeight: 15,
+  },
   actionRow: {
     flexDirection: 'row',
     gap: 8,
@@ -246,6 +284,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
+  },
+  submitBtnDisabled: {
+    opacity: 0.65,
   },
   submitText: {
     color: '#080C14',

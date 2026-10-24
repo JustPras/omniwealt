@@ -21,6 +21,7 @@ export const CryptoModal: React.FC<CryptoModalProps> = ({ visible, onClose, cryp
   const [avgBuyPriceIdr, setAvgBuyPriceIdr] = useState(
     cryptoToEdit ? cryptoToEdit.avgBuyPriceIdr.toString() : ''
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   React.useEffect(() => {
     if (cryptoToEdit) {
@@ -48,20 +49,24 @@ export const CryptoModal: React.FC<CryptoModalProps> = ({ visible, onClose, cryp
     else if (cleanSymbol === 'ETH') coingeckoId = 'ethereum';
     else if (cleanSymbol === 'SOL') coingeckoId = 'solana';
 
-    await saveCrypto(
-      {
-        symbol: cleanSymbol,
-        name: name.trim() || cleanSymbol,
-        coingeckoId,
-        holdings: numHoldings,
-        avgBuyPriceIdr: numAvgPrice,
-        currentPriceIdr: cryptoToEdit?.currentPriceIdr || numAvgPrice * 1.05,
-        change24h: 0.025,
-      },
-      cryptoToEdit?.id
-    );
-
-    onClose();
+    setIsSubmitting(true);
+    try {
+      await saveCrypto(
+        {
+          symbol: cleanSymbol,
+          name: name.trim() || cleanSymbol,
+          coingeckoId,
+          holdings: numHoldings,
+          avgBuyPriceIdr: numAvgPrice,
+          currentPriceIdr: cryptoToEdit?.currentPriceIdr || numAvgPrice,
+          change24h: cryptoToEdit?.change24h || 0,
+        },
+        cryptoToEdit?.id
+      );
+      onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -136,6 +141,19 @@ export const CryptoModal: React.FC<CryptoModalProps> = ({ visible, onClose, cryp
               onChangeText={setAvgBuyPriceIdr}
             />
 
+            {/* Automatic Real-Time Market Price Notice */}
+            <View style={styles.autoPricePill}>
+              <Icon name="Sparkles" size={15} color="#F59E0B" />
+              <View style={styles.autoPriceTextGroup}>
+                <Text style={styles.autoPriceTitle}>Harga Pasar Real-Time Otomatis</Text>
+                <Text style={styles.autoPriceSubtitle}>
+                  {cryptoToEdit
+                    ? `Harga saat ini (Rp ${cryptoToEdit.currentPriceIdr.toLocaleString('id-ID')}) diperbarui otomatis live dari CoinGecko.`
+                    : 'Harga pasar live langsung diambil otomatis dari CoinGecko (denominasi Rupiah).'}
+                </Text>
+              </View>
+            </View>
+
             {/* Submit & Delete Buttons */}
             <View style={styles.actionRow}>
               {cryptoToEdit && (
@@ -143,9 +161,18 @@ export const CryptoModal: React.FC<CryptoModalProps> = ({ visible, onClose, cryp
                   <Text style={styles.deleteText}>Hapus</Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity onPress={handleSubmit} style={styles.submitBtn} activeOpacity={0.8}>
+              <TouchableOpacity
+                onPress={handleSubmit}
+                style={[styles.submitBtn, isSubmitting && styles.submitBtnDisabled]}
+                activeOpacity={0.8}
+                disabled={isSubmitting}
+              >
                 <Text style={styles.submitText}>
-                  {cryptoToEdit ? 'Simpan Perubahan' : '+ Tambah Kripto'}
+                  {isSubmitting
+                    ? 'Memperbarui Harga...'
+                    : cryptoToEdit
+                    ? 'Simpan Perubahan'
+                    : '+ Tambah Kripto'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -210,6 +237,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontVariant: ['tabular-nums'],
   },
+  autoPricePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.25)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 12,
+  },
+  autoPriceTextGroup: {
+    flex: 1,
+  },
+  autoPriceTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#F59E0B',
+  },
+  autoPriceSubtitle: {
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 2,
+    lineHeight: 15,
+  },
   actionRow: {
     flexDirection: 'row',
     gap: 8,
@@ -234,6 +287,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
+  },
+  submitBtnDisabled: {
+    opacity: 0.65,
   },
   submitText: {
     color: '#080C14',

@@ -91,7 +91,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   const isInset = level === 'inset';
   const isRaised = level === 'raised';
 
-  // Android: bump fill opacity when blur is absent for legibility
+  // Android: use solid alpha fill for crisp, fast, crash-proof glass surface
   const androidFillAlpha = isRaised
     ? 'rgba(15,23,42,0.84)'
     : isInset
@@ -99,7 +99,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
     : 'rgba(15,23,42,0.67)';
 
   const baseFill =
-    Platform.OS === 'android' && !experimentalDimezis
+    Platform.OS === 'android'
       ? androidFillAlpha
       : isRaised
       ? color.glassFillRaised
@@ -139,7 +139,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
         <>
           {Platform.OS === 'web' ? (
             <View style={[StyleSheet.absoluteFill, styles.webBackdrop]} />
-          ) : Platform.OS === 'android' && !experimentalDimezis ? (
+          ) : Platform.OS === 'android' ? (
             // Solid alpha fallback for crisp performance without blur artifacts on Android
             <View
               style={[
@@ -151,7 +151,6 @@ export const GlassCard: React.FC<GlassCardProps> = ({
             <BlurView
               intensity={isRaised ? 70 : 40}
               tint="dark"
-              experimentalBlurMethod={experimentalDimezis ? 'dimezisBlurView' : 'none'}
               style={[StyleSheet.absoluteFill, { borderRadius: resolvedRadius }]}
             />
           )}

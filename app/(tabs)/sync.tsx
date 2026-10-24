@@ -36,43 +36,11 @@ export default function SyncScreen() {
   const [confirmationNotice, setConfirmationNotice] = useState<string | null>(null);
 
   const rdnAccount =
-    accounts.find((a) => a.accountNumber === '1000000000') ||
     accounts.find((a) => a.type === 'RDN') ||
     accounts[0];
 
-  // 4 BROKER SIMULATION PRESETS (Including Official Stockbit Statement of Account)
+  // 3 BROKER SIMULATION PRESETS
   const SIMULATION_PRESETS = [
-    {
-      id: 'sim_stockbit_soa',
-      isOfficialSoA: true,
-      title: 'Stockbit SoA Resmi (Nasabah Demo)',
-      desc: '11 Saham Portofolio (ARCI, BBRI, ELTY, GOTO, SOTS, dll.) + Saldo RDN Bank Jago Rp 408.241',
-      broker: 'PT. Stockbit Sekuritas Digital',
-      documentType: 'STATEMENT_OF_ACCOUNT' as const,
-      period: '01/09/2026 - 30/09/2026',
-      clientName: 'NASABAH DEMO',
-      sid: 'IDD987654321',
-      rdnBank: 'Bank Jago',
-      rdnAccountNumber: '1000000000',
-      rdnCashBalance: 1000000,
-      totalPortfolioValue: 1841000,
-      totalBuyingValue: 2365863,
-      totalUnrealizedPnL: -524863,
-      holdings: [
-        { ticker: 'ARCI.JK', name: 'Archi Indonesia Tbk.', lots: 2, shares: 200, avgBuyPrice: 1425, currentPrice: 1230, buyingValue: 285000, marketValue: 246000, unrealizedPnLRp: -39000, unrealizedPnLPct: -0.1368 },
-        { ticker: 'BBRI.JK', name: 'Bank Rakyat Indonesia (Persero) Tbk.', lots: 1, shares: 100, avgBuyPrice: 3800, currentPrice: 3140, buyingValue: 380000, marketValue: 314000, unrealizedPnLRp: -66000, unrealizedPnLPct: -0.1737 },
-        { ticker: 'DEWA.JK', name: 'Darma Henwa Tbk.', lots: 1, shares: 100, avgBuyPrice: 500, currentPrice: 342, buyingValue: 50000, marketValue: 34200, unrealizedPnLRp: -15800, unrealizedPnLPct: -0.3160 },
-        { ticker: 'ELTY.JK', name: 'Bakrieland Development Tbk.', lots: 100, shares: 10000, avgBuyPrice: 54.40, currentPrice: 32, buyingValue: 544000, marketValue: 320000, unrealizedPnLRp: -224000, unrealizedPnLPct: -0.4118 },
-        { ticker: 'GOTO.JK', name: 'GoTo Gojek Tokopedia Tbk.', lots: 2, shares: 200, avgBuyPrice: 50.00, currentPrice: 32, buyingValue: 10000, marketValue: 6400, unrealizedPnLRp: -3600, unrealizedPnLPct: -0.3600 },
-        { ticker: 'JECX.JK', name: 'Nitrasanata Dharma Tbk.', lots: 1, shares: 100, avgBuyPrice: 1250, currentPrice: 1320, buyingValue: 125000, marketValue: 132000, unrealizedPnLRp: 7000, unrealizedPnLPct: 0.0560 },
-        { ticker: 'JGLE.JK', name: 'Graha Andrasentra Propertindo Tbk.', lots: 40, shares: 4000, avgBuyPrice: 52.71, currentPrice: 50, buyingValue: 210829, marketValue: 200000, unrealizedPnLRp: -10829, unrealizedPnLPct: -0.0514 },
-        { ticker: 'NCKL.JK', name: 'Trimegah Bangun Persada Tbk.', lots: 3, shares: 300, avgBuyPrice: 1048.33, currentPrice: 870, buyingValue: 314500, marketValue: 261000, unrealizedPnLRp: -53500, unrealizedPnLPct: -0.1701 },
-        { ticker: 'PJHB-W.JK', name: 'Waran Seri I Pelayaran Jaya Hidup Baru', lots: 0.5, shares: 50, avgBuyPrice: 270.67, currentPrice: 16, buyingValue: 13533, marketValue: 800, unrealizedPnLRp: -12733, unrealizedPnLPct: -0.9409 },
-        { ticker: 'PWON.JK', name: 'Pakuwon Jati Tbk.', lots: 5, shares: 500, avgBuyPrice: 346, currentPrice: 258, buyingValue: 173000, marketValue: 129000, unrealizedPnLRp: -44000, unrealizedPnLPct: -0.2543 },
-        { ticker: 'SOTS.JK', name: 'Satria Mega Kencana Tbk.', lots: 4, shares: 400, avgBuyPrice: 650, currentPrice: 494, buyingValue: 260000, marketValue: 197600, unrealizedPnLRp: -62400, unrealizedPnLPct: -0.2400 },
-      ],
-      trades: [],
-    },
     {
       id: 'sim1',
       isOfficialSoA: false,
@@ -210,46 +178,17 @@ export default function SyncScreen() {
             lowerName.includes('soa') ||
             lowerName.includes('account')
           ) {
-            sampleText = `PT. STOCKBIT SEKURITAS DIGITAL
-Statement of Account Bank / Currency SID
-JAGO 1000000000 / IDR IDD987654321
-Date 01/09/2026 - 30/09/2026
-Client 3146069 NASABAH DEMO
-Cash Investor 408,241.16
-Portfolio 1,841,000
+            sampleText = `PT. SEKURITAS DIGITAL INDONESIA
+Statement of Account
+Bank RDN: JAGO 1000000000 / IDR
+Date 01/10/2026 - 31/10/2026
+Client 0000000 NASABAH DEMO
+Cash Investor 1,000,000.00
 PORTFOLIO STATEMENT
-PRICE UNREAL. GAIN/LOSS
-Stocks Special Notes Margin Quantity Buying Close Buying Value Market Value (Rp.) %
-ARCI Archi Indonesia Tbk.  200 1,425.00 1,230 285,000 246,000 -39,000 -13.68
-BBRI Bank Rakyat
-Indonesia (Persero)
-Tbk.
- 100 3,800.00 3,140 380,000 314,000 -66,000 -17.37
-DEWA Darma Henwa Tbk  100 500.00 342 50,000 34,200 -15,800 -31.60
-ELTY Bakrieland
-Development Tbk.
- 10,000 54.40 32 544,000 320,000 -224,000 -41.18
-GOTO GoTo Gojek
-Tokopedia Tbk.
-N  200 50.00 32 10,000 6,400 -3,600 -36.00
-JECX Nitrasanata Dharma
-Tbk.
- 100 1,250.00 1,320 125,000 132,000 7,000 5.60
-JGLE Graha Andrasentra
-Propertindo Tbk.
- 4,000 52.71 50 210,829 200,000 -10,829 -5.14
-NCKL Trimegah Bangun
-Persada Tbk.
- 300 1,048.33 870 314,500 261,000 -53,500 -17.01
-PJHB-W Waran Seri I
-Pelayaran Jaya Hidup
-Baru T
- 50 270.67 16 13,533 800 -12,733 -94.09
-PWON Pakuwon Jati Tbk.  500 346.00 258 173,000 129,000 -44,000 -25.43
-SOTS Satria Mega Kencana
-Tbk.
- 400 650.00 494 260,000 197,600 -62,400 -24.00
-T O T A L 2,365,863 1,841,000 -524,863`;
+Stocks Quantity Buying Close Buying Value Market Value (Rp.) %
+BBCA Bank Central Asia Tbk. 1,000 9,200.00 9,950 9,200,000 9,950,000 750,000 8.15
+BMRI Bank Mandiri Tbk. 1,000 6,200.00 6,725 6,200,000 6,725,000 525,000 8.47
+T O T A L 15,400,000 16,675,000 1,275,000`;
             broker = 'PT. Stockbit Sekuritas Digital';
           }
 
@@ -285,49 +224,18 @@ T O T A L 2,365,863 1,841,000 -524,863`;
 
   const handleRunSimulation = (sim: (typeof SIMULATION_PRESETS)[0]) => {
     triggerHaptic('selection');
-    setSelectedFileName(
-      sim.isOfficialSoA
-        ? 'Stockbit_Statement_Of_Account_DemoUser.pdf'
-        : `${sim.broker.replace(/\s+/g, '_')}_Confirmation.pdf`
-    );
+    setSelectedFileName(`${sim.broker.replace(/\s+/g, '_')}_Confirmation.pdf`);
     setConfirmationNotice(null);
     setIsExtracting(true);
 
     setTimeout(() => {
-      if (sim.isOfficialSoA) {
-        setExtractionResult({
-          brokerName: sim.broker,
-          documentType: 'STATEMENT_OF_ACCOUNT',
-          tradeDate: new Date().toISOString().split('T')[0],
-          period: sim.period,
-          clientName: sim.clientName,
-          sid: sim.sid,
-          rdnBank: sim.rdnBank,
-          rdnAccountNumber: sim.rdnAccountNumber,
-          rdnCashBalance: sim.rdnCashBalance,
-          totalPortfolioValue: sim.totalPortfolioValue,
-          totalBuyingValue: sim.totalBuyingValue,
-          totalUnrealizedPnL: sim.totalUnrealizedPnL,
-          holdings: sim.holdings,
-          trades: sim.holdings.map((h) => ({
-            action: 'BUY' as const,
-            ticker: h.ticker,
-            lots: h.lots,
-            price: h.avgBuyPrice,
-            fee: 0,
-            netAmount: h.buyingValue,
-          })),
-          summaryNote: `Hasil ekstraksi resmi Statement of Account ${sim.broker}`,
-        });
-      } else {
-        setExtractionResult({
-          brokerName: sim.broker,
-          documentType: 'TRADE_CONFIRMATION',
-          tradeDate: new Date().toISOString().split('T')[0],
-          trades: sim.trades,
-          summaryNote: `Hasil ekstraksi dari dokumen ${sim.broker}`,
-        });
-      }
+      setExtractionResult({
+        brokerName: sim.broker,
+        documentType: 'TRADE_CONFIRMATION',
+        tradeDate: new Date().toISOString().split('T')[0],
+        trades: sim.trades,
+        summaryNote: `Hasil ekstraksi dari dokumen ${sim.broker}`,
+      });
       setIsExtracting(false);
       triggerHaptic('success');
     }, 400);
@@ -598,7 +506,7 @@ T O T A L 2,365,863 1,841,000 -524,863`;
                   <View style={{ flex: 1 }}>
                     <Text style={styles.soaLabel}>Nama Nasabah</Text>
                     <Text style={styles.soaClientName}>
-                      {extractionResult.clientName || 'NASABAH DEMO'}
+                      {extractionResult.clientName || 'NASABAH TERDAFTAR'}
                     </Text>
                     {extractionResult.sid && (
                       <Text style={styles.soaSid}>SID: {extractionResult.sid}</Text>
@@ -607,10 +515,10 @@ T O T A L 2,365,863 1,841,000 -524,863`;
                   <View style={{ alignItems: 'flex-end' }}>
                     <Text style={styles.soaLabel}>Rekening RDN Investor</Text>
                     <Text style={styles.soaRdnName}>
-                      {extractionResult.rdnBank || 'Bank Jago'} • {extractionResult.rdnAccountNumber || '1000000000'}
+                      {extractionResult.rdnBank || 'Bank RDN'} • {extractionResult.rdnAccountNumber || '1000000000'}
                     </Text>
                     <Text style={styles.soaCashBalance}>
-                      Saldo Kas: {formatIDR(extractionResult.rdnCashBalance || 1000000)}
+                      Saldo Kas: {formatIDR(extractionResult.rdnCashBalance || 0)}
                     </Text>
                   </View>
                 </View>
@@ -620,19 +528,19 @@ T O T A L 2,365,863 1,841,000 -524,863`;
                   <View style={styles.soaStatCol}>
                     <Text style={styles.soaStatLabel}>Nilai Pasar Portofolio</Text>
                     <Text style={styles.soaStatVal}>
-                      {formatIDR(extractionResult.totalPortfolioValue || 1841000)}
+                      {formatIDR(extractionResult.totalPortfolioValue || 0)}
                     </Text>
                   </View>
                   <View style={styles.soaStatCol}>
                     <Text style={styles.soaStatLabel}>Total Modal Beli</Text>
                     <Text style={styles.soaStatVal}>
-                      {formatIDR(extractionResult.totalBuyingValue || 2365863)}
+                      {formatIDR(extractionResult.totalBuyingValue || 0)}
                     </Text>
                   </View>
                   <View style={[styles.soaStatCol, { alignItems: 'flex-end' }]}>
                     <Text style={styles.soaStatLabel}>Unrealized PnL</Text>
                     <Text style={[styles.soaStatVal, styles.textRose]}>
-                      {formatIDR(extractionResult.totalUnrealizedPnL || -524863)}
+                      {formatIDR(extractionResult.totalUnrealizedPnL || 0)}
                     </Text>
                   </View>
                 </View>

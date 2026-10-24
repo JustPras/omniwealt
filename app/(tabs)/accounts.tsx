@@ -197,68 +197,91 @@ export default function AccountsScreen() {
         </View>
 
         {/* Account Cards */}
-        <View style={styles.accountList}>
-          {filteredAccounts.map((acc) => (
-            <GlassCard
-              key={acc.id}
-              style={styles.accountCard}
-              borderTint="rgba(255, 255, 255, 0.10)"
+        {filteredAccounts.length === 0 ? (
+          <GlassCard style={styles.emptyCard} borderTint="rgba(16, 185, 129, 0.2)">
+            <View style={styles.emptyIconCircle}>
+              <Icon name="Wallet" size={22} color="#10B981" />
+            </View>
+            <Text style={styles.emptyCardTitle}>Belum Ada Rekening Kas</Text>
+            <Text style={styles.emptyCardDesc}>
+              Tambahkan rekening bank (BCA, Mandiri), RDN, atau e-wallet (GoPay, OVO) untuk memantau saldo kas dan likuiditas.
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                triggerHaptic('medium');
+                setAccountModalVisible(true);
+              }}
+              style={styles.emptyAddBtn}
+              activeOpacity={0.75}
             >
-              <View style={styles.accountTopRow}>
-                <View style={styles.accountLeft}>
-                  <View
-                    style={[
-                      styles.accountIconBadge,
-                      {
-                        backgroundColor:
-                          acc.type === 'BANK'
-                            ? 'rgba(56, 189, 248, 0.12)'
-                            : acc.type === 'RDN'
-                            ? 'rgba(16, 185, 129, 0.12)'
-                            : 'rgba(6, 182, 212, 0.12)',
-                      },
-                    ]}
+              <Icon name="Plus" size={13} color="#080C14" />
+              <Text style={styles.emptyAddBtnText}>+ Tambah Akun Baru</Text>
+            </TouchableOpacity>
+          </GlassCard>
+        ) : (
+          <View style={styles.accountList}>
+            {filteredAccounts.map((acc) => (
+              <GlassCard
+                key={acc.id}
+                style={styles.accountCard}
+                borderTint="rgba(255, 255, 255, 0.10)"
+              >
+                <View style={styles.accountTopRow}>
+                  <View style={styles.accountLeft}>
+                    <View
+                      style={[
+                        styles.accountIconBadge,
+                        {
+                          backgroundColor:
+                            acc.type === 'BANK'
+                              ? 'rgba(56, 189, 248, 0.12)'
+                              : acc.type === 'RDN'
+                              ? 'rgba(16, 185, 129, 0.12)'
+                              : 'rgba(6, 182, 212, 0.12)',
+                        },
+                      ]}
+                    >
+                      {acc.type === 'BANK' && <Icon name="Landmark" size={18} color="#38BDF8" />}
+                      {acc.type === 'RDN' && <Icon name="TrendingUp" size={18} color="#10B981" />}
+                      {acc.type === 'E-WALLET' && <Icon name="Smartphone" size={18} color="#06B6D4" />}
+                    </View>
+                    <View style={styles.accountTextContainer}>
+                      <Text style={styles.accountName}>{acc.name}</Text>
+                      <Text style={styles.accountNumber}>
+                        {acc.type} • {acc.accountNumber || 'Aktif'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.accountRight}>
+                    <PrivacyValue value={acc.balance} style={styles.accountBalance} />
+                  </View>
+                </View>
+
+                {/* Quick Adjustment Buttons */}
+                <View style={styles.quickButtonsRow}>
+                  <TouchableOpacity
+                    onPress={() => openMutationModal(acc.id, 'INCOME')}
+                    style={[styles.smallAdjustBtn, styles.incomeAdjustBtn]}
+                    activeOpacity={0.65}
                   >
-                    {acc.type === 'BANK' && <Icon name="Landmark" size={18} color="#38BDF8" />}
-                    {acc.type === 'RDN' && <Icon name="TrendingUp" size={18} color="#10B981" />}
-                    {acc.type === 'E-WALLET' && <Icon name="Smartphone" size={18} color="#06B6D4" />}
-                  </View>
-                  <View style={styles.accountTextContainer}>
-                    <Text style={styles.accountName}>{acc.name}</Text>
-                    <Text style={styles.accountNumber}>
-                      {acc.type} • {acc.accountNumber || 'Aktif'}
-                    </Text>
-                  </View>
+                    <Icon name="ArrowDownLeft" size={12} color="#10B981" />
+                    <Text style={[styles.smallAdjustText, { color: '#10B981' }]}>+ Pemasukan</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => openMutationModal(acc.id, 'EXPENSE')}
+                    style={[styles.smallAdjustBtn, styles.expenseAdjustBtn]}
+                    activeOpacity={0.65}
+                  >
+                    <Icon name="ArrowUpRight" size={12} color="#F43F5E" />
+                    <Text style={[styles.smallAdjustText, { color: '#F43F5E' }]}>- Pengeluaran</Text>
+                  </TouchableOpacity>
                 </View>
-
-                <View style={styles.accountRight}>
-                  <PrivacyValue value={acc.balance} style={styles.accountBalance} />
-                </View>
-              </View>
-
-              {/* Quick Adjustment Buttons */}
-              <View style={styles.quickButtonsRow}>
-                <TouchableOpacity
-                  onPress={() => openMutationModal(acc.id, 'INCOME')}
-                  style={[styles.smallAdjustBtn, styles.incomeAdjustBtn]}
-                  activeOpacity={0.65}
-                >
-                  <Icon name="ArrowDownLeft" size={12} color="#10B981" />
-                  <Text style={[styles.smallAdjustText, { color: '#10B981' }]}>+ Pemasukan</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => openMutationModal(acc.id, 'EXPENSE')}
-                  style={[styles.smallAdjustBtn, styles.expenseAdjustBtn]}
-                  activeOpacity={0.65}
-                >
-                  <Icon name="ArrowUpRight" size={12} color="#F43F5E" />
-                  <Text style={[styles.smallAdjustText, { color: '#F43F5E' }]}>- Pengeluaran</Text>
-                </TouchableOpacity>
-              </View>
-            </GlassCard>
-          ))}
-        </View>
+              </GlassCard>
+            ))}
+          </View>
+        )}
 
         {/* SMART AI NOTIFICATION & QRIS MUTASI PARSER */}
         <GlassCard
@@ -407,53 +430,60 @@ export default function AccountsScreen() {
           </View>
         </View>
 
-        <View style={styles.txList}>
-          {filteredTransactions.slice(0, 10).map((tx) => {
-            const isInc = tx.type === 'INCOME';
-            const isTrans = tx.type === 'TRANSFER';
-            return (
-              <GlassCard
-                key={tx.id}
-                style={styles.txCard}
-                borderTint="rgba(255, 255, 255, 0.08)"
-              >
-                <View style={styles.txLeft}>
-                  <View
-                    style={[
-                      styles.txIconBadge,
-                      isInc ? styles.txBadgeGreen : isTrans ? styles.txBadgeSky : styles.txBadgeRed,
-                    ]}
-                  >
-                    {isInc ? (
-                      <Icon name="ArrowDownLeft" size={13} color="#10B981" />
-                    ) : isTrans ? (
-                      <Icon name="TrendingUp" size={13} color="#38BDF8" />
-                    ) : (
-                      <Icon name="ArrowUpRight" size={13} color="#F43F5E" />
-                    )}
+        {filteredTransactions.length === 0 ? (
+          <GlassCard style={styles.emptyTxCard} borderTint="rgba(255, 255, 255, 0.08)">
+            <Icon name="History" size={18} color="#64748B" />
+            <Text style={styles.emptyTxText}>Belum ada riwayat transaksi kas</Text>
+          </GlassCard>
+        ) : (
+          <View style={styles.txList}>
+            {filteredTransactions.slice(0, 10).map((tx) => {
+              const isInc = tx.type === 'INCOME';
+              const isTrans = tx.type === 'TRANSFER';
+              return (
+                <GlassCard
+                  key={tx.id}
+                  style={styles.txCard}
+                  borderTint="rgba(255, 255, 255, 0.08)"
+                >
+                  <View style={styles.txLeft}>
+                    <View
+                      style={[
+                        styles.txIconBadge,
+                        isInc ? styles.txBadgeGreen : isTrans ? styles.txBadgeSky : styles.txBadgeRed,
+                      ]}
+                    >
+                      {isInc ? (
+                        <Icon name="ArrowDownLeft" size={13} color="#10B981" />
+                      ) : isTrans ? (
+                        <Icon name="TrendingUp" size={13} color="#38BDF8" />
+                      ) : (
+                        <Icon name="ArrowUpRight" size={13} color="#F43F5E" />
+                      )}
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.txDesc} numberOfLines={1}>
+                        {tx.description}
+                      </Text>
+                      <Text style={styles.txMeta}>
+                        {tx.accountName || 'Akun'} • {tx.category} • {formatDate(tx.transactionDate)}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.txDesc} numberOfLines={1}>
-                      {tx.description}
-                    </Text>
-                    <Text style={styles.txMeta}>
-                      {tx.accountName || 'Akun'} • {tx.category} • {formatDate(tx.transactionDate)}
-                    </Text>
-                  </View>
-                </View>
 
-                <View style={styles.txRight}>
-                  <PrivacyValue
-                    value={tx.amount}
-                    prefix={isInc ? '+ ' : '- '}
-                    style={[styles.txAmount, isInc ? styles.textGreen : styles.textRed]}
-                  />
-                  <Text style={styles.txSourceTag}>{tx.source}</Text>
-                </View>
-              </GlassCard>
-            );
-          })}
-        </View>
+                  <View style={styles.txRight}>
+                    <PrivacyValue
+                      value={tx.amount}
+                      prefix={isInc ? '+ ' : '- '}
+                      style={[styles.txAmount, isInc ? styles.textGreen : styles.textRed]}
+                    />
+                    <Text style={styles.txSourceTag}>{tx.source}</Text>
+                  </View>
+                </GlassCard>
+              );
+            })}
+          </View>
+        )}
       </ScrollView>
 
       {/* Account Creation Modal */}
@@ -892,5 +922,61 @@ const styles = StyleSheet.create({
   },
   textRed: {
     color: '#F43F5E',
+  },
+  emptyCard: {
+    padding: 24,
+    alignItems: 'center',
+    borderRadius: 20,
+    gap: 8,
+    marginVertical: 4,
+  },
+  emptyIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  emptyCardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#F8FAFC',
+  },
+  emptyCardDesc: {
+    fontSize: 11,
+    lineHeight: 16,
+    color: '#94A3B8',
+    textAlign: 'center',
+    paddingHorizontal: 12,
+  },
+  emptyAddBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#10B981',
+    paddingVertical: 9,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginTop: 6,
+  },
+  emptyAddBtnText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#080C14',
+  },
+  emptyTxCard: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  emptyTxText: {
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '500',
   },
 });

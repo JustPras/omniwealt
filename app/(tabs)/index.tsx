@@ -70,14 +70,18 @@ export default function OverviewScreen() {
     'ALL': [62, 67.0, 71.5, 76.0, 74.2, 81.0, 85.5, 89.2, 92.0, 96.4, 98.0, 102.1, 105],
   };
 
-  const activeSparklineData = isCurrentProfit
+  const zeroSparkline = [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50];
+
+  const activeSparklineData = totalNetWorth === 0
+    ? zeroSparkline
+    : isCurrentProfit
     ? baseSparklines[activeTimeframe]
     : baseSparklines[activeTimeframe].slice().reverse();
 
   // Proportional multi-segment allocation calculation
-  const cashPct = totalNetWorth > 0 ? (totalCash / totalNetWorth) * 100 : 33.3;
-  const stockPct = totalNetWorth > 0 ? (totalStocks / totalNetWorth) * 100 : 33.3;
-  const cryptoPct = totalNetWorth > 0 ? (totalCryptos / totalNetWorth) * 100 : 33.4;
+  const cashPct = totalNetWorth > 0 ? (totalCash / totalNetWorth) * 100 : 0;
+  const stockPct = totalNetWorth > 0 ? (totalStocks / totalNetWorth) * 100 : 0;
+  const cryptoPct = totalNetWorth > 0 ? (totalCryptos / totalNetWorth) * 100 : 0;
 
   // High-Density Top Movers (combined Stocks & Cryptos sorted by largest absolute 24h change)
   const allMovers = [
@@ -187,38 +191,44 @@ export default function OverviewScreen() {
           </View>
 
           {/* Dynamic Allocation Bar */}
-          <View style={styles.allocationBarContainer}>
-            <View
-              style={[
-                styles.allocationSegment,
-                {
-                  width: `${Math.max(4, cashPct)}%`,
-                  backgroundColor: '#10B981',
-                  opacity: selectedAllocation === 'ALL' || selectedAllocation === 'CASH' ? 1 : 0.35,
-                },
-              ]}
-            />
-            <View
-              style={[
-                styles.allocationSegment,
-                {
-                  width: `${Math.max(4, stockPct)}%`,
-                  backgroundColor: '#38BDF8',
-                  opacity: selectedAllocation === 'ALL' || selectedAllocation === 'STOCKS' ? 1 : 0.35,
-                },
-              ]}
-            />
-            <View
-              style={[
-                styles.allocationSegment,
-                {
-                  width: `${Math.max(4, cryptoPct)}%`,
-                  backgroundColor: '#F59E0B',
-                  opacity: selectedAllocation === 'ALL' || selectedAllocation === 'CRYPTO' ? 1 : 0.35,
-                },
-              ]}
-            />
-          </View>
+          {totalNetWorth > 0 ? (
+            <View style={styles.allocationBarContainer}>
+              <View
+                style={[
+                  styles.allocationSegment,
+                  {
+                    width: `${Math.max(2, cashPct)}%`,
+                    backgroundColor: '#10B981',
+                    opacity: selectedAllocation === 'ALL' || selectedAllocation === 'CASH' ? 1 : 0.35,
+                  },
+                ]}
+              />
+              <View
+                style={[
+                  styles.allocationSegment,
+                  {
+                    width: `${Math.max(2, stockPct)}%`,
+                    backgroundColor: '#38BDF8',
+                    opacity: selectedAllocation === 'ALL' || selectedAllocation === 'STOCKS' ? 1 : 0.35,
+                  },
+                ]}
+              />
+              <View
+                style={[
+                  styles.allocationSegment,
+                  {
+                    width: `${Math.max(2, cryptoPct)}%`,
+                    backgroundColor: '#F59E0B',
+                    opacity: selectedAllocation === 'ALL' || selectedAllocation === 'CRYPTO' ? 1 : 0.35,
+                  },
+                ]}
+              />
+            </View>
+          ) : (
+            <View style={styles.emptyAllocationBar}>
+              <Text style={styles.emptyAllocationText}>Belum ada aset terdaftar • Saldo Rp 0</Text>
+            </View>
+          )}
 
           {/* Interactive Legend Chips */}
           <View style={styles.legendRow}>
@@ -385,14 +395,21 @@ export default function OverviewScreen() {
               <Text style={styles.insightBadgeText}>AI WEALTH INTELLIGENCE</Text>
             </View>
             <View style={styles.insightStatusPill}>
-              <View style={[styles.statusDot, { backgroundColor: cashPct >= 25 ? '#10B981' : '#F59E0B' }]} />
+              <View
+                style={[
+                  styles.statusDot,
+                  { backgroundColor: totalNetWorth === 0 ? '#38BDF8' : cashPct >= 25 ? '#10B981' : '#F59E0B' },
+                ]}
+              />
               <Text style={styles.insightHealthText}>
-                {cashPct >= 25 ? 'Likuiditas Prima' : 'Agresif Terinvestasi'}
+                {totalNetWorth === 0 ? 'Siap Memulai' : cashPct >= 25 ? 'Likuiditas Prima' : 'Agresif Terinvestasi'}
               </Text>
             </View>
           </View>
           <Text style={styles.insightBody}>
-            {cashPct >= 25
+            {totalNetWorth === 0
+              ? 'Selamat datang di OmniWealth! Mulai hubungkan rekening kas, catat transaksi mutasi, atau import Statement of Account (SoA) Stockbit untuk analisis portofolio otomatis.'
+              : cashPct >= 25
               ? `Rasio kas Anda berada di level sehat (${cashPct.toFixed(0)}%). Anda memiliki likuiditas optimal untuk strategi Dollar Cost Averaging (DCA) atau akumulasi saham berkualitas saat IHSG koreksi.`
               : `Alokasi portofolio investasi mendominasi ${(stockPct + cryptoPct).toFixed(0)}%. Pertimbangkan menyisihkan kas likuid minimal 3 bulan pengeluaran rutin.`}
           </Text>
@@ -416,59 +433,99 @@ export default function OverviewScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.moversList}>
-          {allMovers.map((mover) => {
-            const isUp = mover.change24h >= 0;
-            return (
-              <GlassCard
-                key={mover.id}
-                style={styles.moverCard}
-                borderTint="rgba(255, 255, 255, 0.09)"
+        {allMovers.length === 0 ? (
+          <GlassCard style={styles.welcomeCard} borderTint="rgba(56, 189, 248, 0.22)">
+            <View style={styles.welcomeTop}>
+              <View style={styles.welcomeIconCircle}>
+                <Icon name="Sparkles" size={20} color="#38BDF8" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.welcomeTitle}>Mulai Catat Kekayaan Anda</Text>
+                <Text style={styles.welcomeDesc}>
+                  Pantau rekening bank, mutasi otomatis, serta portofolio saham IDX & kripto dalam satu aplikasi.
+                </Text>
+              </View>
+            </View>
+            <View style={styles.welcomeActions}>
+              <TouchableOpacity
                 onPress={() => {
-                  triggerHaptic('selection');
-                  router.push('/(tabs)/portfolio');
+                  triggerHaptic('medium');
+                  router.push('/(tabs)/accounts');
                 }}
-                activeOpacity={0.7}
+                style={styles.welcomeBtnPrimary}
+                activeOpacity={0.75}
               >
-                <View style={styles.moverLeft}>
-                  <View
-                    style={[
-                      styles.moverIconBadge,
-                      mover.type === 'IDX' ? styles.idxBadge : styles.cryptoBadge,
-                    ]}
-                  >
-                    <Text
+                <Icon name="Plus" size={12} color="#080C14" />
+                <Text style={styles.welcomeBtnPrimaryText}>+ Tambah Kas / Akun</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  triggerHaptic('medium');
+                  router.push('/(tabs)/sync');
+                }}
+                style={styles.welcomeBtnSecondary}
+                activeOpacity={0.75}
+              >
+                <Icon name="UploadCloud" size={12} color="#38BDF8" />
+                <Text style={styles.welcomeBtnSecondaryText}>Sync SoA Stockbit</Text>
+              </TouchableOpacity>
+            </View>
+          </GlassCard>
+        ) : (
+          <View style={styles.moversList}>
+            {allMovers.map((mover) => {
+              const isUp = mover.change24h >= 0;
+              return (
+                <GlassCard
+                  key={mover.id}
+                  style={styles.moverCard}
+                  borderTint="rgba(255, 255, 255, 0.09)"
+                  onPress={() => {
+                    triggerHaptic('selection');
+                    router.push('/(tabs)/portfolio');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.moverLeft}>
+                    <View
                       style={[
-                        styles.moverBadgeText,
-                        mover.type === 'IDX' ? styles.textSky : styles.textAmber,
+                        styles.moverIconBadge,
+                        mover.type === 'IDX' ? styles.idxBadge : styles.cryptoBadge,
                       ]}
                     >
-                      {mover.type}
-                    </Text>
+                      <Text
+                        style={[
+                          styles.moverBadgeText,
+                          mover.type === 'IDX' ? styles.textSky : styles.textAmber,
+                        ]}
+                      >
+                        {mover.type}
+                      </Text>
+                    </View>
+                    <View style={styles.moverInfo}>
+                      <Text style={styles.moverSymbol}>{mover.symbol}</Text>
+                      <Text style={styles.moverName} numberOfLines={1}>
+                        {mover.name}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.moverInfo}>
-                    <Text style={styles.moverSymbol}>{mover.symbol}</Text>
-                    <Text style={styles.moverName} numberOfLines={1}>
-                      {mover.name}
-                    </Text>
-                  </View>
-                </View>
 
-                <View style={styles.moverRight}>
-                  <PrivacyValue
-                    value={mover.currentPrice}
-                    style={styles.moverPrice}
-                  />
-                  <View style={[styles.changeChip, isUp ? styles.chipGreen : styles.chipRed]}>
-                    <Text style={[styles.changeChipText, isUp ? styles.textGreen : styles.textRed]}>
-                      {formatPercent(mover.change24h)}
-                    </Text>
+                  <View style={styles.moverRight}>
+                    <PrivacyValue
+                      value={mover.currentPrice}
+                      style={styles.moverPrice}
+                    />
+                    <View style={[styles.changeChip, isUp ? styles.chipGreen : styles.chipRed]}>
+                      <Text style={[styles.changeChipText, isUp ? styles.textGreen : styles.textRed]}>
+                        {formatPercent(mover.change24h)}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              </GlassCard>
-            );
-          })}
-        </View>
+                </GlassCard>
+              );
+            })}
+          </View>
+        )}
       </ScrollView>
 
       {/* Cash Mutation Quick Modal */}
@@ -636,6 +693,23 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 8,
     gap: 2,
+  },
+  emptyAllocationBar: {
+    height: 24,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(255, 255, 255, 0.10)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 6,
+  },
+  emptyAllocationText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#64748B',
   },
   allocationSegment: {
     height: '100%',
@@ -904,5 +978,73 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
+  },
+  welcomeCard: {
+    padding: 16,
+    borderRadius: 20,
+    gap: 12,
+  },
+  welcomeTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  welcomeIconCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  welcomeTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#F8FAFC',
+    marginBottom: 2,
+  },
+  welcomeDesc: {
+    fontSize: 11,
+    lineHeight: 16,
+    color: '#94A3B8',
+  },
+  welcomeActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  welcomeBtnPrimary: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#38BDF8',
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+  },
+  welcomeBtnPrimaryText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#080C14',
+  },
+  welcomeBtnSecondary: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(56, 189, 248, 0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+  },
+  welcomeBtnSecondaryText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#38BDF8',
   },
 });

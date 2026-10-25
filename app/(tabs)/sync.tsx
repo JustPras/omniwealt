@@ -107,33 +107,27 @@ export default function SyncScreen() {
         setConfirmationNotice(null);
         setIsExtracting(true);
 
-        // Check if PDF might be encrypted to reveal in-place password input
-        if (file.name.toLowerCase().endsWith('.pdf')) {
+        const isPdf = file.name.toLowerCase().endsWith('.pdf');
+        if (isPdf) {
           setIsEncryptedPdf(true);
         }
 
-        setTimeout(() => {
-          // Parse statement
-          const demoResult: BrokerExtractionResult = {
-            brokerName: 'Stockbit Sekuritas',
-            documentType: 'TRADE_CONFIRMATION',
-            tradeDate: new Date().toISOString().split('T')[0],
-            trades: [
-              {
-                action: 'BUY',
-                ticker: 'BBCA.JK',
-                lots: 10,
-                price: 9800,
-                fee: 14700,
-                netAmount: 10 * 100 * 9800 + 14700,
-              },
-            ],
-            summaryNote: `Hasil ekstraksi dari dokumen ${file.name}`,
-          };
-          setExtractionResult(demoResult);
-          setIsExtracting(false);
+        try {
+          const parsed = await AIParserService.parseDocumentFile(file);
+          setExtractionResult(parsed);
           triggerHaptic('success');
-        }, 600);
+        } catch (err: any) {
+          console.warn('Doc picker parse notice:', err.message);
+          // Show paste box so the user can easily paste statement text directly
+          setShowPasteBox(true);
+          setConfirmationNotice(
+            err.message ||
+              `Berkas "${file.name}" terenkripsi atau berformat biner. Buka PDF di aplikasi pembaca PDF, salin (copy) teks tabel saham Anda, lalu tempel di kolom teks di bawah.`
+          );
+          triggerHaptic('warning');
+        } finally {
+          setIsExtracting(false);
+        }
       }
     } catch (e) {
       console.warn('Doc picker error:', e);
@@ -151,7 +145,15 @@ export default function SyncScreen() {
       const parsed = await AIParserService.parseBrokerDocument(pastedText);
       setExtractionResult(parsed);
       setSelectedFileName('Teks salinan dokumen');
-      triggerHaptic('success');
+      if (parsed.trades.length > 0) {
+        triggerHaptic('success');
+      } else {
+        triggerHaptic('warning');
+        setConfirmationNotice(
+          parsed.summaryNote ||
+            'Tidak ada transaksi atau portofolio saham yang terdeteksi pada teks ini. Pastikan teks memuat kode saham (misal: BBRI, ASII, GOTO), jumlah lot, dan harga beli.'
+        );
+      }
     } catch (e) {
       console.warn('Paste extraction error:', e);
     } finally {
@@ -389,55 +391,67 @@ export default function SyncScreen() {
               </View>
             </View>
 
-            {/* List of Detected Trades */}
-            <View style={styles.tradesList}>
-              {extractionResult.trades.map((t, idx) => {
-                const cleanTicker = t.ticker.replace('.JK', '');
-                return (
-                  <View key={idx} style={styles.tradeRow}>
-                    <View style={styles.tradeLeft}>
-                      {/* Neutral Chip for BUY/SELL/DIVIDEN per design rules */}
-                      <View style={styles.neutralChip}>
-                        <Text style={styles.neutralChipText}>{t.action}</Text>
-                      </View>
-                      <View>
-                        <Text style={styles.tradeTicker}>{cleanTicker}</Text>
-                        <Text style={styles.tradeLots}>
-                          {t.lots} lot @ {formatIDR(t.price)}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <Text style={styles.tradeAmount}>{formatIDR(t.netAmount)}</Text>
-                  </View>
-                );
-              })}
-            </View>
-
-            {/* IMPACT PREVIEW: "Kas RDN −Rp …, BBCA +10 lot" */}
-            <View style={styles.impactBox}>
-              <Text style={styles.impactTitle}>Dampak pada portofolio:</Text>
-              {impacts.rdnCashImpact !== 0 && (
-                <Text style={styles.impactLine}>
-                  • Kas RDN {impacts.rdnCashImpact < 0 ? '−' : '+'}
-                  {formatIDR(Math.abs(impacts.rdnCashImpact))}
+            {extractionResult.trades.length === 0 ? (
+              <View style={styles.emptyExtractionBox}>
+                <Icon name="AlertCircle" size={18} color={color.accent} />
+                <Text style={styles.emptyExtractionText}>
+                  {extractionResult.summaryNote ||
+                    'Tidak ada transaksi yang terdeteksi. Silakan periksa format teks portofolio Anda.'}
                 </Text>
-              )}
-              {impacts.stockImpacts.map((s, i) => (
-                <Text key={i} style={styles.impactLine}>
-                  • {s.ticker} {s.isBuy ? '+' : '−'}
-                  {s.lots} lot
-                </Text>
-              ))}
-            </View>
+              </View>
+            ) : (
+              <>
+                {/* List of Detected Trades */}
+                <View style={styles.tradesList}>
+                  {extractionResult.trades.map((t, idx) => {
+                    const cleanTicker = t.ticker.replace('.JK', '');
+                    return (
+                      <View key={idx} style={styles.tradeRow}>
+                        <View style={styles.tradeLeft}>
+                          {/* Neutral Chip for BUY/SELL/DIVIDEN per design rules */}
+                          <View style={styles.neutralChip}>
+                            <Text style={styles.neutralChipText}>{t.action}</Text>
+                          </View>
+                          <View>
+                            <Text style={styles.tradeTicker}>{cleanTicker}</Text>
+                            <Text style={styles.tradeLots}>
+                              {t.lots} lot @ {formatIDR(t.price)}
+                            </Text>
+                          </View>
+                        </View>
 
-            {/* Apply Button: Terapkan ke portofolio */}
-            <Pressable
-              onPress={handleConfirmUpdate}
-              style={styles.applyButton}
-            >
-              <Text style={styles.applyButtonText}>Terapkan ke portofolio</Text>
-            </Pressable>
+                        <Text style={styles.tradeAmount}>{formatIDR(t.netAmount)}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+
+                {/* IMPACT PREVIEW */}
+                <View style={styles.impactBox}>
+                  <Text style={styles.impactTitle}>Dampak pada portofolio:</Text>
+                  {impacts.rdnCashImpact !== 0 && (
+                    <Text style={styles.impactLine}>
+                      • Kas RDN {impacts.rdnCashImpact < 0 ? '−' : '+'}
+                      {formatIDR(Math.abs(impacts.rdnCashImpact))}
+                    </Text>
+                  )}
+                  {impacts.stockImpacts.map((s, i) => (
+                    <Text key={i} style={styles.impactLine}>
+                      • {s.ticker} {s.isBuy ? '+' : '−'}
+                      {s.lots} lot
+                    </Text>
+                  ))}
+                </View>
+
+                {/* Apply Button: Terapkan ke portofolio */}
+                <Pressable
+                  onPress={handleConfirmUpdate}
+                  style={styles.applyButton}
+                >
+                  <Text style={styles.applyButtonText}>Terapkan ke portofolio</Text>
+                </Pressable>
+              </>
+            )}
           </GlassCard>
         )}
       </ScrollView>
@@ -748,6 +762,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: color.text,
     fontVariant: ['tabular-nums'],
+  },
+  emptyExtractionBox: {
+    padding: space.md,
+    borderRadius: radius.md,
+    backgroundColor: color.glassFillInset,
+    borderWidth: 1,
+    borderColor: color.hairline,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  emptyExtractionText: {
+    flex: 1,
+    fontSize: 12,
+    color: color.textMuted,
+    lineHeight: 18,
   },
   applyButton: {
     backgroundColor: color.accent,

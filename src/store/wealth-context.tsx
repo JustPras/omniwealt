@@ -1,8 +1,24 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { Account, StockAsset, CryptoAsset, Transaction, BrokerExtractionResult, BankMutationResult } from '../types';
+import {
+  Account,
+  StockAsset,
+  CryptoAsset,
+  Transaction,
+  BrokerExtractionResult,
+  BankMutationResult,
+  RDNStagingBatch,
+  StandardizedRDNRecord,
+  IngestionPayload,
+} from '../types';
 import { StorageService } from '../services/storage-service';
 import { MarketService } from '../services/market-service';
 import { AIParserService } from '../services/ai-parser';
+import {
+  IngestionService,
+  LedgerCommitService,
+  RDNStagingService,
+  CommitResult,
+} from '../services/rdn-pipeline';
 import { triggerHaptic } from '../utils/haptics';
 import { formatIDR } from '../utils/format';
 
@@ -16,6 +32,16 @@ interface WealthContextType {
   isHydrated: boolean;
   isRefreshing: boolean;
   lastUpdated: Date;
+
+  // RDN Pipeline Staging & Jobs
+  stagingBatches: RDNStagingBatch[];
+  activeStagingBatch: RDNStagingBatch | null;
+  setActiveStagingBatch: (batch: RDNStagingBatch | null) => void;
+  processRDNIngestion: (payload: IngestionPayload) => Promise<RDNStagingBatch>;
+  commitRDNStagingBatch: (batchId: string) => Promise<CommitResult>;
+  updateRDNStagingItem: (batchId: string, itemId: string, updates: Partial<StandardizedRDNRecord>) => Promise<void>;
+  discardRDNStagingBatch: (batchId: string) => Promise<void>;
+  toggleAccountAutoCommit: (accountId: string) => Promise<void>;
 
   // Computed Financial Metrics
   totalCash: number;
@@ -52,6 +78,8 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [stocks, setStocks] = useState<StockAsset[]>([]);
   const [cryptos, setCryptos] = useState<CryptoAsset[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [stagingBatches, setStagingBatches] = useState<RDNStagingBatch[]>([]);
+  const [activeStagingBatch, setActiveStagingBatch] = useState<RDNStagingBatch | null>(null);
   const [privacyMode, setPrivacyMode] = useState<boolean>(false);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -62,13 +90,14 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     let isMounted = true;
     const hydrate = async () => {
       try {
-        const [storedAcc, storedStocks, storedCryptos, storedTx, storedPrivacy, storedMarket] = await Promise.all([
+        const [storedAcc, storedStocks, storedCryptos, storedTx, storedPrivacy, storedMarket, storedBatches] = await Promise.all([
           StorageService.getAccounts(),
           StorageService.getStocks(),
           StorageService.getCryptos(),
           StorageService.getTransactions(),
           StorageService.getPrivacyMode(),
           StorageService.getMarketCache(),
+          RDNStagingService.getBatches(),
         ]);
 
         if (isMounted) {
@@ -77,6 +106,10 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           setCryptos(storedCryptos);
           setTransactions(storedTx);
           setPrivacyMode(storedPrivacy);
+          setStagingBatches(storedBatches);
+          if (storedBatches.length > 0) {
+            setActiveStagingBatch(storedBatches[0]);
+          }
           if (storedMarket?.lastUpdated) {
             setLastUpdated(new Date(storedMarket.lastUpdated));
           }
@@ -776,6 +809,102 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     });
   }, [stocks]);
 
+  // 9b. RDN Asynchronous Pipeline Actions
+  const processRDNIngestion = useCallback(
+    async (payload: IngestionPayload): Promise<RDNStagingBatch> => {
+      triggerHaptic('light');
+      const batch = await IngestionService.processIngestion({
+        payload,
+        userAccounts: accounts,
+        stocks,
+        transactions,
+        onBatchReady: (b) => {
+          setStagingBatches((prev) => [b, ...prev.filter((item) => item.id !== b.id)]);
+          setActiveStagingBatch(b);
+        },
+        onStateUpdate: ({ accounts: accs, stocks: stk, transactions: txs }) => {
+          setAccounts(accs);
+          setStocks(stk);
+          setTransactions(txs);
+        },
+      });
+      return batch;
+    },
+    [accounts, stocks, transactions]
+  );
+
+  const commitRDNStagingBatch = useCallback(
+    async (batchId: string): Promise<CommitResult> => {
+      triggerHaptic('medium');
+      const batch = stagingBatches.find((b) => b.id === batchId) || activeStagingBatch;
+      if (!batch) {
+        throw new Error('Batch staging tidak ditemukan.');
+      }
+      const result = await LedgerCommitService.commitBatch(
+        batch,
+        accounts,
+        stocks,
+        transactions,
+        ({ accounts: accs, stocks: stk, transactions: txs }) => {
+          setAccounts(accs);
+          setStocks(stk);
+          setTransactions(txs);
+        }
+      );
+      setStagingBatches((prev) => prev.filter((b) => b.id !== batchId));
+      if (activeStagingBatch?.id === batchId) {
+        setActiveStagingBatch(null);
+      }
+      triggerHaptic('success');
+      return result;
+    },
+    [stagingBatches, activeStagingBatch, accounts, stocks, transactions]
+  );
+
+  const updateRDNStagingItem = useCallback(
+    async (batchId: string, itemId: string, updates: Partial<StandardizedRDNRecord>) => {
+      const updatedBatch = await RDNStagingService.updateStagingItem(batchId, itemId, updates);
+      if (updatedBatch) {
+        setStagingBatches((prev) => prev.map((b) => (b.id === batchId ? updatedBatch : b)));
+        if (activeStagingBatch?.id === batchId) {
+          setActiveStagingBatch(updatedBatch);
+        }
+      }
+    },
+    [activeStagingBatch]
+  );
+
+  const discardRDNStagingBatch = useCallback(
+    async (batchId: string) => {
+      await RDNStagingService.deleteBatch(batchId);
+      setStagingBatches((prev) => prev.filter((b) => b.id !== batchId));
+      if (activeStagingBatch?.id === batchId) {
+        setActiveStagingBatch(null);
+      }
+    },
+    [activeStagingBatch]
+  );
+
+  const toggleAccountAutoCommit = useCallback(
+    async (accountId: string) => {
+      setAccounts((prev) => {
+        const updated = prev.map((a) => {
+          if (a.id === accountId) {
+            return {
+              ...a,
+              autoCommitVerifiedEmail: !a.autoCommitVerifiedEmail,
+              updatedAt: new Date().toISOString(),
+            };
+          }
+          return a;
+        });
+        StorageService.saveAccounts(updated);
+        return updated;
+      });
+    },
+    []
+  );
+
   // 10. Reset Data
   const resetToInitialSeed = useCallback(async () => {
     triggerHaptic('heavy');
@@ -831,6 +960,14 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         totalUnrealizedPnLPercent,
         dailyChangeRp,
         dailyChangePercent,
+        stagingBatches,
+        activeStagingBatch,
+        setActiveStagingBatch,
+        processRDNIngestion,
+        commitRDNStagingBatch,
+        updateRDNStagingItem,
+        discardRDNStagingBatch,
+        toggleAccountAutoCommit,
         togglePrivacy,
         refreshMarketPrices,
         addAccount,

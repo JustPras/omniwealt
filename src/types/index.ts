@@ -11,6 +11,7 @@ export interface Account {
   color?: string;
   icon?: string;
   updatedAt?: string;
+  autoCommitVerifiedEmail?: boolean;
 }
 
 export interface StockAsset {
@@ -39,7 +40,7 @@ export interface CryptoAsset {
 }
 
 export type TransactionType = 'INCOME' | 'EXPENSE' | 'TRANSFER';
-export type TransactionSource = 'MANUAL' | 'AI_MUTATION' | 'ANDROID_AUTO' | 'BROKER_SOA';
+export type TransactionSource = 'MANUAL' | 'AI_MUTATION' | 'ANDROID_AUTO' | 'BROKER_SOA' | 'RDN_PIPELINE';
 
 export interface Transaction {
   id: string;
@@ -54,7 +55,11 @@ export interface Transaction {
   destinationAccountId?: string;
   destinationAccountName?: string;
   transactionDate: string; // ISO string
+  transactionHash?: string;
+  isInternalTransfer?: boolean;
 }
+
+export * from './rdn-pipeline';
 
 export interface BrokerTradeItem {
   action: 'BUY' | 'SELL' | 'DIVIDEND';

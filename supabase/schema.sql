@@ -83,8 +83,72 @@ CREATE TABLE IF NOT EXISTS broker_trade_logs (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 6. RDN STAGING BATCHES (Stage 5)
+CREATE TABLE IF NOT EXISTS rdn_staging_batches (
+    id VARCHAR(100) PRIMARY KEY,
+    user_id UUID,
+    account_id UUID REFERENCES accounts(id) ON DELETE CASCADE,
+    institution VARCHAR(50) NOT NULL,
+    statement_type VARCHAR(50) NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_checksum VARCHAR(64) NOT NULL,
+    source VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    opening_balance NUMERIC(18, 2) DEFAULT 0,
+    total_credit NUMERIC(18, 2) DEFAULT 0,
+    total_debit NUMERIC(18, 2) DEFAULT 0,
+    closing_balance NUMERIC(18, 2) DEFAULT 0,
+    discrepancy_amount NUMERIC(18, 2) DEFAULT 0,
+    total_items INT DEFAULT 0,
+    new_items_count INT DEFAULT 0,
+    duplicate_skipped_count INT DEFAULT 0,
+    internal_transfers_count INT DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 7. RDN STAGING ITEMS (Stage 5)
+CREATE TABLE IF NOT EXISTS rdn_staging_items (
+    id VARCHAR(100) PRIMARY KEY,
+    batch_id VARCHAR(100) REFERENCES rdn_staging_batches(id) ON DELETE CASCADE,
+    transaction_date DATE NOT NULL,
+    settlement_date DATE,
+    category VARCHAR(50) NOT NULL,
+    ticker VARCHAR(20),
+    lot NUMERIC(12, 2),
+    execution_price NUMERIC(18, 2),
+    gross_amount NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    broker_fee NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    tax_amount NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    net_amount NUMERIC(18, 2) NOT NULL DEFAULT 0,
+    running_balance NUMERIC(18, 2),
+    raw_description TEXT,
+    transaction_hash VARCHAR(64) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'READY',
+    matched_transfer_account_name VARCHAR(100),
+    matched_transfer_tx_id UUID REFERENCES transactions(id) ON DELETE SET NULL,
+    validation_error TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 8. RDN IMPORT AUDIT LOGS (Stage 6)
+CREATE TABLE IF NOT EXISTS rdn_import_logs (
+    id VARCHAR(100) PRIMARY KEY,
+    batch_id VARCHAR(100),
+    account_id UUID REFERENCES accounts(id) ON DELETE CASCADE,
+    file_checksum VARCHAR(64) NOT NULL,
+    source VARCHAR(50) NOT NULL,
+    institution VARCHAR(50) NOT NULL,
+    total_records INT NOT NULL,
+    success_count INT NOT NULL,
+    skipped_count INT NOT NULL,
+    discrepancy_amount NUMERIC(18, 2) DEFAULT 0,
+    committed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Indices for performance
 CREATE INDEX IF NOT EXISTS idx_accounts_type ON accounts(type);
 CREATE INDEX IF NOT EXISTS idx_stocks_ticker ON stocks(ticker);
 CREATE INDEX IF NOT EXISTS idx_cryptos_symbol ON cryptos(symbol);
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(transaction_date DESC);
+CREATE INDEX IF NOT EXISTS idx_transactions_hash ON transactions(transaction_hash);
+CREATE INDEX IF NOT EXISTS idx_staging_batch_id ON rdn_staging_items(batch_id);

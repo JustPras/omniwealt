@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, ViewStyle, StyleProp, Animated } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 
 interface ScreenTransitionProps {
   children: React.ReactNode;
@@ -10,10 +11,61 @@ export const ScreenTransition: React.FC<ScreenTransitionProps> = ({
   children,
   style,
 }) => {
+  const isFocused = useIsFocused();
+  const anim = useRef(new Animated.Value(1)).current;
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      anim.setValue(1);
+      return;
+    }
+
+    if (isFocused) {
+      // Fluid native entrance spring when switching tabs
+      anim.setValue(0);
+      Animated.spring(anim, {
+        toValue: 1,
+        tension: 135,
+        friction: 13,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      // Screen lost focus: reset
+      anim.setValue(0);
+    }
+  }, [isFocused, anim]);
+
+  // Interpolations
+  const opacity = anim.interpolate({
+    inputRange: [0, 0.4, 1],
+    outputRange: [0, 0.75, 1],
+  });
+
+  const translateY = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [14, 0],
+  });
+
+  const scale = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.985, 1],
+  });
+
   return (
-    <View style={[styles.container, style]}>
+    <Animated.View
+      style={[
+        styles.container,
+        style,
+        {
+          opacity,
+          transform: [{ translateY }, { scale }],
+        },
+      ]}
+    >
       {children}
-    </View>
+    </Animated.View>
   );
 };
 

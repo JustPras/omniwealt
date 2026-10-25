@@ -27,32 +27,43 @@ const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = React.memo(({ name, focu
   useEffect(() => {
     Animated.spring(anim, {
       toValue: focused ? 1 : 0,
-      tension: motion.spring.settle.tension,
-      friction: motion.spring.settle.friction,
+      tension: 180,
+      friction: 12,
       useNativeDriver: true,
     }).start();
   }, [focused, anim]);
 
-  const scale = useRef(
-    anim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.94, 1.05],
-    })
-  ).current;
+  const iconScale = anim.interpolate({
+    inputRange: [0, 0.45, 1],
+    outputRange: [0.92, 1.15, 1.05],
+  });
 
-  const bgOpacity = useRef(
-    anim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, 1],
-    })
-  ).current;
+  const iconTranslateY = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, -1.5],
+  });
+
+  const capsuleScale = anim.interpolate({
+    inputRange: [0, 0.4, 1],
+    outputRange: [0.55, 1.1, 1],
+  });
+
+  const capsuleOpacity = anim.interpolate({
+    inputRange: [0, 0.3, 1],
+    outputRange: [0, 0.5, 1],
+  });
+
+  const dotScale = anim.interpolate({
+    inputRange: [0, 0.6, 1],
+    outputRange: [0, 0.4, 1],
+  });
 
   return (
     <Animated.View
       style={[
         styles.iconContainer,
         {
-          transform: [{ scale }],
+          transform: [{ scale: iconScale }, { translateY: iconTranslateY }],
         },
       ]}
     >
@@ -63,8 +74,8 @@ const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = React.memo(({ name, focu
           {
             backgroundColor: theme.glass.inset,
             borderColor: theme.rim.mid,
-            opacity: bgOpacity,
-            transform: [{ scale: anim }],
+            opacity: capsuleOpacity,
+            transform: [{ scale: capsuleScale }],
           },
         ]}
       />
@@ -73,6 +84,18 @@ const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = React.memo(({ name, focu
         name={name}
         size={size || 18}
         color={focused ? theme.tint : theme.textMuted}
+      />
+
+      {/* Subtle glowing active dot */}
+      <Animated.View
+        style={[
+          styles.activeDot,
+          {
+            backgroundColor: theme.tint,
+            opacity: anim,
+            transform: [{ scale: dotScale }],
+          },
+        ]}
       />
     </Animated.View>
   );
@@ -85,9 +108,9 @@ const AnimatedTabBarButton = React.memo((props: any) => {
 
   const handlePressIn = React.useCallback(() => {
     Animated.spring(pressScale, {
-      toValue: 0.94,
-      tension: motion.spring.press.tension,
-      friction: motion.spring.press.friction,
+      toValue: 0.88,
+      tension: 260,
+      friction: 10,
       useNativeDriver: true,
     }).start();
   }, [pressScale]);
@@ -267,6 +290,13 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: radius.pill,
     borderWidth: 1,
+  },
+  activeDot: {
+    position: 'absolute',
+    bottom: -3,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
   },
   tabBarLabel: {
     fontSize: 11,

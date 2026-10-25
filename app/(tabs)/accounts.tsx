@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -24,6 +24,27 @@ import { BankMutationResult, AccountType } from '../../src/types';
 import { color, space, radius, shadow } from '../../src/theme/tokens';
 
 type TxFilter = 'ALL' | 'INCOME' | 'EXPENSE';
+
+const PRESETS = [
+  {
+    id: 'p1',
+    title: 'QRIS Kopi Kenangan',
+    amount: 'Rp 48.500',
+    text: 'Transaksi QRIS Rp 48.500 di Kopi Kenangan berhasil dari rekening BCA Tahapan',
+  },
+  {
+    id: 'p2',
+    title: 'Gaji Bulanan',
+    amount: 'Rp 2.500.000',
+    text: 'Transfer masuk BI-FAST Rp 2.500.000 dari PT Karya Digital ke Mandiri Livin',
+  },
+  {
+    id: 'p3',
+    title: 'Top Up RDN',
+    amount: 'Rp 1.000.000',
+    text: 'Top up RDN Stockbit BCA sebesar Rp 1.000.000 dari BCA Tahapan berhasil',
+  },
+];
 
 export default function AccountsScreen() {
   const { width } = useWindowDimensions();
@@ -52,36 +73,15 @@ export default function AccountsScreen() {
   // Background Simulator state
   const [simulatedNotification, setSimulatedNotification] = useState<string | null>(null);
 
-  const PRESETS = [
-    {
-      id: 'p1',
-      title: 'QRIS Kopi Kenangan',
-      amount: 'Rp 48.500',
-      text: 'Transaksi QRIS Rp 48.500 di Kopi Kenangan berhasil dari rekening BCA Tahapan',
-    },
-    {
-      id: 'p2',
-      title: 'Gaji Bulanan',
-      amount: 'Rp 2.500.000',
-      text: 'Transfer masuk BI-FAST Rp 2.500.000 dari PT Karya Digital ke Mandiri Livin',
-    },
-    {
-      id: 'p3',
-      title: 'Top Up RDN',
-      amount: 'Rp 1.000.000',
-      text: 'Top up RDN Stockbit BCA sebesar Rp 1.000.000 dari BCA Tahapan berhasil',
-    },
-  ];
+  // Group accounts by type: Bank, RDN, E-Wallet (memoized)
+  const bankAccounts = useMemo(() => accounts.filter((a) => a.type === 'BANK'), [accounts]);
+  const rdnAccounts = useMemo(() => accounts.filter((a) => a.type === 'RDN'), [accounts]);
+  const ewalletAccounts = useMemo(() => accounts.filter((a) => a.type === 'E-WALLET'), [accounts]);
 
-  // Group accounts by type: Bank, RDN, E-Wallet
-  const bankAccounts = accounts.filter((a) => a.type === 'BANK');
-  const rdnAccounts = accounts.filter((a) => a.type === 'RDN');
-  const ewalletAccounts = accounts.filter((a) => a.type === 'E-WALLET');
-
-  const filteredTransactions = transactions.filter((tx) => {
-    if (selectedTxFilter === 'ALL') return true;
-    return tx.type === selectedTxFilter;
-  });
+  const filteredTransactions = useMemo(() => {
+    if (selectedTxFilter === 'ALL') return transactions;
+    return transactions.filter((tx) => tx.type === selectedTxFilter);
+  }, [transactions, selectedTxFilter]);
 
   const handleProcessMutation = async (customText?: string) => {
     const textToProcess = customText || parserText;

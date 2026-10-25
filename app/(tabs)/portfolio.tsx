@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -59,58 +59,71 @@ export default function PortfolioScreen() {
 
   const isOverallProfit = totalUnrealizedPnL >= 0;
 
-  // Auto-refresh market prices silently when opening the Portfolio tab
+  // Auto-refresh market prices silently when opening Portfolio tab, throttled to max once every 90s
+  const lastMarketRefreshRef = useRef<number>(0);
   useFocusEffect(
     useCallback(() => {
-      if (stocks.length > 0 || cryptos.length > 0) {
+      const now = Date.now();
+      if (now - lastMarketRefreshRef.current > 90_000 && (stocks.length > 0 || cryptos.length > 0)) {
+        lastMarketRefreshRef.current = now;
         refreshMarketPrices(true);
       }
     }, [stocks.length, cryptos.length, refreshMarketPrices])
   );
 
-  // Sorted Stocks
-  const sortedStocks = [...stocks].sort((a, b) => {
-    const valA = (Number(a.lots) || 0) * 100 * (Number(a.currentPrice) || 0);
-    const valB = (Number(b.lots) || 0) * 100 * (Number(b.currentPrice) || 0);
-    const costA = (Number(a.lots) || 0) * 100 * (Number(a.avgBuyPrice) || 0);
-    const costB = (Number(b.lots) || 0) * 100 * (Number(b.avgBuyPrice) || 0);
-    const pnlA = costA > 0 ? (valA - costA) / costA : 0;
-    const pnlB = costB > 0 ? (valB - costB) / costB : 0;
+  // Memoized Sorted Stocks
+  const sortedStocks = useMemo(() => {
+    return [...stocks].sort((a, b) => {
+      const valA = (Number(a.lots) || 0) * 100 * (Number(a.currentPrice) || 0);
+      const valB = (Number(b.lots) || 0) * 100 * (Number(b.currentPrice) || 0);
+      const costA = (Number(a.lots) || 0) * 100 * (Number(a.avgBuyPrice) || 0);
+      const costB = (Number(b.lots) || 0) * 100 * (Number(b.avgBuyPrice) || 0);
+      const pnlA = costA > 0 ? (valA - costA) / costA : 0;
+      const pnlB = costB > 0 ? (valB - costB) / costB : 0;
 
-    if (sortMode === 'VALUE') return valB - valA;
-    if (sortMode === 'PNL') return pnlB - pnlA;
-    return a.ticker.localeCompare(b.ticker);
-  });
+      if (sortMode === 'VALUE') return valB - valA;
+      if (sortMode === 'PNL') return pnlB - pnlA;
+      return a.ticker.localeCompare(b.ticker);
+    });
+  }, [stocks, sortMode]);
 
-  const displayedStocks = sortedStocks.filter((s) => {
-    if (!searchQuery.trim()) return true;
+  const displayedStocks = useMemo(() => {
+    if (!searchQuery.trim()) return sortedStocks;
     const q = searchQuery.toLowerCase();
-    return s.ticker.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
-  });
+    return sortedStocks.filter(
+      (s) => s.ticker.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
+    );
+  }, [sortedStocks, searchQuery]);
 
-  // Sorted Cryptos
-  const sortedCryptos = [...cryptos].sort((a, b) => {
-    const valA = (Number(a.holdings) || 0) * (Number(a.currentPriceIdr) || 0);
-    const valB = (Number(b.holdings) || 0) * (Number(b.currentPriceIdr) || 0);
-    const costA = (Number(a.holdings) || 0) * (Number(a.avgBuyPriceIdr) || 0);
-    const costB = (Number(b.holdings) || 0) * (Number(b.avgBuyPriceIdr) || 0);
-    const pnlA = costA > 0 ? (valA - costA) / costA : 0;
-    const pnlB = costB > 0 ? (valB - costB) / costB : 0;
+  // Memoized Sorted Cryptos
+  const sortedCryptos = useMemo(() => {
+    return [...cryptos].sort((a, b) => {
+      const valA = (Number(a.holdings) || 0) * (Number(a.currentPriceIdr) || 0);
+      const valB = (Number(b.holdings) || 0) * (Number(b.currentPriceIdr) || 0);
+      const costA = (Number(a.holdings) || 0) * (Number(a.avgBuyPriceIdr) || 0);
+      const costB = (Number(b.holdings) || 0) * (Number(b.avgBuyPriceIdr) || 0);
+      const pnlA = costA > 0 ? (valA - costA) / costA : 0;
+      const pnlB = costB > 0 ? (valB - costB) / costB : 0;
 
-    if (sortMode === 'VALUE') return valB - valA;
-    if (sortMode === 'PNL') return pnlB - pnlA;
-    return a.symbol.localeCompare(b.symbol);
-  });
+      if (sortMode === 'VALUE') return valB - valA;
+      if (sortMode === 'PNL') return pnlB - pnlA;
+      return a.symbol.localeCompare(b.symbol);
+    });
+  }, [cryptos, sortMode]);
 
-  const displayedCryptos = sortedCryptos.filter((c) => {
-    if (!searchQuery.trim()) return true;
+  const displayedCryptos = useMemo(() => {
+    if (!searchQuery.trim()) return sortedCryptos;
     const q = searchQuery.toLowerCase();
-    return c.symbol.toLowerCase().includes(q) || c.name.toLowerCase().includes(q);
-  });
+    return sortedCryptos.filter(
+      (c) => c.name.toLowerCase().includes(q) || c.symbol.toLowerCase().includes(q)
+    );
+  }, [sortedCryptos, searchQuery]);
 
-  const portfolioSparkline = isOverallProfit
-    ? [92, 93.5, 94.2, 93.8, 95.8, 97.2, 96.5, 98.4, 100.2, 99.8, 101.5, 103.5]
-    : [104, 102.5, 103.1, 101.2, 99.8, 98.2, 99.1, 97.4, 96.0, 95.2, 94.1, 92.5];
+  const portfolioSparkline = useMemo(() => {
+    return isOverallProfit
+      ? [92, 93.5, 94.2, 93.8, 95.8, 97.2, 96.5, 98.4, 100.2, 99.8, 101.5, 103.5]
+      : [104, 102.5, 103.1, 101.2, 99.8, 98.2, 99.1, 97.4, 96.0, 95.2, 94.1, 92.5];
+  }, [isOverallProfit]);
 
   const toggleSort = () => {
     triggerHaptic('selection');

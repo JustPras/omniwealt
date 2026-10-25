@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import {
   Account,
   StockAsset,
@@ -126,46 +126,75 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     };
   }, []);
 
-  // 2. Computed Values
-  const totalCash = accounts.reduce((acc, a) => acc + (Number(a.balance) || 0), 0);
+  // 2. Computed Values with High-Performance Memoization
+  const {
+    totalCash,
+    totalStocks,
+    totalStockCost,
+    totalCryptos,
+    totalCryptoCost,
+    totalNetWorth,
+    totalInvestments,
+    totalInvestmentCost,
+    totalUnrealizedPnL,
+    totalUnrealizedPnLPercent,
+    dailyChangeRp,
+    dailyChangePercent,
+  } = useMemo(() => {
+    const cash = accounts.reduce((acc, a) => acc + (Number(a.balance) || 0), 0);
 
-  const totalStocks = stocks.reduce((acc, s) => {
-    const shares = (Number(s.lots) || 0) * 100;
-    return acc + shares * (Number(s.currentPrice) || 0);
-  }, 0);
+    const stocksVal = stocks.reduce((acc, s) => {
+      const shares = (Number(s.lots) || 0) * 100;
+      return acc + shares * (Number(s.currentPrice) || 0);
+    }, 0);
 
-  const totalStockCost = stocks.reduce((acc, s) => {
-    const shares = (Number(s.lots) || 0) * 100;
-    return acc + shares * (Number(s.avgBuyPrice) || 0);
-  }, 0);
+    const stocksCost = stocks.reduce((acc, s) => {
+      const shares = (Number(s.lots) || 0) * 100;
+      return acc + shares * (Number(s.avgBuyPrice) || 0);
+    }, 0);
 
-  const totalCryptos = cryptos.reduce((acc, c) => {
-    return acc + (Number(c.holdings) || 0) * (Number(c.currentPriceIdr) || 0);
-  }, 0);
+    const cryptosVal = cryptos.reduce((acc, c) => {
+      return acc + (Number(c.holdings) || 0) * (Number(c.currentPriceIdr) || 0);
+    }, 0);
 
-  const totalCryptoCost = cryptos.reduce((acc, c) => {
-    return acc + (Number(c.holdings) || 0) * (Number(c.avgBuyPriceIdr) || 0);
-  }, 0);
+    const cryptosCost = cryptos.reduce((acc, c) => {
+      return acc + (Number(c.holdings) || 0) * (Number(c.avgBuyPriceIdr) || 0);
+    }, 0);
 
-  const totalNetWorth = totalCash + totalStocks + totalCryptos;
-  const totalInvestments = totalStocks + totalCryptos;
-  const totalInvestmentCost = totalStockCost + totalCryptoCost;
-  const totalUnrealizedPnL = totalInvestments - totalInvestmentCost;
-  const totalUnrealizedPnLPercent = totalInvestmentCost > 0 ? totalUnrealizedPnL / totalInvestmentCost : 0;
+    const netWorth = cash + stocksVal + cryptosVal;
+    const investments = stocksVal + cryptosVal;
+    const investmentCost = stocksCost + cryptosCost;
+    const unrealizedPnL = investments - investmentCost;
+    const unrealizedPnLPercent = investmentCost > 0 ? unrealizedPnL / investmentCost : 0;
 
-  // Daily portfolio movement estimation
-  const dailyStockChangeRp = stocks.reduce((acc, s) => {
-    const val = (Number(s.lots) || 0) * 100 * (Number(s.currentPrice) || 0);
-    return acc + val * (Number(s.change24h) || 0);
-  }, 0);
+    const stockChange = stocks.reduce((acc, s) => {
+      const val = (Number(s.lots) || 0) * 100 * (Number(s.currentPrice) || 0);
+      return acc + val * (Number(s.change24h) || 0);
+    }, 0);
 
-  const dailyCryptoChangeRp = cryptos.reduce((acc, c) => {
-    const val = (Number(c.holdings) || 0) * (Number(c.currentPriceIdr) || 0);
-    return acc + val * (Number(c.change24h) || 0);
-  }, 0);
+    const cryptoChange = cryptos.reduce((acc, c) => {
+      const val = (Number(c.holdings) || 0) * (Number(c.currentPriceIdr) || 0);
+      return acc + val * (Number(c.change24h) || 0);
+    }, 0);
 
-  const dailyChangeRp = dailyStockChangeRp + dailyCryptoChangeRp;
-  const dailyChangePercent = totalInvestments > 0 ? dailyChangeRp / totalInvestments : 0.0125;
+    const changeRp = stockChange + cryptoChange;
+    const changePercent = investments > 0 ? changeRp / investments : 0.0125;
+
+    return {
+      totalCash: cash,
+      totalStocks: stocksVal,
+      totalStockCost: stocksCost,
+      totalCryptos: cryptosVal,
+      totalCryptoCost: cryptosCost,
+      totalNetWorth: netWorth,
+      totalInvestments: investments,
+      totalInvestmentCost: investmentCost,
+      totalUnrealizedPnL: unrealizedPnL,
+      totalUnrealizedPnLPercent: unrealizedPnLPercent,
+      dailyChangeRp: changeRp,
+      dailyChangePercent: changePercent,
+    };
+  }, [accounts, stocks, cryptos]);
 
   // 3. Market Price Refresh (manual or automatic background silent refresh)
   const refreshMarketPrices = useCallback(async (isSilent: boolean = false) => {
@@ -941,50 +970,93 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setTransactions(storedTx);
   }, []);
 
+  const contextValue = useMemo<WealthContextType>(
+    () => ({
+      accounts,
+      stocks,
+      cryptos,
+      transactions,
+      privacyMode,
+      isHydrated,
+      isRefreshing,
+      lastUpdated,
+      totalCash,
+      totalStocks,
+      totalCryptos,
+      totalNetWorth,
+      totalInvestments,
+      totalInvestmentCost,
+      totalUnrealizedPnL,
+      totalUnrealizedPnLPercent,
+      dailyChangeRp,
+      dailyChangePercent,
+      stagingBatches,
+      activeStagingBatch,
+      setActiveStagingBatch,
+      processRDNIngestion,
+      commitRDNStagingBatch,
+      updateRDNStagingItem,
+      discardRDNStagingBatch,
+      toggleAccountAutoCommit,
+      togglePrivacy,
+      refreshMarketPrices,
+      addAccount,
+      updateAccountBalance,
+      applyMutationText,
+      confirmBrokerTrades,
+      saveStock,
+      deleteStock,
+      saveCrypto,
+      deleteCrypto,
+      resetToInitialSeed,
+      clearAllData,
+      loadDemoData,
+    }),
+    [
+      accounts,
+      stocks,
+      cryptos,
+      transactions,
+      privacyMode,
+      isHydrated,
+      isRefreshing,
+      lastUpdated,
+      totalCash,
+      totalStocks,
+      totalCryptos,
+      totalNetWorth,
+      totalInvestments,
+      totalInvestmentCost,
+      totalUnrealizedPnL,
+      totalUnrealizedPnLPercent,
+      dailyChangeRp,
+      dailyChangePercent,
+      stagingBatches,
+      activeStagingBatch,
+      setActiveStagingBatch,
+      processRDNIngestion,
+      commitRDNStagingBatch,
+      updateRDNStagingItem,
+      discardRDNStagingBatch,
+      toggleAccountAutoCommit,
+      togglePrivacy,
+      refreshMarketPrices,
+      addAccount,
+      updateAccountBalance,
+      applyMutationText,
+      confirmBrokerTrades,
+      saveStock,
+      deleteStock,
+      saveCrypto,
+      deleteCrypto,
+      resetToInitialSeed,
+      clearAllData,
+      loadDemoData,
+    ]
+  );
+
   return (
-    <WealthContext.Provider
-      value={{
-        accounts,
-        stocks,
-        cryptos,
-        transactions,
-        privacyMode,
-        isHydrated,
-        isRefreshing,
-        lastUpdated,
-        totalCash,
-        totalStocks,
-        totalCryptos,
-        totalNetWorth,
-        totalInvestments,
-        totalInvestmentCost,
-        totalUnrealizedPnL,
-        totalUnrealizedPnLPercent,
-        dailyChangeRp,
-        dailyChangePercent,
-        stagingBatches,
-        activeStagingBatch,
-        setActiveStagingBatch,
-        processRDNIngestion,
-        commitRDNStagingBatch,
-        updateRDNStagingItem,
-        discardRDNStagingBatch,
-        toggleAccountAutoCommit,
-        togglePrivacy,
-        refreshMarketPrices,
-        addAccount,
-        updateAccountBalance,
-        applyMutationText,
-        confirmBrokerTrades,
-        saveStock,
-        deleteStock,
-        saveCrypto,
-        deleteCrypto,
-        resetToInitialSeed,
-        clearAllData,
-        loadDemoData,
-      }}
-    >
+    <WealthContext.Provider value={contextValue}>
       {children}
     </WealthContext.Provider>
   );

@@ -20,7 +20,7 @@ interface AnimatedTabIconProps {
   size?: number;
 }
 
-const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({ name, focused, size }) => {
+const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = React.memo(({ name, focused, size }) => {
   const theme = useTheme();
   const anim = useRef(new Animated.Value(focused ? 1 : 0)).current;
 
@@ -33,15 +33,19 @@ const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({ name, focused, size }
     }).start();
   }, [focused, anim]);
 
-  const scale = anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.94, 1.05],
-  });
+  const scale = useRef(
+    anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.94, 1.05],
+    })
+  ).current;
 
-  const bgOpacity = anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-  });
+  const bgOpacity = useRef(
+    anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+    })
+  ).current;
 
   return (
     <Animated.View
@@ -72,30 +76,30 @@ const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({ name, focused, size }
       />
     </Animated.View>
   );
-};
+});
 
 // Custom Tab Button with Spring Feedback on Press using Pressable per DESIGN.md
-const AnimatedTabBarButton = (props: any) => {
+const AnimatedTabBarButton = React.memo((props: any) => {
   const { children, onPress, style } = props;
   const pressScale = useRef(new Animated.Value(1)).current;
 
-  const handlePressIn = () => {
+  const handlePressIn = React.useCallback(() => {
     Animated.spring(pressScale, {
       toValue: 0.94,
       tension: motion.spring.press.tension,
       friction: motion.spring.press.friction,
       useNativeDriver: true,
     }).start();
-  };
+  }, [pressScale]);
 
-  const handlePressOut = () => {
+  const handlePressOut = React.useCallback(() => {
     Animated.spring(pressScale, {
       toValue: 1,
       tension: motion.spring.settle.tension,
       friction: motion.spring.settle.friction,
       useNativeDriver: true,
     }).start();
-  };
+  }, [pressScale]);
 
   return (
     <Pressable
@@ -117,7 +121,38 @@ const AnimatedTabBarButton = (props: any) => {
       </Animated.View>
     </Pressable>
   );
-};
+});
+
+const TabBarBackground = React.memo(({ theme }: { theme: any }) => {
+  if (Platform.OS === 'web') {
+    return (
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            backgroundColor: theme.glass.lens,
+            // @ts-ignore
+            backdropFilter: 'blur(28px) saturate(150%)',
+          },
+        ]}
+      />
+    );
+  }
+  if (Platform.OS === 'android') {
+    return (
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            backgroundColor: 'rgba(29, 29, 31, 0.94)',
+            borderRadius: radius.xl,
+          },
+        ]}
+      />
+    );
+  }
+  return <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />;
+});
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
@@ -125,52 +160,37 @@ export default function TabsLayout() {
   const theme = useTheme();
   const isSmallScreen = width < 375;
 
+  const screenOptions = React.useMemo(
+    () => ({
+      headerShown: false,
+      animation: 'fade' as const,
+      lazy: false,
+      freezeOnBlur: true,
+      detachInactiveScreens: false,
+      tabBarActiveTintColor: theme.tint,
+      tabBarInactiveTintColor: theme.textMuted,
+      tabBarButton: (props: any) => <AnimatedTabBarButton {...props} />,
+      tabBarStyle: [
+        styles.tabBar,
+        {
+          bottom: Math.max(insets.bottom + 6, 14),
+          left: isSmallScreen ? 10 : 14,
+          right: isSmallScreen ? 10 : 14,
+          backgroundColor: theme.glass.lens,
+          borderColor: theme.rim.mid,
+        },
+      ],
+      tabBarLabelStyle: styles.tabBarLabel,
+      tabBarItemStyle: styles.tabBarItem,
+      tabBarBackground: () => <TabBarBackground theme={theme} />,
+    }),
+    [theme, insets.bottom, isSmallScreen]
+  );
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.canvas }}>
       <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarActiveTintColor: theme.tint,
-          tabBarInactiveTintColor: theme.textMuted,
-          tabBarButton: (props) => <AnimatedTabBarButton {...props} />,
-          tabBarStyle: [
-            styles.tabBar,
-            {
-              bottom: Math.max(insets.bottom + 6, 14),
-              left: isSmallScreen ? 10 : 14,
-              right: isSmallScreen ? 10 : 14,
-              backgroundColor: theme.glass.lens,
-              borderColor: theme.rim.mid,
-            },
-          ],
-          tabBarLabelStyle: styles.tabBarLabel,
-          tabBarItemStyle: styles.tabBarItem,
-          tabBarBackground: () =>
-            Platform.OS === 'web' ? (
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  {
-                    backgroundColor: theme.glass.lens,
-                    // @ts-ignore
-                    backdropFilter: 'blur(28px) saturate(150%)',
-                  },
-                ]}
-              />
-            ) : Platform.OS === 'android' ? (
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  {
-                    backgroundColor: 'rgba(29, 29, 31, 0.92)',
-                    borderRadius: radius.xl,
-                  },
-                ]}
-              />
-            ) : (
-              <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
-            ),
-        }}
+        screenOptions={screenOptions}
         screenListeners={{
           tabPress: () => {
             triggerHaptic('selection');

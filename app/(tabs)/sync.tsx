@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,39 @@ import { PDFExtractorService } from '../../src/services/pdf-extractor';
 import { color, space, radius, shadow, font } from '../../src/theme/tokens';
 import { IngestionPayload } from '../../src/types/rdn-pipeline';
 
+// Generic Broker Simulation Presets (static outside component)
+const SIMULATION_PRESETS = [
+  {
+    id: 'sim1',
+    title: 'Stockbit SoA Statement (T+2 Cash & Holdings)',
+    desc: 'Top-up Rp 10.000.000, BUY 10 lot BBRI @ Rp 4.750, Saldo Akhir Rp 5.242.875',
+    broker: 'PT Stockbit Sekuritas Digital',
+    rawText: `
+STATEMENT OF ACCOUNT
+PT Stockbit Sekuritas Digital
+Client 12345678 INVESTOR NASABAH
+Bank RDN: JAGO 1029384756
+Saldo Awal: 0
+2026-10-15 TOP UP RDN 10,000,000 CR 10,000,000
+2026-10-16 BUY 10 lot BBRI @ 4750 4,757,125 DB 5,242,875
+Saldo Akhir: 5,242,875
+    `,
+  },
+  {
+    id: 'sim2',
+    title: 'Ajaib Trade Confirmation (T+0 Buy Slip)',
+    desc: 'Beli 20 lot TLKM @ Rp 2.950 & Beli 10 lot BBRI @ Rp 4.750',
+    broker: 'Ajaib Sekuritas',
+    rawText: `
+TRADE CONFIRMATION
+Ajaib Sekuritas
+Trade Date: 2026-10-21
+TLKM BUY 20 lot 2950
+BBRI BUY 10 lot 4750
+    `,
+  },
+];
+
 export default function SyncScreen() {
   const { width } = useWindowDimensions();
   const isSmall = width < 375;
@@ -49,42 +82,9 @@ export default function SyncScreen() {
   const [activeTab, setActiveTab] = useState<'MANUAL' | 'EMAIL_WEBHOOK'>('MANUAL');
   const [webhookSender, setWebhookSender] = useState('statement@stockbit.com');
 
-  const rdnAccount =
-    accounts.find((a) => a.type === 'RDN') ||
-    accounts[0];
-
-  // Generic Broker Simulation Presets
-  const SIMULATION_PRESETS = [
-    {
-      id: 'sim1',
-      title: 'Stockbit SoA Statement (T+2 Cash & Holdings)',
-      desc: 'Top-up Rp 10.000.000, BUY 10 lot BBRI @ Rp 4.750, Saldo Akhir Rp 5.242.875',
-      broker: 'PT Stockbit Sekuritas Digital',
-      rawText: `
-STATEMENT OF ACCOUNT
-PT Stockbit Sekuritas Digital
-Client 12345678 INVESTOR NASABAH
-Bank RDN: JAGO 1029384756
-Saldo Awal: 0
-2026-10-15 TOP UP RDN 10,000,000 CR 10,000,000
-2026-10-16 BUY 10 lot BBRI @ 4750 4,757,125 DB 5,242,875
-Saldo Akhir: 5,242,875
-      `,
-    },
-    {
-      id: 'sim2',
-      title: 'Ajaib Trade Confirmation (T+0 Buy Slip)',
-      desc: 'Beli 20 lot TLKM @ Rp 2.950 & Beli 10 lot BBRI @ Rp 4.750',
-      broker: 'Ajaib Sekuritas',
-      rawText: `
-TRADE CONFIRMATION
-Ajaib Sekuritas
-Trade Date: 2026-10-21
-TLKM BUY 20 lot 2950
-BBRI BUY 10 lot 4750
-      `,
-    },
-  ];
+  const rdnAccount = useMemo(() => {
+    return accounts.find((a) => a.type === 'RDN') || accounts[0];
+  }, [accounts]);
 
   // Pipeline Ingestion Trigger
   const handleRunPipelineIngestion = async (

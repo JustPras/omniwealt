@@ -8,7 +8,7 @@ interface AmbientBackgroundProps {
   activeAssetClass?: 'CASH' | 'STOCK' | 'STOCKS' | 'CRYPTO' | 'ALL' | null;
 }
 
-export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
+export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
   scrollY,
   activeAssetClass = 'ALL',
 }) => {
@@ -16,21 +16,25 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
   const theme = useTheme();
 
   // Parallax translation: 0.25x scroll speed per DESIGN.md
-  const parallaxY1 = scrollY
-    ? scrollY.interpolate({
-        inputRange: [-200, 0, 400],
-        outputRange: [50, 0, -100],
-        extrapolate: 'clamp',
-      })
-    : null;
+  const parallaxY1 = React.useMemo(() => {
+    return scrollY
+      ? scrollY.interpolate({
+          inputRange: [-200, 0, 400],
+          outputRange: [50, 0, -100],
+          extrapolate: 'clamp',
+        })
+      : null;
+  }, [scrollY]);
 
-  const parallaxY2 = scrollY
-    ? scrollY.interpolate({
-        inputRange: [-200, 0, 400],
-        outputRange: [-50, 0, 100],
-        extrapolate: 'clamp',
-      })
-    : null;
+  const parallaxY2 = React.useMemo(() => {
+    return scrollY
+      ? scrollY.interpolate({
+          inputRange: [-200, 0, 400],
+          outputRange: [-50, 0, 100],
+          extrapolate: 'clamp',
+        })
+      : null;
+  }, [scrollY]);
 
   const isTintBoosted = activeAssetClass === 'STOCK' || activeAssetClass === 'STOCKS' || activeAssetClass === 'CRYPTO';
 
@@ -94,7 +98,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
       </Animated.View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

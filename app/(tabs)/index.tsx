@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,32 @@ import { color, space, radius, shadow, motion } from '../../src/theme/tokens';
 
 type Timeframe = '1H' | '1M' | '1B' | '1T' | 'Semua';
 type AllocationType = 'ALL' | 'CASH' | 'STOCKS' | 'CRYPTO';
+
+const ZERO_POINTS = [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50];
+const ZERO_LABELS = ['Live', 'Live', 'Live', 'Live', 'Live', 'Live', 'Live', 'Live', 'Live', 'Live', 'Live', 'Live'];
+
+const BASE_SPARKLINES: Record<Timeframe, { points: number[]; labels: string[] }> = {
+  '1H': {
+    points: [98.5, 99.0, 98.8, 99.4, 100.2, 99.9, 100.5, 101.2, 101.0, 101.8, 102.3, 103.0],
+    labels: ['09:00', '10:00', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '15:45', '15:55', 'Live'],
+  },
+  '1M': {
+    points: [93.0, 94.2, 93.8, 95.5, 96.2, 95.8, 97.4, 98.6, 99.2, 100.5, 101.8, 103.5],
+    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Kemarin', 'Hari ini'],
+  },
+  '1B': {
+    points: [89.0, 90.5, 91.2, 89.8, 92.4, 94.0, 93.5, 96.0, 97.5, 99.0, 101.2, 104.0],
+    labels: ['Mgg 1', 'Mgg 1', 'Mgg 2', 'Mgg 2', 'Mgg 3', 'Mgg 3', 'Mgg 4', 'Mgg 4', 'Kemarin', 'Hari ini', 'Hari ini', 'Live'],
+  },
+  '1T': {
+    points: [78.0, 81.0, 84.5, 82.0, 86.0, 89.0, 87.5, 91.0, 94.5, 98.0, 101.0, 105.0],
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+  },
+  'Semua': {
+    points: [65.0, 70.0, 74.0, 78.5, 76.0, 83.0, 87.0, 90.5, 93.0, 97.5, 101.0, 105.5],
+    labels: ['Awal', '2023', '2023', '2024', '2024', '2025', '2025', '2026 Q1', '2026 Q2', '2026 Q3', 'Kemarin', 'Live'],
+  },
+};
 
 export default function OverviewScreen() {
   const { width } = useWindowDimensions();
@@ -58,54 +84,35 @@ export default function OverviewScreen() {
   const scrollY = useRef(new Animated.Value(0)).current;
 
   // Timeframe labels and dynamic mock historical points
-  const timeframeLabels: Record<Timeframe, { pct: number; label: string }> = {
-    '1H': { pct: dailyChangePercent, label: 'hari ini' },
-    '1M': { pct: dailyChangePercent * 2.4 + 0.012, label: '1 minggu' },
-    '1B': { pct: dailyChangePercent * 4.8 + 0.028, label: '1 bulan' },
-    '1T': { pct: totalUnrealizedPnLPercent, label: '1 tahun' },
-    'Semua': { pct: totalUnrealizedPnLPercent * 1.25, label: 'sepanjang masa' },
-  };
+  const timeframeLabels: Record<Timeframe, { pct: number; label: string }> = useMemo(
+    () => ({
+      '1H': { pct: dailyChangePercent, label: 'hari ini' },
+      '1M': { pct: dailyChangePercent * 2.4 + 0.012, label: '1 minggu' },
+      '1B': { pct: dailyChangePercent * 4.8 + 0.028, label: '1 bulan' },
+      '1T': { pct: totalUnrealizedPnLPercent, label: '1 tahun' },
+      'Semua': { pct: totalUnrealizedPnLPercent * 1.25, label: 'sepanjang masa' },
+    }),
+    [dailyChangePercent, totalUnrealizedPnLPercent]
+  );
 
   const currentChangePct = timeframeLabels[activeTimeframe].pct;
   const currentTimeLabel = timeframeLabels[activeTimeframe].label;
   const isCurrentProfit = currentChangePct >= 0;
 
-  // Generate dynamic sparkline data with labels for scrubber
-  const baseSparklines: Record<Timeframe, { points: number[]; labels: string[] }> = {
-    '1H': {
-      points: [98.5, 99.0, 98.8, 99.4, 100.2, 99.9, 100.5, 101.2, 101.0, 101.8, 102.3, 103.0],
-      labels: ['09:00', '10:00', '11:00', '11:30', '13:30', '14:00', '14:30', '15:00', '15:30', '15:45', '15:55', 'Live'],
-    },
-    '1M': {
-      points: [93.0, 94.2, 93.8, 95.5, 96.2, 95.8, 97.4, 98.6, 99.2, 100.5, 101.8, 103.5],
-      labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Kemarin', 'Hari ini'],
-    },
-    '1B': {
-      points: [89.0, 90.5, 91.2, 89.8, 92.4, 94.0, 93.5, 96.0, 97.5, 99.0, 101.2, 104.0],
-      labels: ['Mgg 1', 'Mgg 1', 'Mgg 2', 'Mgg 2', 'Mgg 3', 'Mgg 3', 'Mgg 4', 'Mgg 4', 'Kemarin', 'Hari ini', 'Hari ini', 'Live'],
-    },
-    '1T': {
-      points: [78.0, 81.0, 84.5, 82.0, 86.0, 89.0, 87.5, 91.0, 94.5, 98.0, 101.0, 105.0],
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
-    },
-    'Semua': {
-      points: [65.0, 70.0, 74.0, 78.5, 76.0, 83.0, 87.0, 90.5, 93.0, 97.5, 101.0, 105.5],
-      labels: ['Awal', '2023', '2023', '2024', '2024', '2025', '2025', '2026 Q1', '2026 Q2', '2026 Q3', 'Kemarin', 'Live'],
-    },
-  };
-
-  const zeroPoints = [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50];
-  const zeroLabels = ['Live', 'Live', 'Live', 'Live', 'Live', 'Live', 'Live', 'Live', 'Live', 'Live', 'Live', 'Live'];
-
-  const activePoints = totalNetWorth === 0
-    ? zeroPoints
-    : isCurrentProfit
-    ? baseSparklines[activeTimeframe].points
-    : baseSparklines[activeTimeframe].points.slice().reverse();
-
-  const activeLabels = totalNetWorth === 0
-    ? zeroLabels
-    : baseSparklines[activeTimeframe].labels;
+  const { activePoints, activeLabels } = useMemo(() => {
+    if (totalNetWorth === 0) {
+      return {
+        activePoints: ZERO_POINTS,
+        activeLabels: ZERO_LABELS,
+      };
+    }
+    return {
+      activePoints: isCurrentProfit
+        ? BASE_SPARKLINES[activeTimeframe].points
+        : BASE_SPARKLINES[activeTimeframe].points.slice().reverse(),
+      activeLabels: BASE_SPARKLINES[activeTimeframe].labels,
+    };
+  }, [totalNetWorth, isCurrentProfit, activeTimeframe]);
 
   // Handle Scrub interaction
   const handleScrub = useCallback(
@@ -143,27 +150,29 @@ export default function OverviewScreen() {
   const stockPct = totalNetWorth > 0 ? (totalStocks / totalNetWorth) * 100 : 0;
   const cryptoPct = totalNetWorth > 0 ? (totalCryptos / totalNetWorth) * 100 : 0;
 
-  // Top Movers: max 4 rows sorted by largest absolute change
-  const allMovers = [
-    ...stocks.map((s) => ({
-      id: s.id,
-      symbol: s.ticker.replace('.JK', ''),
-      name: s.name,
-      type: 'IDX' as const,
-      change24h: s.change24h,
-      currentPrice: s.currentPrice,
-    })),
-    ...cryptos.map((c) => ({
-      id: c.id,
-      symbol: c.symbol,
-      name: c.name,
-      type: 'CRYPTO' as const,
-      change24h: c.change24h,
-      currentPrice: c.currentPriceIdr,
-    })),
-  ]
-    .sort((a, b) => Math.abs(b.change24h) - Math.abs(a.change24h))
-    .slice(0, 4);
+  // Top Movers: max 4 rows sorted by largest absolute change (memoized)
+  const allMovers = useMemo(() => {
+    return [
+      ...stocks.map((s) => ({
+        id: s.id,
+        symbol: s.ticker.replace('.JK', ''),
+        name: s.name,
+        type: 'IDX' as const,
+        change24h: s.change24h,
+        currentPrice: s.currentPrice,
+      })),
+      ...cryptos.map((c) => ({
+        id: c.id,
+        symbol: c.symbol,
+        name: c.name,
+        type: 'CRYPTO' as const,
+        change24h: c.change24h,
+        currentPrice: c.currentPriceIdr,
+      })),
+    ]
+      .sort((a, b) => Math.abs(b.change24h) - Math.abs(a.change24h))
+      .slice(0, 4);
+  }, [stocks, cryptos]);
 
   const isPnLProfit = totalUnrealizedPnL >= 0;
 

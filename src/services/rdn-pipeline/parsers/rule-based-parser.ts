@@ -82,6 +82,45 @@ export class RuleBasedParser {
       });
     }
 
+    // 3. If no cash mutations found, check for Stock Portfolio Holdings Table
+    // Format: [TICKER] [Company Name ...] [Quantity (shares)] [Buying Price] [Close Price] [Buying Value] [Market Value]
+    if (rows.length === 0) {
+      let docDate = new Date().toISOString().split('T')[0];
+      const periodMatch = text.match(/(?:date|periode)[\s:]*([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{2,4})\s*(?:-|s\/d|to)\s*([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{2,4})/i);
+      if (periodMatch && periodMatch[2]) {
+        const parts = periodMatch[2].split(/[\/\-\.]/);
+        if (parts.length === 3) {
+          const d = parts[0].padStart(2, '0');
+          const m = parts[1].padStart(2, '0');
+          const y = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+          docDate = `${y}-${m}-${d}`;
+        }
+      }
+
+      const stockHoldingRegex = /\b([A-Z]{4})\s+([A-Za-z0-9.,\s&'\-]+?)\s+([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s+([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?|[0-9]+(?:\.[0-9]+)?)\s+([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s+([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s+([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)/g;
+
+      let sm: RegExpExecArray | null;
+      while ((sm = stockHoldingRegex.exec(text)) !== null) {
+        const ticker = sm[1];
+        const company = sm[2].trim();
+        const shares = RuleBasedParser.cleanNumber(sm[3]);
+        const buyPrice = RuleBasedParser.cleanNumber(sm[4]);
+        const buyValue = RuleBasedParser.cleanNumber(sm[6]);
+        const lots = shares >= 100 ? shares / 100 : shares;
+
+        rows.push({
+          date: docDate,
+          categoryHint: 'BUY',
+          ticker: ticker.endsWith('.JK') ? ticker : `${ticker}.JK`,
+          lot: lots,
+          price: buyPrice,
+          grossAmount: buyValue,
+          netAmount: buyValue,
+          description: `Portofolio Saham: ${ticker} (${company}) ${lots} lot @ Rp ${buyPrice.toLocaleString('id-ID')}`,
+        });
+      }
+    }
+
     return {
       institution,
       statementType: 'BANK_RDN_MUTATION',

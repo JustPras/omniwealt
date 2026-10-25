@@ -21,6 +21,7 @@ import { useWealth } from '../../src/store/wealth-context';
 import { formatIDR } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
 import { AIParserService } from '../../src/services/ai-parser';
+import { PDFExtractorService } from '../../src/services/pdf-extractor';
 import { color, space, radius, shadow } from '../../src/theme/tokens';
 import { IngestionPayload } from '../../src/types/rdn-pipeline';
 
@@ -132,29 +133,50 @@ BBRI BUY 10 lot 4750
         const file = result.assets[0];
         setSelectedFileName(file.name);
         setConfirmationNotice(null);
+        setIsExtracting(true);
 
         const isPdf = file.name.toLowerCase().endsWith('.pdf');
-        if (isPdf) {
-          setIsEncryptedPdf(true);
-        }
 
         try {
-          setIsExtracting(true);
-          const parsed = await AIParserService.parseDocumentFile(file);
-          // Run pipeline with extracted raw text or summary
-          await handleRunPipelineIngestion(
-            parsed.rawText || JSON.stringify(parsed),
-            file.name,
-            'MANUAL_UPLOAD'
-          );
+          // 1. Ekstraksi langsung di memori (Offline In-Memory PDF & Text Parser)
+          const extractedText = await PDFExtractorService.extractTextFromFile(file);
+
+          if (extractedText && extractedText.trim().length > 30) {
+            // Berhasil membaca teks langsung dari PDF/dokumen!
+            await handleRunPipelineIngestion(
+              extractedText,
+              file.name,
+              'MANUAL_UPLOAD'
+            );
+            return;
+          }
+
+          // 2. Fallback: jika PDF berisi hasil scan murni atau biner gambar
+          try {
+            const parsed = await AIParserService.parseDocumentFile(file);
+            await handleRunPipelineIngestion(
+              parsed.rawText || JSON.stringify(parsed),
+              file.name,
+              'MANUAL_UPLOAD'
+            );
+          } catch (aiErr: any) {
+            if (isPdf) {
+              setIsEncryptedPdf(true);
+            }
+            setShowPasteBox(true);
+            setConfirmationNotice(
+              `Dokumen "${file.name}" tidak memuat teks tabel transaksi yang dapat dibaca langsung. Jika diproteksi sandi, masukkan PIN di atas atau salin teks dari aplikasi PDF Anda lalu tempel di bawah.`
+            );
+            triggerHaptic('warning');
+          }
         } catch (err: any) {
           console.warn('Doc picker parse notice:', err.message);
           setShowPasteBox(true);
           setConfirmationNotice(
-            err.message ||
-              `Berkas "${file.name}" terenkripsi atau berformat biner. Buka PDF di aplikasi pembaca PDF, salin (copy) teks tabel saham Anda, lalu tempel di kolom teks di bawah.`
+            `Gagal memproses berkas "${file.name}". Buka PDF di aplikasi pembaca PDF, salin teks tabel saham Anda, lalu tempel di kolom teks di bawah.`
           );
           triggerHaptic('warning');
+        } finally {
           setIsExtracting(false);
         }
       }

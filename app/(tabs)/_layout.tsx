@@ -6,13 +6,13 @@ import {
   Platform,
   useWindowDimensions,
   Animated,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, IconName } from '../../src/components/common/icon';
 import { triggerHaptic } from '../../src/utils/haptics';
-import { color, radius, shadow, motion, space } from '../../src/theme/tokens';
+import { useTheme, radius, shadow, motion } from '../../src/theme/tokens';
 
 interface AnimatedTabIconProps {
   name: IconName;
@@ -21,6 +21,7 @@ interface AnimatedTabIconProps {
 }
 
 const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({ name, focused, size }) => {
+  const theme = useTheme();
   const anim = useRef(new Animated.Value(focused ? 1 : 0)).current;
 
   useEffect(() => {
@@ -51,11 +52,13 @@ const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({ name, focused, size }
         },
       ]}
     >
-      {/* Sliding champagne active pill capsule (no glow or colored shadows) */}
+      {/* Sliding Apple Modern Tint capsule */}
       <Animated.View
         style={[
           styles.activePillCapsule,
           {
+            backgroundColor: theme.glass.inset,
+            borderColor: theme.rim.mid,
             opacity: bgOpacity,
             transform: [{ scale: anim }],
           },
@@ -65,13 +68,13 @@ const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({ name, focused, size }
       <Icon
         name={name}
         size={size || 18}
-        color={focused ? color.accent : color.textMuted}
+        color={focused ? theme.tint : theme.textMuted}
       />
     </Animated.View>
   );
 };
 
-// Custom Tab Button with Spring Feedback on Press
+// Custom Tab Button with Spring Feedback on Press using Pressable per DESIGN.md
 const AnimatedTabBarButton = (props: any) => {
   const { children, onPress, style } = props;
   const pressScale = useRef(new Animated.Value(1)).current;
@@ -95,9 +98,8 @@ const AnimatedTabBarButton = (props: any) => {
   };
 
   return (
-    <TouchableOpacity
+    <Pressable
       {...props}
-      activeOpacity={0.88}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -113,22 +115,23 @@ const AnimatedTabBarButton = (props: any) => {
       >
         {children}
       </Animated.View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const theme = useTheme();
   const isSmallScreen = width < 375;
 
   return (
-    <View style={{ flex: 1, backgroundColor: color.obsidian }}>
+    <View style={{ flex: 1, backgroundColor: theme.canvas }}>
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: color.accent,
-          tabBarInactiveTintColor: color.textMuted,
+          tabBarActiveTintColor: theme.tint,
+          tabBarInactiveTintColor: theme.textMuted,
           tabBarButton: (props) => <AnimatedTabBarButton {...props} />,
           tabBarStyle: [
             styles.tabBar,
@@ -136,17 +139,36 @@ export default function TabsLayout() {
               bottom: Math.max(insets.bottom + 6, 14),
               left: isSmallScreen ? 10 : 14,
               right: isSmallScreen ? 10 : 14,
+              backgroundColor: theme.glass.lens,
+              borderColor: theme.rim.mid,
             },
           ],
           tabBarLabelStyle: styles.tabBarLabel,
           tabBarItemStyle: styles.tabBarItem,
           tabBarBackground: () =>
             Platform.OS === 'web' ? (
-              <View style={styles.webTabBarBg} />
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  {
+                    backgroundColor: theme.glass.lens,
+                    // @ts-ignore
+                    backdropFilter: 'blur(28px) saturate(150%)',
+                  },
+                ]}
+              />
             ) : Platform.OS === 'android' ? (
-              <View style={styles.androidTabBarBg} />
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  {
+                    backgroundColor: 'rgba(29, 29, 31, 0.92)',
+                    borderRadius: radius.xl,
+                  },
+                ]}
+              />
             ) : (
-              <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFill} />
+              <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
             ),
         }}
         screenListeners={{
@@ -158,7 +180,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: 'Overview',
+            title: 'Ringkasan',
             tabBarIcon: ({ focused, size }) => (
               <AnimatedTabIcon name="LayoutDashboard" focused={focused} size={size} />
             ),
@@ -167,7 +189,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="accounts"
           options={{
-            title: 'Accounts',
+            title: 'Akun',
             tabBarIcon: ({ focused, size }) => (
               <AnimatedTabIcon name="Landmark" focused={focused} size={size} />
             ),
@@ -176,7 +198,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="portfolio"
           options={{
-            title: 'Portfolio',
+            title: 'Portofolio',
             tabBarIcon: ({ focused, size }) => (
               <AnimatedTabIcon name="TrendingUp" focused={focused} size={size} />
             ),
@@ -185,7 +207,7 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="sync"
           options={{
-            title: 'Sync SoA',
+            title: 'Sinkron',
             tabBarIcon: ({ focused, size }) => (
               <AnimatedTabIcon name="RefreshCw" focused={focused} size={size} />
             ),
@@ -202,8 +224,6 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: color.rim,
-    backgroundColor: color.glassFillRaised,
     ...shadow.e2,
     overflow: 'hidden',
     paddingBottom: 6,
@@ -226,24 +246,11 @@ const styles = StyleSheet.create({
     width: 42,
     height: 28,
     borderRadius: radius.pill,
-    backgroundColor: color.accentSoft,
     borderWidth: 1,
-    borderColor: color.accentRim,
   },
   tabBarLabel: {
     fontSize: 11,
     fontWeight: '600',
     marginTop: 2,
-    letterSpacing: 0.1,
-  },
-  androidTabBarBg: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15, 23, 42, 0.92)',
-  },
-  webTabBarBg: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15, 23, 42, 0.88)',
-    // @ts-ignore
-    backdropFilter: 'blur(24px) saturate(140%)',
   },
 });

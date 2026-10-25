@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { color, radius as rad, shadow, motion } from '../../theme/tokens';
+import { useTheme, radius as rad, shadow, motion } from '../../theme/tokens';
 
 export type GlassLevel = 'base' | 'raised' | 'inset';
 
@@ -33,44 +33,29 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   noPadding = false,
   onPress,
   radius,
-  experimentalDimezis = false,
 }) => {
+  const theme = useTheme();
   const isPressable = typeof onPress === 'function';
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const rimAnim = useRef(new Animated.Value(0)).current;
 
   const handlePressIn = () => {
     if (!isPressable) return;
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 0.985,
-        tension: motion.spring.press.tension,
-        friction: motion.spring.press.friction,
-        useNativeDriver: true,
-      }),
-      Animated.timing(rimAnim, {
-        toValue: 1,
-        duration: motion.fast,
-        useNativeDriver: false,
-      }),
-    ]).start();
+    Animated.spring(scaleAnim, {
+      toValue: 0.985,
+      tension: motion.spring.press.tension,
+      friction: motion.spring.press.friction,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePressOut = () => {
     if (!isPressable) return;
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: motion.spring.settle.tension,
-        friction: motion.spring.settle.friction,
-        useNativeDriver: true,
-      }),
-      Animated.timing(rimAnim, {
-        toValue: 0,
-        duration: motion.base,
-        useNativeDriver: false,
-      }),
-    ]).start();
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      tension: motion.spring.settle.tension,
+      friction: motion.spring.settle.friction,
+      useNativeDriver: true,
+    }).start();
   };
 
   // Determine geometry & styling based on level
@@ -91,27 +76,18 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   const isInset = level === 'inset';
   const isRaised = level === 'raised';
 
-  // Android: use solid alpha fill for crisp, fast, crash-proof glass surface
-  const androidFillAlpha = isRaised
-    ? 'rgba(15,23,42,0.84)'
-    : isInset
-    ? color.glassFillInset
-    : 'rgba(15,23,42,0.67)';
-
-  const baseFill =
-    Platform.OS === 'android'
-      ? androidFillAlpha
-      : isRaised
-      ? color.glassFillRaised
-      : isInset
-      ? color.glassFillInset
-      : color.glassFill;
+  // Base fill per Apple Liquid Glass spec
+  const baseFill = isInset
+    ? theme.glass.inset
+    : isRaised
+    ? theme.glass.lens
+    : theme.glass.frost;
 
   const borderColor = isInset
-    ? color.hairline
+    ? theme.hairline
     : isRaised
-    ? 'rgba(255,255,255,0.14)'
-    : color.rim;
+    ? theme.rim.hi
+    : theme.rim.mid;
 
   const ContainerComponent = isPressable ? AnimatedPressable : View;
 
@@ -138,35 +114,46 @@ export const GlassCard: React.FC<GlassCardProps> = ({
       {!isInset && (
         <>
           {Platform.OS === 'web' ? (
-            <View style={[StyleSheet.absoluteFill, styles.webBackdrop]} />
-          ) : Platform.OS === 'android' ? (
-            // Solid alpha fallback for crisp performance without blur artifacts on Android
             <View
               style={[
                 StyleSheet.absoluteFill,
-                { backgroundColor: androidFillAlpha, borderRadius: resolvedRadius },
+                {
+                  backgroundColor: baseFill,
+                  // @ts-ignore - Web-specific CSS backdrop-filter
+                  backdropFilter: 'blur(28px) saturate(150%)',
+                },
+              ]}
+            />
+          ) : Platform.OS === 'android' ? (
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                {
+                  backgroundColor: isRaised ? 'rgba(29,29,31,0.85)' : 'rgba(29,29,31,0.72)',
+                  borderRadius: resolvedRadius,
+                },
               ]}
             />
           ) : (
             <BlurView
-              intensity={isRaised ? 70 : 40}
+              intensity={isRaised ? 50 : 30}
               tint="dark"
               style={[StyleSheet.absoluteFill, { borderRadius: resolvedRadius }]}
             />
           )}
 
-          {/* Surface light gradient reflection: light falls from top-left */}
+          {/* Surface subtle specular reflection: light falls from top-left */}
           <LinearGradient
-            colors={['rgba(255, 255, 255, 0.08)', 'rgba(255, 255, 255, 0.02)']}
+            colors={[theme.rim.hi, 'transparent']}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[StyleSheet.absoluteFill, { borderRadius: resolvedRadius }]}
+            end={{ x: 0.8, y: 0.8 }}
+            style={[StyleSheet.absoluteFill, { opacity: 0.12, borderRadius: resolvedRadius }]}
           />
 
-          {/* Top specular rim reflection line (1px gradient: transparent -> rimStrong -> transparent) */}
+          {/* Top specular rim reflection line */}
           <View style={styles.topRimWrapper} pointerEvents="none">
             <LinearGradient
-              colors={['transparent', color.rimStrong, 'transparent']}
+              colors={['transparent', theme.rim.hi, 'transparent']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.topRimGradient}
@@ -200,19 +187,14 @@ const styles = StyleSheet.create({
   topRimWrapper: {
     position: 'absolute',
     top: 0,
-    left: 12,
-    right: 12,
+    left: 14,
+    right: 14,
     height: 1,
     zIndex: 2,
   },
   topRimGradient: {
     width: '100%',
     height: 1,
-  },
-  webBackdrop: {
-    backgroundColor: 'rgba(12, 18, 30, 0.75)',
-    // @ts-ignore - Web-specific CSS backdrop-filter
-    backdropFilter: 'blur(24px) saturate(140%)',
   },
   innerContent: {
     padding: 16,

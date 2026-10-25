@@ -25,9 +25,11 @@ export class RuleBasedParser {
       openingBalance = RuleBasedParser.cleanNumber(openMatch[1]);
     }
 
-    const closeMatch = text.match(/(?:saldo akhir|closing balance|ending balance|saldo kas akhir|cash balance)[\s:]*([0-9]{1,3}(?:[,.][0-9]{3})*(?:\.[0-9]+)?|[0-9]+)/i);
+    const closeMatch = text.match(/(?:saldo akhir|closing balance|ending balance|saldo kas akhir|cash balance|t\s*o\s*t\s*a\s*l)[\s:]*([0-9]{1,3}(?:[,.][0-9]{3})*(?:\.[0-9]+)?|[0-9]+)/i);
     if (closeMatch && closeMatch[1]) {
       closingBalance = RuleBasedParser.cleanNumber(closeMatch[1]);
+    } else if (openingBalance !== undefined) {
+      closingBalance = openingBalance;
     }
 
     // 2. Line by line parsing for mutations: Date, Description, Debit/Credit, Running Balance

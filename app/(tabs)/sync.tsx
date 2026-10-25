@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -197,6 +197,8 @@ BBRI BUY 10 lot 4750
     );
   };
 
+  const scrollViewRef = useRef<ScrollView>(null);
+
   const handleCommitCurrentBatch = async () => {
     if (!activeStagingBatch) return;
     try {
@@ -206,9 +208,11 @@ BBRI BUY 10 lot 4750
       setSelectedFileName(null);
       setIsEncryptedPdf(false);
       setPdfPassword('');
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
     } catch (err: any) {
       console.warn('Commit error:', err);
       setConfirmationNotice(err.message || 'Gagal menyimpan transaksi ke buku besar.');
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
     } finally {
       setIsExtracting(false);
     }
@@ -219,6 +223,7 @@ BBRI BUY 10 lot 4750
     triggerHaptic('medium');
     await discardRDNStagingBatch(activeStagingBatch.id);
     setConfirmationNotice('Draft staging dokumen berhasil dihapus.');
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
   };
 
   return (
@@ -227,6 +232,7 @@ BBRI BUY 10 lot 4750
       <HeaderBar />
 
       <ScrollView
+        ref={scrollViewRef}
         contentContainerStyle={[
           styles.scrollContent,
           { paddingHorizontal: isSmall ? space.md : space.lg },
@@ -409,11 +415,31 @@ BBRI BUY 10 lot 4750
 
         {/* 4. SUCCESS / NOTICE MESSAGE */}
         {confirmationNotice && (
-          <GlassCard level="base" style={styles.successCard}>
+          <GlassCard
+            level="base"
+            style={[
+              styles.successCard,
+              confirmationNotice.toLowerCase().includes('gagal') && {
+                backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                borderColor: 'rgba(239, 68, 68, 0.22)',
+              },
+            ]}
+          >
             <View style={styles.successInner}>
-              <Icon name="CheckCircle2" size={18} color={color.gain} />
+              <Icon
+                name={confirmationNotice.toLowerCase().includes('gagal') ? 'AlertCircle' : 'CheckCircle2'}
+                size={18}
+                color={confirmationNotice.toLowerCase().includes('gagal') ? color.loss : color.gain}
+              />
               <View style={{ flex: 1 }}>
-                <Text style={styles.successTitle}>Pemberitahuan Pipeline</Text>
+                <Text
+                  style={[
+                    styles.successTitle,
+                    confirmationNotice.toLowerCase().includes('gagal') && { color: color.loss },
+                  ]}
+                >
+                  {confirmationNotice.toLowerCase().includes('gagal') ? 'Peringatan Pipeline' : 'Pemberitahuan Pipeline'}
+                </Text>
                 <Text style={styles.successMessage}>{confirmationNotice}</Text>
               </View>
             </View>
@@ -539,10 +565,13 @@ BBRI BUY 10 lot 4750
               <Pressable
                 onPress={handleCommitCurrentBatch}
                 disabled={isExtracting}
-                style={styles.commitButton}
+                style={[styles.commitButton, isExtracting && { opacity: 0.75 }]}
               >
                 {isExtracting ? (
-                  <ActivityIndicator color={color.onAccent} size="small" />
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+                    <ActivityIndicator color={color.onAccent} size="small" />
+                    <Text style={styles.commitButtonText}>Menyimpan ke Saldo...</Text>
+                  </View>
                 ) : (
                   <Text style={styles.commitButtonText}>Confirm & Commit</Text>
                 )}

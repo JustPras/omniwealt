@@ -852,9 +852,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         }
       );
       setStagingBatches((prev) => prev.filter((b) => b.id !== batchId));
-      if (activeStagingBatch?.id === batchId) {
-        setActiveStagingBatch(null);
-      }
+      setActiveStagingBatch(null);
       triggerHaptic('success');
       return result;
     },

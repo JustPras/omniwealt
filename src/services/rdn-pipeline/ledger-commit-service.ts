@@ -114,9 +114,23 @@ export class LedgerCommitService {
     const rawBufferReferences: any[] = []; // In-memory reference tracking for cleanup
 
     try {
-      const rdnAccount = accounts.find((a) => a.id === batch.account_id) || accounts.find((a) => a.type === 'RDN') || accounts[0];
+      // Find or Auto-Provision RDN Account
+      let rdnAccount = accounts.find((a) => a.id === batch.account_id) || accounts.find((a) => a.type === 'RDN');
+      let updatedAccounts = [...accounts];
+
       if (!rdnAccount) {
-        throw new Error('Akun RDN target tidak ditemukan dalam sistem.');
+        rdnAccount = {
+          id: `acc-rdn-${Date.now()}`,
+          name: `RDN ${batch.institution || 'Sekuritas'}`,
+          type: 'RDN',
+          accountNumber: '1029384756',
+          balance: 0,
+          color: '#10B981',
+          icon: 'trending-up',
+          autoCommitVerifiedEmail: false,
+          updatedAt: new Date().toISOString(),
+        };
+        updatedAccounts.push(rdnAccount);
       }
 
       let currentBalance = new Decimal(rdnAccount.balance);
@@ -124,6 +138,16 @@ export class LedgerCommitService {
       const newTransactions: Transaction[] = [];
       let successCount = 0;
       let skippedCount = 0;
+
+      // Check if this batch is primarily an existing portfolio holdings snapshot
+      const isHoldingsSnapshot = batch.items.every(
+        (it) => it.record.category === 'BUY' && (it.record.raw_description || '').includes('Portofolio Saham:')
+      );
+
+      // If statement has an explicit non-negative closing cash balance from statement
+      if (batch.reconciliation.statement_closing !== undefined && batch.reconciliation.statement_closing >= 0 && isHoldingsSnapshot) {
+        currentBalance = new Decimal(batch.reconciliation.statement_closing);
+      }
 
       // 1. Process each staging item
       for (const item of batch.items) {
@@ -134,14 +158,15 @@ export class LedgerCommitService {
 
         const rec = item.record;
         const netDec = new Decimal(rec.net_amount);
+        const isHoldingItem = (rec.raw_description || '').includes('Portofolio Saham:');
 
         // A. Ledger Transaction Creation
         let txType: Transaction['type'] = 'EXPENSE';
         if (rec.category === 'TOPUP' || rec.category === 'SELL' || rec.category === 'DIVIDEND' || rec.category === 'INTEREST') {
           txType = 'INCOME';
           currentBalance = currentBalance.plus(netDec);
-        } else {
-          // BUY, WITHDRAWAL, ADMIN_TAX
+        } else if (!isHoldingItem) {
+          // Only actual trade execution spends cash from RDN balance
           txType = 'EXPENSE';
           currentBalance = currentBalance.minus(netDec);
         }
@@ -178,12 +203,13 @@ export class LedgerCommitService {
         }
       }
 
-      // 2. Update Accounts Balance
-      const updatedAccounts = accounts.map((a) => {
+      // 2. Update Accounts Balance (guarantee non-negative)
+      const finalBalance = Math.max(0, currentBalance.toNumber());
+      updatedAccounts = updatedAccounts.map((a) => {
         if (a.id === rdnAccount.id) {
           return {
             ...a,
-            balance: currentBalance.toNumber(),
+            balance: finalBalance,
             updatedAt: new Date().toISOString(),
           };
         }

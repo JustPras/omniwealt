@@ -35,8 +35,9 @@ export const MarketService = {
    * Fetch live stock quote for Indonesian IDX (.JK).
    * If online, returns real-time Yahoo Finance quote.
    * If offline or network error, prioritizes the latest cached market data from storage.
+   * Supports common shares and derivative instruments (Warrants like GOTO-W, Rights like BBRI-R).
    */
-  async fetchStockPrice(ticker: string): Promise<StockQuote> {
+  async fetchStockPrice(ticker: string, fallbackPrice?: number): Promise<StockQuote> {
     const cleanTicker = ticker.toUpperCase().endsWith('.JK') ? ticker.toUpperCase() : `${ticker.toUpperCase()}.JK`;
 
     try {
@@ -56,7 +57,7 @@ export const MarketService = {
       if (res.ok) {
         const json = await res.json();
         const meta = json?.chart?.result?.[0]?.meta;
-        if (meta && typeof meta.regularMarketPrice === 'number') {
+        if (meta && typeof meta.regularMarketPrice === 'number' && meta.regularMarketPrice > 0) {
           const current = meta.regularMarketPrice;
           const prevClose = meta.previousClose || meta.chartPreviousClose || current;
           const change = prevClose > 0 ? (current - prevClose) / prevClose : 0;
@@ -82,8 +83,19 @@ export const MarketService = {
       };
     }
 
-    // 2. Fallback to default dictionary if no cache exists
-    const fallback = DEFAULT_IDX_PRICES[cleanTicker] || { price: 5000, change24h: 0.01 };
+    // 2. Specific Fallback: If fallbackPrice is provided (e.g. from buy price / portfolio), use it
+    if (typeof fallbackPrice === 'number' && fallbackPrice > 0) {
+      return {
+        ticker: cleanTicker,
+        price: fallbackPrice,
+        change24h: 0,
+      };
+    }
+
+    // 3. Fallback to default dictionary if no cache exists
+    const isWarrantOrRight = /-([WR][0-9A-Z]*)\.JK$/i.test(cleanTicker);
+    const defaultPrice = isWarrantOrRight ? 50 : 5000;
+    const fallback = DEFAULT_IDX_PRICES[cleanTicker] || { price: defaultPrice, change24h: 0.01 };
     return {
       ticker: cleanTicker,
       price: fallback.price,
@@ -94,11 +106,11 @@ export const MarketService = {
   /**
    * Batch fetch stock prices for all active stocks
    */
-  async fetchAllStocks(tickers: string[]): Promise<Record<string, StockQuote>> {
+  async fetchAllStocks(tickers: string[], fallbackPrices?: Record<string, number>): Promise<Record<string, StockQuote>> {
     const results: Record<string, StockQuote> = {};
     await Promise.all(
       tickers.map(async (t) => {
-        results[t] = await MarketService.fetchStockPrice(t);
+        results[t] = await MarketService.fetchStockPrice(t, fallbackPrices?.[t]);
       })
     );
     return results;

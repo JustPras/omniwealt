@@ -176,6 +176,10 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     try {
       const stockTickers = stocks.map((s) => s.ticker);
+      const stockFallbackPrices: Record<string, number> = {};
+      stocks.forEach((s) => {
+        stockFallbackPrices[s.ticker] = s.currentPrice || s.avgBuyPrice;
+      });
       const cryptoIds = cryptos.map((c) => c.coingeckoId);
 
       if (stockTickers.length === 0 && cryptoIds.length === 0) {
@@ -184,7 +188,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       }
 
       const [stockQuotes, cryptoQuotes] = await Promise.all([
-        MarketService.fetchAllStocks(stockTickers),
+        MarketService.fetchAllStocks(stockTickers, stockFallbackPrices),
         MarketService.fetchCryptoPrices(cryptoIds),
       ]);
 
@@ -707,7 +711,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     let freshChange = stockData.change24h || 0;
 
     try {
-      const quote = await MarketService.fetchStockPrice(stockData.ticker);
+      const quote = await MarketService.fetchStockPrice(stockData.ticker, stockData.currentPrice || stockData.avgBuyPrice);
       if (quote && typeof quote.price === 'number' && quote.price > 0) {
         freshPrice = quote.price;
         freshChange = quote.change24h;

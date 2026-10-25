@@ -22,7 +22,7 @@ import { formatIDR } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
 import { AIParserService } from '../../src/services/ai-parser';
 import { PDFExtractorService } from '../../src/services/pdf-extractor';
-import { color, space, radius, shadow } from '../../src/theme/tokens';
+import { color, space, radius, shadow, font } from '../../src/theme/tokens';
 import { IngestionPayload } from '../../src/types/rdn-pipeline';
 
 export default function SyncScreen() {
@@ -530,9 +530,21 @@ BBRI BUY 10 lot 4750
                         <Text style={styles.neutralChipText}>{rec.category}</Text>
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.itemTitle}>
-                          {rec.ticker ? `${rec.ticker.replace('.JK', '')} (${rec.lot} lot)` : rec.raw_description}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                          <Text style={styles.itemTitle}>
+                            {rec.ticker ? `${rec.ticker.replace('.JK', '')} (${rec.lot} lot)` : rec.raw_description}
+                          </Text>
+                          {rec.ticker && /-W[0-9A-Z]*(\.JK)?$/i.test(rec.ticker) && (
+                            <View style={styles.derivativeBadge}>
+                              <Text style={styles.derivativeBadgeText}>WARRANT</Text>
+                            </View>
+                          )}
+                          {rec.ticker && /-R[0-9A-Z]*(\.JK)?$/i.test(rec.ticker) && (
+                            <View style={styles.derivativeBadge}>
+                              <Text style={styles.derivativeBadgeText}>RIGHT</Text>
+                            </View>
+                          )}
+                        </View>
                         <Text style={styles.itemDate}>{rec.transaction_date}</Text>
                         {it.status === 'INTERNAL_TRANSFER' && (
                           <Text style={styles.internalTransferTag}>
@@ -1069,5 +1081,20 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: color.hairline,
     marginHorizontal: space.lg,
+  },
+  derivativeBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 159, 10, 0.15)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 159, 10, 0.35)',
+  },
+  derivativeBadgeText: {
+    fontSize: 9,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: '#FF9F0A',
+    letterSpacing: 0.4,
   },
 });

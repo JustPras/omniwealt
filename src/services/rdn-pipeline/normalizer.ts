@@ -111,12 +111,16 @@ export class RDNNormalizer {
   }
 
   /**
-   * Clean and normalize Indonesian stock ticker (e.g. BBRI -> BBRI.JK)
+   * Clean and normalize Indonesian stock ticker (e.g. BBRI -> BBRI.JK, GOTO-W -> GOTO-W.JK, BBRI-R -> BBRI-R.JK)
    */
   static normalizeTicker(rawTicker?: string | null): string | null {
     if (!rawTicker) return null;
     let clean = rawTicker.trim().toUpperCase();
     if (clean === 'NONE' || clean === 'CASH' || clean === '-') return null;
+    // Strip surrounding brackets, quotes, or parentheses e.g. (GOTO-W)
+    clean = clean.replace(/^[(\["']+|[)\]"']+$/g, '');
+    // Standardize warrant and right issue hyphens (e.g., GOTO/W or GOTO - W -> GOTO-W)
+    clean = clean.replace(/\s*[\/\-]\s*([WR][0-9A-Z]*)/i, '-$1');
     if (!clean.endsWith('.JK')) {
       clean += '.JK';
     }

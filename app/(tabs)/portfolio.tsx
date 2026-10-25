@@ -23,7 +23,7 @@ import { useWealth } from '../../src/store/wealth-context';
 import { formatPercent, formatChangePercent, formatIDR } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
 import { StockAsset, CryptoAsset } from '../../src/types';
-import { color, space, radius, shadow } from '../../src/theme/tokens';
+import { color, space, radius, shadow, font } from '../../src/theme/tokens';
 
 type AssetFilter = 'ALL' | 'STOCKS' | 'CRYPTO';
 type SortMode = 'VALUE' | 'PNL' | 'NAME';
@@ -304,7 +304,19 @@ export default function PortfolioScreen() {
                         <View style={styles.assetLeft}>
                           <View style={[styles.assetDot, { backgroundColor: color.asset.stock }]} />
                           <View>
-                            <Text style={styles.assetTicker}>{cleanTicker}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                              <Text style={styles.assetTicker}>{cleanTicker}</Text>
+                              {/-W[0-9A-Z]*$/i.test(cleanTicker) && (
+                                <View style={styles.derivativeBadge}>
+                                  <Text style={styles.derivativeBadgeText}>WARRANT</Text>
+                                </View>
+                              )}
+                              {/-R[0-9A-Z]*$/i.test(cleanTicker) && (
+                                <View style={styles.derivativeBadge}>
+                                  <Text style={styles.derivativeBadgeText}>RIGHT</Text>
+                                </View>
+                              )}
+                            </View>
                             <Text style={styles.assetName} numberOfLines={1}>
                               {stock.name}
                             </Text>
@@ -807,6 +819,21 @@ const styles = StyleSheet.create({
   },
   textLoss: {
     color: color.loss,
+  },
+  derivativeBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 159, 10, 0.15)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 159, 10, 0.35)',
+  },
+  derivativeBadgeText: {
+    fontSize: 9,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: '#FF9F0A',
+    letterSpacing: 0.4,
   },
   emptyCard: {
     padding: space.lg,

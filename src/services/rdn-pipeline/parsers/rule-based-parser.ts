@@ -62,8 +62,8 @@ export class RuleBasedParser {
       let desc = rest.replace(/(?:[0-9]{1,3}(?:[,.][0-9]{3})+(?:\.[0-9]+)?|[0-9]+(?:\.[0-9]+)?)/g, '').trim();
       desc = desc.replace(/\s+/g, ' ');
 
-      // Check for stock ticker in description (e.g. "BUY 10 BBRI @ 4750" or "SETTLEMENT BBRI")
-      const tickerMatch = desc.match(/\b([A-Z]{4}(?:-[A-Z0-9]+)?)\b/);
+      // Check for stock ticker in description (e.g. "BUY 10 BBRI @ 4750" or "SETTLEMENT GOTO-W")
+      const tickerMatch = desc.match(/\b([A-Z]{4}(?:-[A-Z0-9]{1,3})?)\b/);
       const ticker = tickerMatch ? tickerMatch[1] : null;
 
       let categoryHint: string = isCredit ? 'TOPUP' : 'WITHDRAWAL';
@@ -99,7 +99,8 @@ export class RuleBasedParser {
         }
       }
 
-      const stockHoldingRegex = /\b([A-Z]{4})\s+([A-Za-z0-9.,\s&'\-]+?)\s+([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s+([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?|[0-9]+(?:\.[0-9]+)?)\s+([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s+([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s+([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)/g;
+      // Matches standard stocks (BBRI, ARCI) and derivative instruments like Warrants (GOTO-W, HUMI-W2) or Right Issues (BBRI-R)
+      const stockHoldingRegex = /\b([A-Z]{4}(?:-[A-Z0-9]{1,3})?)\s+([A-Za-z0-9.,\s&'\-]+?)\s+([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s+([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?|[0-9]+(?:\.[0-9]+)?)\s+([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s+([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s+([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)/g;
 
       let sm: RegExpExecArray | null;
       while ((sm = stockHoldingRegex.exec(text)) !== null) {
@@ -110,6 +111,10 @@ export class RuleBasedParser {
         const buyValue = RuleBasedParser.cleanNumber(sm[6]);
         const lots = shares >= 100 ? shares / 100 : shares;
 
+        const isWarrant = /-W[0-9A-Z]*$/i.test(ticker);
+        const isRight = /-R[0-9A-Z]*$/i.test(ticker);
+        const typeDesc = isWarrant ? 'Warrant' : isRight ? 'Right Issue' : 'Saham';
+
         rows.push({
           date: docDate,
           categoryHint: 'BUY',
@@ -118,7 +123,7 @@ export class RuleBasedParser {
           price: buyPrice,
           grossAmount: buyValue,
           netAmount: buyValue,
-          description: `Portofolio Saham: ${ticker} (${company}) ${lots} lot @ Rp ${buyPrice.toLocaleString('id-ID')}`,
+          description: `Portofolio ${typeDesc}: ${ticker} (${company}) ${lots} lot @ Rp ${buyPrice.toLocaleString('id-ID')}`,
         });
       }
     }
@@ -146,74 +151,73 @@ export class RuleBasedParser {
       docDate = docDateMatch[1];
     }
 
-    // Pattern 1: BUY/BELI or SELL/JUAL with lots and ticker and price
-    // E.g.: "Beli 10 lot BBRI @ 4.750" or "BBRI BUY 10 lot 4750"
-    const regex1 = /(beli|buy|jual|sell)\s+([0-9]+(?:\.[0-9]+)?)\s*(?:lot)?\s+([A-Za-z0-9\-]+(?:\.JK)?)\s*@?\s*(?:rp)?\s*([0-9]{1,3}(?:[,.][0-9]{3})+|[0-9]+)/gi;
-    let m1;
-    while ((m1 = regex1.exec(text)) !== null) {
-      const action = m1[1].toLowerCase().startsWith('b') ? 'BUY' : 'SELL';
-      const lot = parseFloat(m1[2]);
-      let ticker = m1[3].toUpperCase();
-      const price = RuleBasedParser.cleanNumber(m1[4]);
-      const gross = lot * 100 * price;
-      const feeRate = action === 'BUY' ? 0.0015 : 0.0025;
-      const fee = Math.round(gross * feeRate);
-      const net = action === 'BUY' ? gross + fee : gross - fee;
+    // Process line-by-line supporting narrative trade slips and table rows
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) continue;
 
-      rows.push({
-        date: docDate,
-        action,
-        ticker,
-        lot,
-        price,
-        grossAmount: gross,
-        fee,
-        tax: 0,
-        netAmount: net,
-        description: `${action} ${lot} Lot ${ticker} @ Rp ${price.toLocaleString('id-ID')}`,
-      });
-    }
+      // Pattern 1: BUY/BELI or SELL/JUAL with lots and ticker and price
+      // E.g.: "Beli 50 lot GOTO-W @ 12" or "SELL 10 BBRI @ 4750"
+      const m1 = line.match(/(beli|buy|jual|sell)\s+([0-9]+(?:\.[0-9]+)?)\s*(?:lot)?\s+([A-Za-z0-9\-]+(?:\.JK)?)\s*@?\s*(?:rp)?\s*([0-9]{1,3}(?:[,.][0-9]{3})+|[0-9]+(?:\.[0-9]+)?)/i);
+      if (m1) {
+        const action = m1[1].toLowerCase().startsWith('b') ? 'BUY' : 'SELL';
+        const lot = parseFloat(m1[2]);
+        let ticker = m1[3].toUpperCase();
+        const price = RuleBasedParser.cleanNumber(m1[4]);
+        const gross = lot * 100 * price;
+        const feeRate = action === 'BUY' ? 0.0015 : 0.0025;
+        const fee = Math.round(gross * feeRate);
+        const net = action === 'BUY' ? gross + fee : gross - fee;
 
-    // Pattern 2: Table format (e.g. Stockbit Trade Confirmation table)
-    // Ticker Action Lots Price Value Fee Net
-    if (rows.length === 0) {
-      for (const rawLine of lines) {
-        const line = rawLine.trim();
-        if (!line) continue;
+        rows.push({
+          date: docDate,
+          action,
+          ticker,
+          lot,
+          price,
+          grossAmount: gross,
+          fee,
+          tax: 0,
+          netAmount: net,
+          description: `${action} ${lot} Lot ${ticker} @ Rp ${price.toLocaleString('id-ID')}`,
+        });
+        continue;
+      }
 
-        const tableMatch = line.match(/\b([A-Z]{4}(?:-[A-Z0-9]+)?)(?:\.JK)?\b\s+(BUY|SELL|B|S|BELI|JUAL)\s+([0-9,.]+)\s+([0-9,.]+)/i);
-        if (tableMatch) {
-          const ticker = tableMatch[1].toUpperCase();
-          const rawAction = tableMatch[2].toUpperCase();
-          const action = rawAction.startsWith('B') ? 'BUY' : 'SELL';
-          let num1 = RuleBasedParser.cleanNumber(tableMatch[3]);
-          let num2 = RuleBasedParser.cleanNumber(tableMatch[4]);
+      // Pattern 2: Table format (e.g. Stockbit Trade Confirmation table)
+      // Ticker Action Lots Price Value Fee Net (e.g. "HUMI-W2 BUY 100 5")
+      const tableMatch = line.match(/\b([A-Z]{4}(?:-[A-Z0-9]{1,3})?)(?:\.JK)?\b\s+(BUY|SELL|B|S|BELI|JUAL)\s+([0-9,.]+)\s+([0-9,.]+)/i);
+      if (tableMatch) {
+        const ticker = tableMatch[1].toUpperCase();
+        const rawAction = tableMatch[2].toUpperCase();
+        const action = rawAction.startsWith('B') ? 'BUY' : 'SELL';
+        let num1 = RuleBasedParser.cleanNumber(tableMatch[3]);
+        let num2 = RuleBasedParser.cleanNumber(tableMatch[4]);
 
-          let lot = num1 >= 100 && num1 % 100 === 0 ? num1 / 100 : num1;
-          let price = num2;
-          if (num1 > 100 && num2 <= 1000 && num1 % 100 !== 0) {
-            price = num1;
-            lot = num2;
-          }
-
-          const gross = lot * 100 * price;
-          const feeRate = action === 'BUY' ? 0.0015 : 0.0025;
-          const fee = Math.round(gross * feeRate);
-          const net = action === 'BUY' ? gross + fee : gross - fee;
-
-          rows.push({
-            date: docDate,
-            action,
-            ticker,
-            lot,
-            price,
-            grossAmount: gross,
-            fee,
-            tax: 0,
-            netAmount: net,
-            description: `${action} ${lot} Lot ${ticker} @ Rp ${price.toLocaleString('id-ID')}`,
-          });
+        let lot = num1 >= 100 && num1 % 100 === 0 ? num1 / 100 : num1;
+        let price = num2;
+        if (num1 > 100 && num2 <= 1000 && num1 % 100 !== 0) {
+          price = num1;
+          lot = num2;
         }
+
+        const gross = lot * 100 * price;
+        const feeRate = action === 'BUY' ? 0.0015 : 0.0025;
+        const fee = Math.round(gross * feeRate);
+        const net = action === 'BUY' ? gross + fee : gross - fee;
+
+        rows.push({
+          date: docDate,
+          action,
+          ticker,
+          lot,
+          price,
+          grossAmount: gross,
+          fee,
+          tax: 0,
+          netAmount: net,
+          description: `${action} ${lot} Lot ${ticker} @ Rp ${price.toLocaleString('id-ID')}`,
+        });
       }
     }
 
@@ -227,12 +231,24 @@ export class RuleBasedParser {
   static cleanNumber(str: string): number {
     const clean = str.trim();
     if (clean.includes(',') && clean.includes('.')) {
-      return parseFloat(clean.replace(/,/g, ''));
+      if (clean.indexOf(',') < clean.indexOf('.')) {
+        return parseFloat(clean.replace(/,/g, ''));
+      } else {
+        return parseFloat(clean.replace(/\./g, '').replace(',', '.'));
+      }
     }
     if (clean.includes('.')) {
+      const dotParts = clean.split('.');
+      if (dotParts.length === 2 && dotParts[1].length !== 3) {
+        return parseFloat(clean);
+      }
       return parseFloat(clean.replace(/\./g, ''));
     }
     if (clean.includes(',')) {
+      const commaParts = clean.split(',');
+      if (commaParts.length === 2 && commaParts[1].length !== 3) {
+        return parseFloat(clean.replace(',', '.'));
+      }
       return parseFloat(clean.replace(/,/g, ''));
     }
     return parseFloat(clean) || 0;

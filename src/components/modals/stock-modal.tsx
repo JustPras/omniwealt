@@ -39,18 +39,23 @@ export const StockModal: React.FC<StockModalProps> = ({ visible, onClose, stock 
   const handleSubmit = async () => {
     let cleanTicker = ticker.trim().toUpperCase();
     if (!cleanTicker) return;
+    cleanTicker = cleanTicker.replace(/\s*[\/\-]\s*([WR][0-9A-Z]*)/i, '-$1');
     if (!cleanTicker.endsWith('.JK')) cleanTicker += '.JK';
 
     const numLots = parseFloat(lots) || 0;
     const numAvgPrice = parseFloat(avgBuyPrice.replace(/\D/g, '')) || 0;
     const rdnAcc = accounts.find((a) => a.type === 'RDN') || accounts[0];
 
+    const isWarrant = /-W[0-9A-Z]*\.JK$/i.test(cleanTicker);
+    const isRight = /-R[0-9A-Z]*\.JK$/i.test(cleanTicker);
+    const assetSuffix = isWarrant ? 'Warrant' : isRight ? 'Right Issue' : 'Asset';
+
     setIsSubmitting(true);
     try {
       await saveStock(
         {
           ticker: cleanTicker,
-          name: name.trim() || `${cleanTicker.replace('.JK', '')} Asset`,
+          name: name.trim() || `${cleanTicker.replace('.JK', '')} ${assetSuffix}`,
           lots: numLots,
           avgBuyPrice: numAvgPrice,
           currentPrice: stock?.currentPrice || numAvgPrice,
@@ -99,7 +104,7 @@ export const StockModal: React.FC<StockModalProps> = ({ visible, onClose, stock 
             <Text style={styles.inputLabel}>Kode ticker (IDX)</Text>
             <TextInput
               style={styles.input}
-              placeholder="Contoh: BBCA, BMRI, TLKM"
+              placeholder="Contoh: BBCA, GOTO-W, BBRI-R"
               placeholderTextColor={color.textFaint}
               autoCapitalize="characters"
               value={ticker}

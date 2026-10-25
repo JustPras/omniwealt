@@ -65,14 +65,18 @@ export class LedgerCommitService {
           ? Math.round(netDec.dividedBy(tradeSharesDec).toNumber())
           : Math.round(rec.execution_price || 0);
 
+        const isWarrant = /-W[0-9A-Z]*\.JK$/i.test(tickerClean);
+        const isRight = /-R[0-9A-Z]*\.JK$/i.test(tickerClean);
+        const assetSuffix = isWarrant ? 'Warrant' : isRight ? 'Right Issue' : 'Assets';
+
         updated.push({
           id: `stock-${Date.now()}-${tickerClean}`,
           ticker: tickerClean,
-          name: `${tickerClean.replace('.JK', '')} Assets`,
+          name: `${tickerClean.replace('.JK', '')} ${assetSuffix}`,
           lots: tradeLotsDec.toNumber(),
           avgBuyPrice: avgPrice,
           currentPrice: rec.execution_price || avgPrice,
-          change24h: 0.01,
+          change24h: 0.0,
           currency: 'IDR',
           rdnAccountId,
           updatedAt: new Date().toISOString(),

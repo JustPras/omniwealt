@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Pressable,
   Animated,
   useWindowDimensions,
+  Easing,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Icon } from '../../src/components/common/icon';
@@ -21,7 +22,7 @@ import { CashMutationModal } from '../../src/components/modals/cash-mutation-mod
 import { useWealth } from '../../src/store/wealth-context';
 import { formatPercent, formatChangePercent, formatIDR } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
-import { color, space, radius, shadow, motion } from '../../src/theme/tokens';
+import { color, space, radius, shadow, motion, useTheme, themes } from '../../src/theme/tokens';
 
 type Timeframe = '1H' | '1M' | '1B' | '1T' | 'Semua';
 type AllocationType = 'ALL' | 'CASH' | 'STOCKS' | 'CRYPTO';
@@ -51,6 +52,263 @@ const BASE_SPARKLINES: Record<Timeframe, { points: number[]; labels: string[] }>
     labels: ['Awal', '2023', '2023', '2024', '2024', '2025', '2025', '2026 Q1', '2026 Q2', '2026 Q3', 'Kemarin', 'Live'],
   },
 };
+
+const TIMEFRAMES: Timeframe[] = ['1H', '1M', '1B', '1T', 'Semua'];
+
+const TimeframeButton: React.FC<{
+  tf: Timeframe;
+  isActive: boolean;
+  onPress: () => void;
+}> = React.memo(({ tf, isActive, onPress }) => {
+  const pressScale = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = useCallback(() => {
+    Animated.spring(pressScale, {
+      toValue: 0.9,
+      tension: 260,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
+  }, [pressScale]);
+
+  const handlePressOut = useCallback(() => {
+    Animated.spring(pressScale, {
+      toValue: 1,
+      tension: motion.spring.settle.tension,
+      friction: motion.spring.settle.friction,
+      useNativeDriver: true,
+    }).start();
+  }, [pressScale]);
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      hitSlop={6}
+      accessibilityRole="button"
+      accessibilityState={{ selected: isActive }}
+      style={styles.timeframeButton}
+    >
+      <Animated.View style={{ transform: [{ scale: pressScale }] }}>
+        <Text
+          style={[
+            styles.timeframeText,
+            isActive && styles.activeTimeframeText,
+          ]}
+        >
+          {tf}
+        </Text>
+      </Animated.View>
+    </Pressable>
+  );
+});
+
+interface LiquidTimeframeSelectorProps {
+  activeTimeframe: Timeframe;
+  onSelectTimeframe: (tf: Timeframe) => void;
+}
+
+const LiquidTimeframeSelector: React.FC<LiquidTimeframeSelectorProps> = React.memo(
+  ({ activeTimeframe, onSelectTimeframe }) => {
+    const theme = useTheme();
+    const isDark = theme.canvas === themes.dark.canvas;
+    const [rowWidth, setRowWidth] = useState(0);
+
+    const tfIndex = TIMEFRAMES.indexOf(activeTimeframe);
+    const currentPosition = useRef(new Animated.Value(tfIndex)).current;
+    const flowSurge = useRef(new Animated.Value(0)).current;
+    const waveAnim = useRef(new Animated.Value(0)).current;
+    const prevIndexRef = useRef(tfIndex);
+
+    const numItems = TIMEFRAMES.length; // 5
+    const rowPadding = 3;
+    const innerWidth = rowWidth > 0 ? rowWidth - rowPadding * 2 : 0;
+    const itemWidth = innerWidth > 0 ? innerWidth / numItems : 60;
+    const capsuleWidth = itemWidth;
+    const capsuleHeight = 28;
+
+    const getCenterPos = useCallback(
+      (idx: number) => rowPadding + idx * itemWidth,
+      [itemWidth]
+    );
+
+    useEffect(() => {
+      const fromIndex = prevIndexRef.current;
+      const toIndex = TIMEFRAMES.indexOf(activeTimeframe);
+
+      if (fromIndex !== toIndex) {
+        prevIndexRef.current = toIndex;
+        const distance = Math.abs(toIndex - fromIndex);
+        const maxStretch = Math.min(1.0 + distance * 0.28, 1.85);
+
+        waveAnim.setValue(0);
+
+        Animated.parallel([
+          Animated.spring(currentPosition, {
+            toValue: toIndex,
+            tension: 175,
+            friction: 14,
+            useNativeDriver: true,
+          }),
+          Animated.sequence([
+            Animated.timing(flowSurge, {
+              toValue: maxStretch,
+              duration: 120,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }),
+            Animated.spring(flowSurge, {
+              toValue: 0,
+              tension: 185,
+              friction: 13,
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.timing(waveAnim, {
+            toValue: 1,
+            duration: 300,
+            easing: Easing.bezier(0.2, 0.0, 0.2, 1),
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
+    }, [activeTimeframe, currentPosition, flowSurge, waveAnim]);
+
+    const inputRange = [0, 1, 2, 3, 4];
+    const outputRange = [
+      getCenterPos(0),
+      getCenterPos(1),
+      getCenterPos(2),
+      getCenterPos(3),
+      getCenterPos(4),
+    ];
+
+    const translateX = currentPosition.interpolate({
+      inputRange,
+      outputRange,
+      extrapolate: 'clamp',
+    });
+
+    const scaleX = flowSurge.interpolate({
+      inputRange: [0, 1],
+      outputRange: [1.0, 1.28],
+    });
+
+    const scaleY = flowSurge.interpolate({
+      inputRange: [0, 1],
+      outputRange: [1.0, 0.86],
+    });
+
+    const waveTranslateX = waveAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [-capsuleWidth * 0.8, capsuleWidth * 0.8],
+    });
+
+    const waveOpacity = waveAnim.interpolate({
+      inputRange: [0, 0.25, 0.75, 1],
+      outputRange: [0, 0.75, 0.75, 0],
+    });
+
+    return (
+      <View
+        style={styles.timeframeRow}
+        onLayout={(e) => {
+          const w = e.nativeEvent.layout.width;
+          if (w > 0 && Math.abs(w - rowWidth) > 1) {
+            setRowWidth(w);
+          }
+        }}
+      >
+        {/* Flowing Liquid Glass Water Capsule */}
+        {rowWidth > 0 && (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.timeframeLiquidCapsule,
+              {
+                width: capsuleWidth,
+                height: capsuleHeight,
+                transform: [{ translateX }, { scaleX }, { scaleY }],
+              },
+            ]}
+          >
+            {/* Inner clipped liquid container */}
+            <View
+              style={[
+                styles.timeframeLiquidInner,
+                {
+                  backgroundColor: isDark
+                    ? 'rgba(0, 122, 255, 0.22)'
+                    : 'rgba(0, 122, 255, 0.16)',
+                  borderColor: isDark
+                    ? 'rgba(255, 255, 255, 0.32)'
+                    : 'rgba(0, 122, 255, 0.38)',
+                },
+              ]}
+            >
+              {/* Internal Radiant Water Tint Nucleus */}
+              <View
+                style={[
+                  styles.timeframeLiquidNucleus,
+                  {
+                    backgroundColor: isDark
+                      ? 'rgba(0, 140, 255, 0.18)'
+                      : 'rgba(0, 122, 255, 0.12)',
+                  },
+                ]}
+              />
+
+              {/* Water Wave Shimmer Ribbon */}
+              <Animated.View
+                style={[
+                  styles.timeframeWaveShimmer,
+                  {
+                    opacity: waveOpacity,
+                    transform: [
+                      { translateX: waveTranslateX },
+                      { rotate: '25deg' },
+                    ],
+                  },
+                ]}
+              />
+
+              {/* Specular Water Meniscus Arc */}
+              <View style={styles.timeframeSpecularGlint} />
+            </View>
+
+            {/* Subtle Active Glow Dot at Bottom */}
+            <View
+              style={[
+                styles.timeframeActiveDot,
+                {
+                  backgroundColor: color.accent,
+                  shadowColor: color.accent,
+                },
+              ]}
+            />
+          </Animated.View>
+        )}
+
+        {/* 5 Timeframe Buttons */}
+        {TIMEFRAMES.map((tf) => {
+          const isActive = activeTimeframe === tf;
+          return (
+            <TimeframeButton
+              key={tf}
+              tf={tf}
+              isActive={isActive}
+              onPress={() => {
+                triggerHaptic('selection');
+                onSelectTimeframe(tf);
+              }}
+            />
+          );
+        })}
+      </View>
+    );
+  }
+);
 
 export default function OverviewScreen() {
   const { width } = useWindowDimensions();
@@ -259,37 +517,11 @@ export default function OverviewScreen() {
             style={styles.heroSparkline}
           />
 
-          {/* Timeframe Switcher with Champagne Pill */}
-          <View style={styles.timeframeRow}>
-            {(['1H', '1M', '1B', '1T', 'Semua'] as Timeframe[]).map((tf) => {
-              const isActive = activeTimeframe === tf;
-              return (
-                <Pressable
-                  key={tf}
-                  onPress={() => {
-                    triggerHaptic('selection');
-                    setActiveTimeframe(tf);
-                  }}
-                  hitSlop={6}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isActive }}
-                  style={[
-                    styles.timeframeChip,
-                    isActive && styles.activeTimeframeChip,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.timeframeText,
-                      isActive && styles.activeTimeframeText,
-                    ]}
-                  >
-                    {tf}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          {/* Timeframe Switcher with Liquid Glass Flowing Capsule */}
+          <LiquidTimeframeSelector
+            activeTimeframe={activeTimeframe}
+            onSelectTimeframe={setActiveTimeframe}
+          />
         </GlassCard>
 
         {/* 2. INTERACTIVE ASSET ALLOCATION CARD */}
@@ -700,30 +932,82 @@ const styles = StyleSheet.create({
   timeframeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    position: 'relative',
     backgroundColor: color.glassFillInset,
     borderRadius: radius.pill,
     borderWidth: 1,
     borderColor: color.hairline,
     padding: 3,
     marginTop: space.xs,
+    height: 36,
   },
-  timeframeChip: {
-    flex: 1,
+  timeframeLiquidCapsule: {
+    position: 'absolute',
+    top: 3,
+    left: 0,
+    borderRadius: radius.pill,
+    zIndex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    shadowOpacity: 0.40,
+    elevation: 4,
+  },
+  timeframeLiquidInner: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: radius.pill,
+    borderWidth: 1.2,
+    overflow: 'hidden',
+  },
+  timeframeLiquidNucleus: {
+    position: 'absolute',
+    top: 2,
+    bottom: 2,
+    left: 4,
+    right: 4,
     borderRadius: radius.pill,
   },
-  activeTimeframeChip: {
-    backgroundColor: color.accentSoft,
-    borderWidth: 1,
-    borderColor: color.accentRim,
+  timeframeWaveShimmer: {
+    position: 'absolute',
+    width: 24,
+    height: '110%',
+    backgroundColor: 'rgba(255, 255, 255, 0.32)',
+    borderRadius: 12,
+  },
+  timeframeSpecularGlint: {
+    position: 'absolute',
+    top: 1.5,
+    left: '14%',
+    right: '14%',
+    height: 1.5,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+  },
+  timeframeActiveDot: {
+    position: 'absolute',
+    bottom: 2,
+    width: 3.5,
+    height: 3.5,
+    borderRadius: 1.75,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.9,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  timeframeButton: {
+    flex: 1,
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
   },
   timeframeText: {
     fontSize: 11,
     color: color.textMuted,
     fontWeight: '600',
+    letterSpacing: -0.2,
   },
   activeTimeframeText: {
     color: color.accent,

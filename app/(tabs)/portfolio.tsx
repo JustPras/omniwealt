@@ -19,6 +19,8 @@ import { Sparkline } from '../../src/components/common/sparkline';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
 import { StockModal } from '../../src/components/modals/stock-modal';
 import { CryptoModal } from '../../src/components/modals/crypto-modal';
+import { CryptoWalletModal } from '../../src/components/modals/crypto-wallet-modal';
+import { CryptoWalletService } from '../../src/services/crypto-wallet-service';
 import { useWealth } from '../../src/store/wealth-context';
 import { formatPercent, formatChangePercent, formatIDR } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
@@ -35,6 +37,7 @@ export default function PortfolioScreen() {
   const {
     stocks,
     cryptos,
+    cryptoWallets,
     totalStocks,
     totalCryptos,
     totalInvestments,
@@ -42,6 +45,8 @@ export default function PortfolioScreen() {
     totalUnrealizedPnLPercent,
     isRefreshing,
     refreshMarketPrices,
+    syncCryptoWallet,
+    deleteCryptoWallet,
   } = useWealth();
 
   const [activeFilter, setActiveFilter] = useState<AssetFilter>('ALL');
@@ -56,6 +61,9 @@ export default function PortfolioScreen() {
 
   const [cryptoModalVisible, setCryptoModalVisible] = useState(false);
   const [selectedCrypto, setSelectedCrypto] = useState<CryptoAsset | null>(null);
+
+  const [walletModalVisible, setWalletModalVisible] = useState(false);
+  const [syncingWalletId, setSyncingWalletId] = useState<string | null>(null);
 
   const isOverallProfit = totalUnrealizedPnL >= 0;
 
@@ -184,6 +192,16 @@ export default function PortfolioScreen() {
                 style={styles.actionBtn}
               >
                 <Text style={styles.actionBtnText}>+ Kripto</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  triggerHaptic('light');
+                  setWalletModalVisible(true);
+                }}
+                style={[styles.actionBtn, styles.walletActionBtn]}
+              >
+                <Icon name="Link2" size={12} color="#DDD6FE" />
+                <Text style={[styles.actionBtnText, { color: '#DDD6FE' }]}>+ Web3</Text>
               </Pressable>
             </View>
           </View>
@@ -407,6 +425,134 @@ export default function PortfolioScreen() {
           </View>
         )}
 
+        {/* 4b. DOMPET WEB3 TERHUBUNG (MULTI-CHAIN AUTO-SYNC) */}
+        {(activeFilter === 'ALL' || activeFilter === 'CRYPTO') && (
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionTitleRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Icon name="Wallet" size={16} color="#A78BFA" />
+                <Text style={styles.sectionHeadline}>Dompet Web3 Terhubung</Text>
+              </View>
+              <Pressable
+                onPress={() => {
+                  triggerHaptic('light');
+                  setWalletModalVisible(true);
+                }}
+                style={styles.connectWalletBtn}
+                hitSlop={6}
+              >
+                <Icon name="Plus" size={13} color="#A78BFA" />
+                <Text style={styles.connectWalletBtnText}>Tambah</Text>
+              </Pressable>
+            </View>
+
+            {cryptoWallets.length === 0 ? (
+              <GlassCard level="base" style={styles.web3EmptyCard}>
+                <View style={styles.web3EmptyContent}>
+                  <View style={styles.web3IconCircle}>
+                    <Icon name="Link2" size={20} color="#A78BFA" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.web3EmptyTitle}>Auto-Sync Dompet Multi-Chain</Text>
+                    <Text style={styles.web3EmptyDesc}>
+                      Hubungkan alamat publik dompet Web3 Anda (EVM, Solana, Bitcoin) untuk memantau saldo on-chain 100% otomatis.
+                    </Text>
+                  </View>
+                </View>
+                <Pressable
+                  onPress={() => {
+                    triggerHaptic('medium');
+                    setWalletModalVisible(true);
+                  }}
+                  style={styles.web3ConnectAction}
+                >
+                  <Text style={styles.web3ConnectActionText}>Hubungkan Dompet Sekarang</Text>
+                  <Icon name="ArrowRight" size={14} color="#EDE9FE" />
+                </Pressable>
+              </GlassCard>
+            ) : (
+              <View style={styles.walletCardGrid}>
+                {cryptoWallets.map((wallet) => {
+                  const isThisSyncing = syncingWalletId === wallet.id;
+                  return (
+                    <GlassCard key={wallet.id} level="base" style={styles.walletItemCard}>
+                      <View style={styles.walletHeaderRow}>
+                        <View style={styles.walletLeft}>
+                          <View style={styles.walletNetworkBadge}>
+                            <Text style={styles.walletNetworkBadgeText}>{wallet.networkType}</Text>
+                          </View>
+                          <View>
+                            <Text style={styles.walletNameText}>{wallet.name}</Text>
+                            <Text style={styles.walletAddressText}>
+                              {CryptoWalletService.truncateAddress(wallet.address, 6, 4)}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <View style={styles.walletRight}>
+                          <PrivacyValue value={wallet.balanceIdr} style={styles.walletBalanceText} />
+                          <View style={styles.syncStatusRow}>
+                            <View style={styles.greenSyncDot} />
+                            <Text style={styles.syncStatusText}>Auto-Sync</Text>
+                          </View>
+                        </View>
+                      </View>
+
+                      {/* Chains pill row */}
+                      {wallet.chains && wallet.chains.length > 0 && (
+                        <View style={styles.walletChainsRow}>
+                          {wallet.chains.map((chain) => (
+                            <View key={chain} style={styles.walletChainChip}>
+                              <Text style={styles.walletChainChipText}>{chain}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+
+                      {/* Action buttons bar */}
+                      <View style={styles.walletActionsBar}>
+                        <Text style={styles.walletTokensCount}>
+                          {wallet.tokens.length} aset on-chain terdeteksi
+                        </Text>
+                        <View style={styles.walletBtnGroup}>
+                          <Pressable
+                            onPress={async () => {
+                              setSyncingWalletId(wallet.id);
+                              try {
+                                await syncCryptoWallet(wallet.id);
+                              } finally {
+                                setSyncingWalletId(null);
+                              }
+                            }}
+                            disabled={isThisSyncing}
+                            style={styles.walletIconBtn}
+                            hitSlop={6}
+                          >
+                            <Icon
+                              name="RefreshCw"
+                              size={13}
+                              color={isThisSyncing ? color.accent : color.textMuted}
+                            />
+                          </Pressable>
+                          <Pressable
+                            onPress={() => {
+                              deleteCryptoWallet(wallet.id);
+                            }}
+                            style={styles.walletIconBtn}
+                            hitSlop={6}
+                          >
+                            <Icon name="Trash2" size={13} color={color.loss} />
+                          </Pressable>
+                        </View>
+                      </View>
+                    </GlassCard>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        )}
+
         {/* 5. DAFTAR KRIPTO (SATU KARTU BERISI BARIS DIPISAH HAIRLINE) */}
         {(activeFilter === 'ALL' || activeFilter === 'CRYPTO') && (
           <View style={styles.sectionContainer}>
@@ -449,7 +595,16 @@ export default function PortfolioScreen() {
                         <View style={styles.assetLeft}>
                           <View style={[styles.assetDot, { backgroundColor: color.asset.crypto }]} />
                           <View>
-                            <Text style={styles.assetTicker}>{crypto.symbol}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                              <Text style={styles.assetTicker}>{crypto.symbol}</Text>
+                              {crypto.walletId && (
+                                <View style={styles.onChainBadge}>
+                                  <Text style={styles.onChainBadgeText}>
+                                    {crypto.chain ? crypto.chain.toUpperCase() : 'ON-CHAIN'}
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
                             <Text style={styles.assetName} numberOfLines={1}>
                               {crypto.name}
                             </Text>
@@ -544,6 +699,13 @@ export default function PortfolioScreen() {
         onClose={() => {
           setCryptoModalVisible(false);
           setSelectedCrypto(null);
+        }}
+      />
+
+      <CryptoWalletModal
+        visible={walletModalVisible}
+        onClose={() => {
+          setWalletModalVisible(false);
         }}
       />
     </ScreenTransition>
@@ -856,5 +1018,191 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: color.textMuted,
     textAlign: 'center',
+  },
+
+  // Web3 Multi-Chain Wallets Section Styles
+  walletActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    borderColor: 'rgba(139, 92, 246, 0.4)',
+  },
+  connectWalletBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
+  },
+  connectWalletBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#DDD6FE',
+  },
+  web3EmptyCard: {
+    padding: space.md,
+    gap: space.md,
+    borderRadius: radius.lg,
+  },
+  web3EmptyContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+  },
+  web3IconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(139, 92, 246, 0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  web3EmptyTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: color.text,
+    marginBottom: 2,
+  },
+  web3EmptyDesc: {
+    fontSize: 12,
+    color: color.textMuted,
+    lineHeight: 16,
+  },
+  web3ConnectAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(139, 92, 246, 0.28)',
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.5)',
+    paddingVertical: 8,
+    borderRadius: radius.md,
+  },
+  web3ConnectActionText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#EDE9FE',
+  },
+  walletCardGrid: {
+    gap: space.sm,
+  },
+  walletItemCard: {
+    padding: space.md,
+    borderRadius: radius.lg,
+    gap: space.sm,
+  },
+  walletHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  walletLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  walletNetworkBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: radius.sm,
+    backgroundColor: 'rgba(139, 92, 246, 0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.4)',
+  },
+  walletNetworkBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#DDD6FE',
+  },
+  walletNameText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: color.text,
+  },
+  walletAddressText: {
+    fontSize: 11,
+    fontFamily: font.num,
+    color: color.textMuted,
+  },
+  walletRight: {
+    alignItems: 'flex-end',
+  },
+  walletBalanceText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: color.text,
+  },
+  syncStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  greenSyncDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: color.gain,
+  },
+  syncStatusText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: color.gain,
+  },
+  walletChainsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
+  walletChainChip: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  walletChainChipText: {
+    fontSize: 9,
+    color: color.textMuted,
+  },
+  walletActionsBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: space.xs,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  walletTokensCount: {
+    fontSize: 11,
+    color: color.textMuted,
+  },
+  walletBtnGroup: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  walletIconBtn: {
+    padding: 5,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  onChainBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: 4,
+    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(139, 92, 246, 0.4)',
+  },
+  onChainBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#DDD6FE',
+    letterSpacing: 0.4,
   },
 });

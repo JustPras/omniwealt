@@ -1,6 +1,6 @@
 // TypeScript definitions for OmniWealth Tracker v2
 
-export type AccountType = 'BANK' | 'E-WALLET' | 'RDN';
+export type AccountType = 'BANK' | 'E-WALLET' | 'RDN' | 'CRYPTO_WALLET';
 
 export interface Account {
   id: string;
@@ -37,6 +37,34 @@ export interface CryptoAsset {
   currentPriceIdr: number;
   change24h: number; // percentage
   updatedAt?: string;
+  walletId?: string; // Optional reference to connected Web3 wallet
+  chain?: string;
+}
+
+export type CryptoNetworkType = 'EVM' | 'SOLANA' | 'BITCOIN';
+
+export interface CryptoWalletToken {
+  chain: string;
+  symbol: string;
+  name: string;
+  balance: number;
+  priceIdr: number;
+  valueIdr: number;
+  contractAddress?: string;
+  coingeckoId: string;
+}
+
+export interface CryptoWallet {
+  id: string;
+  name: string;
+  address: string;
+  networkType: CryptoNetworkType;
+  chains: string[];
+  balanceIdr: number;
+  tokens: CryptoWalletToken[];
+  lastSyncedAt: string;
+  isAutoSync: boolean;
+  createdAt: string;
 }
 
 export type TransactionType = 'INCOME' | 'EXPENSE' | 'TRANSFER';

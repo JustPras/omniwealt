@@ -38,7 +38,9 @@ export type IconName =
   | 'PieChart'
   | 'ShieldCheck'
   | 'ChevronRight'
-  | 'Info';
+  | 'Info'
+  | 'Link'
+  | 'Link2';
 
 interface IconProps {
   name: IconName;
@@ -87,6 +89,8 @@ const IONICONS_MAP: Partial<Record<IconName, IoniconsName>> = {
   ChevronRight: 'chevron-forward',
   Info: 'information-circle',
   ArrowRight: 'arrow-forward',
+  Link: 'link',
+  Link2: 'link',
 };
 
 export function Icon({ name, size = 20, color = '#FFFFFF' }: IconProps) {

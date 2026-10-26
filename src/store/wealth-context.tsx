@@ -9,9 +9,12 @@ import {
   RDNStagingBatch,
   StandardizedRDNRecord,
   IngestionPayload,
+  CryptoWallet,
+  CryptoNetworkType,
 } from '../types';
 import { StorageService } from '../services/storage-service';
 import { MarketService } from '../services/market-service';
+import { CryptoWalletService } from '../services/crypto-wallet-service';
 import { AIParserService } from '../services/ai-parser';
 import {
   IngestionService,
@@ -66,6 +69,15 @@ interface WealthContextType {
   deleteStock: (id: string) => Promise<void>;
   saveCrypto: (crypto: Omit<CryptoAsset, 'id'>, id?: string) => Promise<void>;
   deleteCrypto: (id: string) => Promise<void>;
+
+  // Web3 Multi-Chain Wallets
+  cryptoWallets: CryptoWallet[];
+  isSyncingWallets: boolean;
+  addCryptoWallet: (name: string, address: string, networkType?: CryptoNetworkType) => Promise<CryptoWallet>;
+  syncCryptoWallet: (walletId: string) => Promise<CryptoWallet>;
+  syncAllCryptoWallets: (isSilent?: boolean) => Promise<void>;
+  deleteCryptoWallet: (walletId: string) => Promise<void>;
+
   resetToInitialSeed: () => Promise<void>;
   clearAllData: () => Promise<void>;
   loadDemoData: () => Promise<void>;
@@ -77,6 +89,8 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [stocks, setStocks] = useState<StockAsset[]>([]);
   const [cryptos, setCryptos] = useState<CryptoAsset[]>([]);
+  const [cryptoWallets, setCryptoWallets] = useState<CryptoWallet[]>([]);
+  const [isSyncingWallets, setIsSyncingWallets] = useState<boolean>(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [stagingBatches, setStagingBatches] = useState<RDNStagingBatch[]>([]);
   const [activeStagingBatch, setActiveStagingBatch] = useState<RDNStagingBatch | null>(null);
@@ -90,7 +104,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     let isMounted = true;
     const hydrate = async () => {
       try {
-        const [storedAcc, storedStocks, storedCryptos, storedTx, storedPrivacy, storedMarket, storedBatches] = await Promise.all([
+        const [storedAcc, storedStocks, storedCryptos, storedTx, storedPrivacy, storedMarket, storedBatches, storedWallets] = await Promise.all([
           StorageService.getAccounts(),
           StorageService.getStocks(),
           StorageService.getCryptos(),
@@ -98,12 +112,14 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           StorageService.getPrivacyMode(),
           StorageService.getMarketCache(),
           RDNStagingService.getBatches(),
+          StorageService.getCryptoWallets(),
         ]);
 
         if (isMounted) {
           setAccounts(storedAcc);
           setStocks(storedStocks);
           setCryptos(storedCryptos);
+          setCryptoWallets(storedWallets);
           setTransactions(storedTx);
           setPrivacyMode(storedPrivacy);
           setStagingBatches(storedBatches);
@@ -141,7 +157,9 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     dailyChangeRp,
     dailyChangePercent,
   } = useMemo(() => {
-    const cash = accounts.reduce((acc, a) => acc + (Number(a.balance) || 0), 0);
+    const cash = accounts
+      .filter((a) => a.type !== 'CRYPTO_WALLET')
+      .reduce((acc, a) => acc + (Number(a.balance) || 0), 0);
 
     const stocksVal = stocks.reduce((acc, s) => {
       const shares = (Number(s.lots) || 0) * 100;
@@ -261,6 +279,46 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         return updated;
       });
 
+      // Automatically sync on-chain Web3 wallets if connected
+      if (cryptoWallets.length > 0) {
+        const updatedWallets: CryptoWallet[] = [];
+        for (const wallet of cryptoWallets) {
+          try {
+            const scan = await CryptoWalletService.scanWallet(wallet.address, wallet.networkType);
+            updatedWallets.push({
+              ...wallet,
+              balanceIdr: scan.totalBalanceIdr,
+              tokens: scan.tokens,
+              chains: scan.chains,
+              lastSyncedAt: scan.scannedAt,
+            });
+          } catch {
+            updatedWallets.push(wallet);
+          }
+        }
+        setCryptoWallets(updatedWallets);
+        StorageService.saveCryptoWallets(updatedWallets);
+
+        // Update corresponding Account balances
+        setAccounts((prev) => {
+          const next = prev.map((a) => {
+            const matchedWallet = updatedWallets.find(
+              (w) => a.id === `acc-wallet-${w.id}` || a.accountNumber?.toLowerCase() === w.address.toLowerCase()
+            );
+            if (matchedWallet) {
+              return {
+                ...a,
+                balance: matchedWallet.balanceIdr,
+                updatedAt: matchedWallet.lastSyncedAt,
+              };
+            }
+            return a;
+          });
+          StorageService.saveAccounts(next);
+          return next;
+        });
+      }
+
       setLastUpdated(new Date());
       if (!isSilent) triggerHaptic('success');
     } catch (e) {
@@ -269,7 +327,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     } finally {
       if (!isSilent) setIsRefreshing(false);
     }
-  }, [stocks, cryptos]);
+  }, [stocks, cryptos, cryptoWallets]);
 
   // Automatic periodic background refresh for market prices (every 60 seconds)
   useEffect(() => {
@@ -842,6 +900,198 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     });
   }, [stocks]);
 
+  // 9a. Multi-Chain Web3 Wallets Management
+  const addCryptoWallet = useCallback(
+    async (name: string, address: string, networkType?: CryptoNetworkType): Promise<CryptoWallet> => {
+      triggerHaptic('medium');
+      const scanResult = await CryptoWalletService.scanWallet(address, networkType);
+      const newWalletId = `wallet-${Date.now()}`;
+      const newWallet: CryptoWallet = {
+        id: newWalletId,
+        name: name.trim() || `Dompet ${scanResult.networkType}`,
+        address: scanResult.address,
+        networkType: scanResult.networkType,
+        chains: scanResult.chains,
+        balanceIdr: scanResult.totalBalanceIdr,
+        tokens: scanResult.tokens,
+        lastSyncedAt: scanResult.scannedAt,
+        isAutoSync: true,
+        createdAt: new Date().toISOString(),
+      };
+
+      // 1. Update cryptoWallets state & storage
+      setCryptoWallets((prev) => {
+        const updated = [newWallet, ...prev.filter((w) => w.address.toLowerCase() !== scanResult.address.toLowerCase())];
+        StorageService.saveCryptoWallets(updated);
+        return updated;
+      });
+
+      // 2. Register/Update corresponding Account
+      const accountId = `acc-wallet-${newWalletId}`;
+      const walletAccount: Account = {
+        id: accountId,
+        name: newWallet.name,
+        type: 'CRYPTO_WALLET',
+        accountNumber: newWallet.address,
+        balance: newWallet.balanceIdr,
+        color: '#8B5CF6',
+        icon: 'wallet',
+        updatedAt: newWallet.lastSyncedAt,
+      };
+
+      setAccounts((prev) => {
+        const updated = [
+          walletAccount,
+          ...prev.filter((a) => a.id !== accountId && a.accountNumber?.toLowerCase() !== scanResult.address.toLowerCase()),
+        ];
+        StorageService.saveAccounts(updated);
+        return updated;
+      });
+
+      // 3. Register/Update tokens in cryptos
+      setCryptos((prev) => {
+        let current = prev.filter((c) => c.walletId !== newWalletId);
+
+        for (const tok of newWallet.tokens) {
+          current = [
+            {
+              id: `crypto-wallet-${newWalletId}-${tok.chain}-${tok.symbol}`,
+              symbol: tok.symbol,
+              name: tok.name,
+              coingeckoId: tok.coingeckoId,
+              holdings: tok.balance,
+              avgBuyPriceIdr: tok.priceIdr,
+              currentPriceIdr: tok.priceIdr,
+              change24h: 0,
+              walletId: newWalletId,
+              chain: tok.chain,
+              updatedAt: newWallet.lastSyncedAt,
+            },
+            ...current,
+          ];
+        }
+
+        StorageService.saveCryptos(current);
+        return current;
+      });
+
+      triggerHaptic('success');
+      return newWallet;
+    },
+    []
+  );
+
+  const syncCryptoWallet = useCallback(
+    async (walletId: string): Promise<CryptoWallet> => {
+      const target = cryptoWallets.find((w) => w.id === walletId);
+      if (!target) throw new Error('Wallet tidak ditemukan.');
+
+      triggerHaptic('light');
+      const scanResult = await CryptoWalletService.scanWallet(target.address, target.networkType);
+
+      const updatedWallet: CryptoWallet = {
+        ...target,
+        chains: scanResult.chains,
+        balanceIdr: scanResult.totalBalanceIdr,
+        tokens: scanResult.tokens,
+        lastSyncedAt: scanResult.scannedAt,
+      };
+
+      setCryptoWallets((prev) => {
+        const next = prev.map((w) => (w.id === walletId ? updatedWallet : w));
+        StorageService.saveCryptoWallets(next);
+        return next;
+      });
+
+      setAccounts((prev) => {
+        const next = prev.map((a) => {
+          if (a.id === `acc-wallet-${walletId}` || a.accountNumber?.toLowerCase() === target.address.toLowerCase()) {
+            return {
+              ...a,
+              balance: updatedWallet.balanceIdr,
+              updatedAt: updatedWallet.lastSyncedAt,
+            };
+          }
+          return a;
+        });
+        StorageService.saveAccounts(next);
+        return next;
+      });
+
+      setCryptos((prev) => {
+        let current = prev.filter((c) => c.walletId !== walletId);
+        for (const tok of updatedWallet.tokens) {
+          current = [
+            {
+              id: `crypto-wallet-${walletId}-${tok.chain}-${tok.symbol}`,
+              symbol: tok.symbol,
+              name: tok.name,
+              coingeckoId: tok.coingeckoId,
+              holdings: tok.balance,
+              avgBuyPriceIdr: tok.priceIdr,
+              currentPriceIdr: tok.priceIdr,
+              change24h: 0,
+              walletId,
+              chain: tok.chain,
+              updatedAt: updatedWallet.lastSyncedAt,
+            },
+            ...current,
+          ];
+        }
+        StorageService.saveCryptos(current);
+        return current;
+      });
+
+      triggerHaptic('success');
+      return updatedWallet;
+    },
+    [cryptoWallets]
+  );
+
+  const syncAllCryptoWallets = useCallback(
+    async (isSilent: boolean = false) => {
+      if (cryptoWallets.length === 0) return;
+      if (!isSilent) setIsSyncingWallets(true);
+
+      try {
+        for (const wallet of cryptoWallets) {
+          try {
+            await syncCryptoWallet(wallet.id);
+          } catch (err) {
+            console.warn(`Sync failed for wallet ${wallet.name}:`, err);
+          }
+        }
+      } finally {
+        if (!isSilent) setIsSyncingWallets(false);
+      }
+    },
+    [cryptoWallets, syncCryptoWallet]
+  );
+
+  const deleteCryptoWallet = useCallback(
+    async (walletId: string) => {
+      triggerHaptic('warning');
+      setCryptoWallets((prev) => {
+        const next = prev.filter((w) => w.id !== walletId);
+        StorageService.saveCryptoWallets(next);
+        return next;
+      });
+
+      setAccounts((prev) => {
+        const next = prev.filter((a) => a.id !== `acc-wallet-${walletId}`);
+        StorageService.saveAccounts(next);
+        return next;
+      });
+
+      setCryptos((prev) => {
+        const next = prev.filter((c) => c.walletId !== walletId);
+        StorageService.saveCryptos(next);
+        return next;
+      });
+    },
+    []
+  );
+
   // 9b. RDN Asynchronous Pipeline Actions
   const processRDNIngestion = useCallback(
     async (payload: IngestionPayload): Promise<RDNStagingBatch> => {
@@ -943,6 +1193,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setAccounts([]);
     setStocks([]);
     setCryptos([]);
+    setCryptoWallets([]);
     setTransactions([]);
   }, []);
 
@@ -952,6 +1203,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setAccounts([]);
     setStocks([]);
     setCryptos([]);
+    setCryptoWallets([]);
     setTransactions([]);
   }, []);
 
@@ -1008,6 +1260,12 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       deleteStock,
       saveCrypto,
       deleteCrypto,
+      cryptoWallets,
+      isSyncingWallets,
+      addCryptoWallet,
+      syncCryptoWallet,
+      syncAllCryptoWallets,
+      deleteCryptoWallet,
       resetToInitialSeed,
       clearAllData,
       loadDemoData,
@@ -1049,6 +1307,12 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       deleteStock,
       saveCrypto,
       deleteCrypto,
+      cryptoWallets,
+      isSyncingWallets,
+      addCryptoWallet,
+      syncCryptoWallet,
+      syncAllCryptoWallets,
+      deleteCryptoWallet,
       resetToInitialSeed,
       clearAllData,
       loadDemoData,

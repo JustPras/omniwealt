@@ -17,6 +17,8 @@ import { AmbientBackground } from '../../src/components/common/ambient-backgroun
 import { PrivacyValue } from '../../src/components/common/privacy-value';
 import { AccountModal } from '../../src/components/modals/account-modal';
 import { CashMutationModal } from '../../src/components/modals/cash-mutation-modal';
+import { CryptoWalletModal } from '../../src/components/modals/crypto-wallet-modal';
+import { CryptoWalletService } from '../../src/services/crypto-wallet-service';
 import { useWealth } from '../../src/store/wealth-context';
 import { formatIDR, formatDate } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
@@ -55,9 +57,14 @@ export default function AccountsScreen() {
     totalCash,
     transactions,
     applyMutationText,
+    cryptoWallets,
+    syncCryptoWallet,
+    deleteCryptoWallet,
   } = useWealth();
 
   const [accountModalVisible, setAccountModalVisible] = useState(false);
+  const [walletModalVisible, setWalletModalVisible] = useState(false);
+  const [syncingWalletId, setSyncingWalletId] = useState<string | null>(null);
   const [mutationModalVisible, setMutationModalVisible] = useState(false);
   const [activeAccountForMutation, setActiveAccountForMutation] = useState<string | undefined>(undefined);
   const [mutationType, setMutationType] = useState<'INCOME' | 'EXPENSE'>('EXPENSE');
@@ -177,6 +184,111 @@ export default function AccountsScreen() {
     );
   };
 
+  const renderCryptoWalletsGroupCard = () => {
+    return (
+      <View style={styles.groupContainer} key="Dompet Kripto Web3">
+        <View style={styles.groupHeaderRow}>
+          <Icon name="Wallet" size={15} color="#A78BFA" />
+          <Text style={[styles.groupTitleText, { color: '#DDD6FE' }]}>Dompet Kripto Web3</Text>
+          <Text style={styles.groupCountText}>({cryptoWallets.length})</Text>
+          <Pressable
+            onPress={() => {
+              triggerHaptic('light');
+              setWalletModalVisible(true);
+            }}
+            style={styles.addWeb3HeaderBtn}
+            hitSlop={6}
+          >
+            <Icon name="Plus" size={12} color="#A78BFA" />
+            <Text style={styles.addWeb3HeaderBtnText}>Hubungkan</Text>
+          </Pressable>
+        </View>
+
+        <GlassCard level="base" noPadding style={styles.groupCard}>
+          {cryptoWallets.length === 0 ? (
+            <Pressable
+              onPress={() => {
+                triggerHaptic('medium');
+                setWalletModalVisible(true);
+              }}
+              style={styles.emptyWeb3Row}
+            >
+              <View style={styles.web3RowIconCircle}>
+                <Icon name="Link2" size={16} color="#A78BFA" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.emptyWeb3Title}>Hubungkan Dompet Web3</Text>
+                <Text style={styles.emptyWeb3Subtitle}>
+                  Auto-sync saldo on-chain EVM, Solana & Bitcoin
+                </Text>
+              </View>
+              <Icon name="ChevronRight" size={16} color={color.textMuted} />
+            </Pressable>
+          ) : (
+            cryptoWallets.map((wallet, index) => {
+              const isLast = index === cryptoWallets.length - 1;
+              const isThisSyncing = syncingWalletId === wallet.id;
+
+              return (
+                <View key={wallet.id}>
+                  <View style={styles.accountRow}>
+                    <View style={styles.accountLeft}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <View style={styles.web3NetworkBadge}>
+                          <Text style={styles.web3NetworkBadgeText}>{wallet.networkType}</Text>
+                        </View>
+                        <Text style={styles.accountName}>{wallet.name}</Text>
+                      </View>
+                      <Text style={styles.accountMeta}>
+                        {CryptoWalletService.truncateAddress(wallet.address, 6, 4)} • {wallet.tokens.length} token
+                      </Text>
+                    </View>
+
+                    <View style={styles.accountRight}>
+                      <PrivacyValue value={wallet.balanceIdr} style={styles.accountBalanceText} />
+                      <View style={styles.web3ActionRow}>
+                        <Pressable
+                          onPress={async () => {
+                            setSyncingWalletId(wallet.id);
+                            try {
+                              await syncCryptoWallet(wallet.id);
+                            } finally {
+                              setSyncingWalletId(null);
+                            }
+                          }}
+                          disabled={isThisSyncing}
+                          hitSlop={6}
+                          style={styles.web3SyncBtn}
+                        >
+                          <Icon
+                            name="RefreshCw"
+                            size={11}
+                            color={isThisSyncing ? color.accent : color.gain}
+                          />
+                          <Text style={styles.web3SyncBtnText}>
+                            {isThisSyncing ? 'Sync...' : 'Auto-Sync'}
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => deleteCryptoWallet(wallet.id)}
+                          hitSlop={6}
+                          style={styles.web3DeleteBtn}
+                        >
+                          <Icon name="Trash2" size={12} color={color.loss} />
+                        </Pressable>
+                      </View>
+                    </View>
+                  </View>
+                  {!isLast && <View style={styles.rowHairline} />}
+                </View>
+              );
+            })
+          )}
+        </GlassCard>
+      </View>
+    );
+  };
+
   return (
     <ScreenTransition style={styles.screenContainer}>
       <AmbientBackground activeAssetClass="CASH" />
@@ -210,11 +322,11 @@ export default function AccountsScreen() {
         </GlassCard>
 
         {/* 2. REKENING DIKELOMPOKKAN (SATU KARTU PER KELOMPOK DENGAN BARIS) */}
-        {accounts.length === 0 ? (
+        {accounts.length === 0 && cryptoWallets.length === 0 ? (
           <GlassCard level="base" style={styles.emptyCard}>
             <Text style={styles.emptyTitle}>Belum ada rekening kas</Text>
             <Text style={styles.emptyDesc}>
-              Tambahkan rekening bank, rekening dana nasabah (RDN), atau dompet digital untuk memantau saldo likuid.
+              Tambahkan rekening bank, rekening dana nasabah (RDN), dompet digital, atau dompet Web3 untuk memantau saldo likuid.
             </Text>
             <Pressable
               onPress={() => {
@@ -231,6 +343,7 @@ export default function AccountsScreen() {
             {renderAccountGroupCard('Bank', bankAccounts, 'Landmark')}
             {renderAccountGroupCard('Rekening Dana Nasabah (RDN)', rdnAccounts, 'TrendingUp')}
             {renderAccountGroupCard('Dompet digital', ewalletAccounts, 'Smartphone')}
+            {renderCryptoWalletsGroupCard()}
           </View>
         )}
 
@@ -417,6 +530,11 @@ export default function AccountsScreen() {
           setMutationModalVisible(false);
           setActiveAccountForMutation(undefined);
         }}
+      />
+
+      <CryptoWalletModal
+        visible={walletModalVisible}
+        onClose={() => setWalletModalVisible(false)}
       />
     </ScreenTransition>
   );
@@ -797,5 +915,88 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     marginBottom: space.md,
+  },
+
+  // Web3 Group Styles
+  addWeb3HeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
+    marginLeft: 'auto',
+  },
+  addWeb3HeaderBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#DDD6FE',
+  },
+  emptyWeb3Row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: space.md,
+    gap: space.md,
+  },
+  web3RowIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyWeb3Title: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: color.text,
+    marginBottom: 2,
+  },
+  emptyWeb3Subtitle: {
+    fontSize: 11,
+    color: color.textMuted,
+  },
+  web3NetworkBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: radius.sm,
+    backgroundColor: 'rgba(139, 92, 246, 0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.4)',
+  },
+  web3NetworkBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#DDD6FE',
+  },
+  web3ActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  web3SyncBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+  },
+  web3SyncBtnText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: color.gain,
+  },
+  web3DeleteBtn: {
+    padding: 4,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
   },
 });

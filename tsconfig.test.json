@@ -9,10 +9,10 @@
     "outDir": "./dist-tests"
   },
   "include": [
-    "src/utils/decimal.ts",
-    "src/utils/crypto.ts",
+    "src/utils/**/*.ts",
     "src/types/**/*.ts",
-    "src/services/rdn-pipeline/**/*.ts",
+    "src/constants/**/*.ts",
+    "src/services/**/*.ts",
     "tests/**/*.ts"
   ]
 }

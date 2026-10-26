@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Account, StockAsset, CryptoAsset, Transaction } from '../types';
+import { Account, StockAsset, CryptoAsset, Transaction, CryptoWallet } from '../types';
 import {
   INITIAL_ACCOUNTS,
   INITIAL_STOCKS,
@@ -30,6 +30,7 @@ const STORAGE_KEYS = {
   TRANSACTIONS: '@omniwealth_transactions_v3',
   PRIVACY: '@omniwealth_privacy_v3',
   MARKET_CACHE: '@omniwealth_market_cache_v3',
+  CRYPTO_WALLETS: '@omniwealth_crypto_wallets_v3',
 };
 
 const DEFAULT_MARKET_CACHE: MarketCacheData = {
@@ -100,6 +101,26 @@ export const StorageService = {
       await AsyncStorage.setItem(STORAGE_KEYS.CRYPTOS, JSON.stringify(cryptos));
     } catch (e) {
       console.warn('Failed to save cryptos to storage:', e);
+    }
+  },
+
+  async getCryptoWallets(): Promise<CryptoWallet[]> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.CRYPTO_WALLETS);
+      if (data) {
+        return JSON.parse(data);
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  },
+
+  async saveCryptoWallets(wallets: CryptoWallet[]): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.CRYPTO_WALLETS, JSON.stringify(wallets));
+    } catch (e) {
+      console.warn('Failed to save crypto wallets to storage:', e);
     }
   },
 
@@ -300,6 +321,7 @@ export const StorageService = {
       await AsyncStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify([]));
       await AsyncStorage.setItem(STORAGE_KEYS.STOCKS, JSON.stringify([]));
       await AsyncStorage.setItem(STORAGE_KEYS.CRYPTOS, JSON.stringify([]));
+      await AsyncStorage.setItem(STORAGE_KEYS.CRYPTO_WALLETS, JSON.stringify([]));
       await AsyncStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
       await this.clearMarketCache();
     } catch (e) {

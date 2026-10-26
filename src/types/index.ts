@@ -139,4 +139,31 @@ export interface BankMutationResult {
   category: string;
   description: string;
   merchantOrSender?: string;
+  sourceApp?: string;
+}
+
+export interface MonitoredBankApp {
+  id: string;
+  name: string;
+  type: 'BANK' | 'E_WALLET';
+  packageName: string;
+  icon: string;
+  color: string;
+  sampleNotification: string;
+}
+
+export interface AutoSyncNotificationConfig {
+  enabled: boolean;
+  autoCommit: boolean;
+  monitoredApps: string[];
+  clipboardDetection: boolean;
+}
+
+export interface CapturedNotificationLog {
+  id: string;
+  sourceApp: string;
+  rawText: string;
+  parsedResult: BankMutationResult;
+  timestamp: string;
+  status: 'COMMITTED' | 'PENDING' | 'DUPLICATE' | 'FAILED';
 }

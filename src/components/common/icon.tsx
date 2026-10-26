@@ -40,7 +40,15 @@ export type IconName =
   | 'ChevronRight'
   | 'Info'
   | 'Link'
-  | 'Link2';
+  | 'Link2'
+  | 'Settings'
+  | 'Sliders'
+  | 'Play'
+  | 'Repeat'
+  | 'Check'
+  | 'Share2'
+  | 'Send'
+  | 'Bell';
 
 interface IconProps {
   name: IconName;
@@ -91,6 +99,14 @@ const IONICONS_MAP: Partial<Record<IconName, IoniconsName>> = {
   ArrowRight: 'arrow-forward',
   Link: 'link',
   Link2: 'link',
+  Settings: 'settings-sharp',
+  Sliders: 'options',
+  Play: 'play',
+  Repeat: 'repeat',
+  Check: 'checkmark',
+  Share2: 'share-social',
+  Send: 'send',
+  Bell: 'notifications-outline',
 };
 
 export function Icon({ name, size = 20, color = '#FFFFFF' }: IconProps) {

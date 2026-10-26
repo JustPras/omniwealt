@@ -12,10 +12,13 @@ import {
   CryptoWallet,
   CryptoNetworkType,
   CurrencyMode,
+  AutoSyncNotificationConfig,
+  CapturedNotificationLog,
 } from '../types';
 import { StorageService } from '../services/storage-service';
 import { MarketService } from '../services/market-service';
 import { CryptoWalletService } from '../services/crypto-wallet-service';
+import { NotificationSyncService } from '../services/notification-sync-service';
 import { AIParserService } from '../services/ai-parser';
 import {
   IngestionService,
@@ -85,6 +88,13 @@ interface WealthContextType {
   toggleCurrency: () => void;
   setCurrency: (c: CurrencyMode) => void;
 
+  // Auto-Sync Notification (Pilar 1)
+  notificationConfig: AutoSyncNotificationConfig;
+  updateNotificationConfig: (config: Partial<AutoSyncNotificationConfig>) => Promise<void>;
+  notificationLogs: CapturedNotificationLog[];
+  processIncomingNotification: (text: string, app?: string) => Promise<{ success: boolean; result?: BankMutationResult }>;
+  clearNotificationLogs: () => Promise<void>;
+
   resetToInitialSeed: () => Promise<void>;
   clearAllData: () => Promise<void>;
   loadDemoData: () => Promise<void>;
@@ -104,6 +114,13 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [privacyMode, setPrivacyMode] = useState<boolean>(false);
   const [currency, setCurrencyState] = useState<CurrencyMode>('IDR');
   const [usdRate, setUsdRateState] = useState<number>(16250);
+  const [notificationConfig, setNotificationConfig] = useState<AutoSyncNotificationConfig>({
+    enabled: true,
+    autoCommit: true,
+    monitoredApps: ['bca', 'mandiri', 'bri', 'bni', 'jago', 'gopay', 'ovo', 'dana', 'shopeepay'],
+    clipboardDetection: false,
+  });
+  const [notificationLogs, setNotificationLogs] = useState<CapturedNotificationLog[]>([]);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -124,6 +141,8 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           storedWallets,
           storedCurrency,
           storedUsdRate,
+          storedNotifConfig,
+          storedNotifLogs,
         ] = await Promise.all([
           StorageService.getAccounts(),
           StorageService.getStocks(),
@@ -135,6 +154,8 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           StorageService.getCryptoWallets(),
           StorageService.getCurrency(),
           StorageService.getUsdRate(),
+          StorageService.getNotificationConfig(),
+          StorageService.getNotificationLogs(),
         ]);
 
         if (isMounted) {
@@ -146,6 +167,8 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           setPrivacyMode(storedPrivacy);
           setCurrencyState(storedCurrency);
           setUsdRateState(storedUsdRate);
+          setNotificationConfig(storedNotifConfig);
+          setNotificationLogs(storedNotifLogs);
           setStagingBatches(storedBatches);
           if (storedBatches.length > 0) {
             setActiveStagingBatch(storedBatches[0]);
@@ -1261,6 +1284,47 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setTransactions(storedTx);
   }, []);
 
+  // 11. Auto-Sync Notification (Pilar 1)
+  const updateNotificationConfig = useCallback(
+    async (partial: Partial<AutoSyncNotificationConfig>) => {
+      setNotificationConfig((prev) => {
+        const updated = { ...prev, ...partial };
+        StorageService.saveNotificationConfig(updated);
+        return updated;
+      });
+    },
+    []
+  );
+
+  const clearNotificationLogs = useCallback(async () => {
+    setNotificationLogs([]);
+    await StorageService.clearNotificationLogs();
+  }, []);
+
+  const processIncomingNotification = useCallback(
+    async (text: string, app?: string) => {
+      const res = await NotificationSyncService.processNotification(
+        text,
+        app,
+        notificationConfig.autoCommit
+          ? async (parsed) => {
+              await applyMutationText(text);
+            }
+          : undefined,
+        async (log) => {
+          await StorageService.addNotificationLog(log);
+        }
+      );
+
+      // Refresh logs
+      const updatedLogs = await StorageService.getNotificationLogs();
+      setNotificationLogs(updatedLogs);
+
+      return res;
+    },
+    [notificationConfig.autoCommit, applyMutationText]
+  );
+
   const contextValue = useMemo<WealthContextType>(
     () => ({
       accounts,
@@ -1294,6 +1358,11 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       usdRate,
       toggleCurrency,
       setCurrency,
+      notificationConfig,
+      updateNotificationConfig,
+      notificationLogs,
+      processIncomingNotification,
+      clearNotificationLogs,
       refreshMarketPrices,
       addAccount,
       updateAccountBalance,
@@ -1345,6 +1414,11 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       usdRate,
       toggleCurrency,
       setCurrency,
+      notificationConfig,
+      updateNotificationConfig,
+      notificationLogs,
+      processIncomingNotification,
+      clearNotificationLogs,
       refreshMarketPrices,
       addAccount,
       updateAccountBalance,

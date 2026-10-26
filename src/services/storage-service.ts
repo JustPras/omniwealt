@@ -1,5 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Account, StockAsset, CryptoAsset, Transaction, CryptoWallet, CurrencyMode } from '../types';
+import {
+  Account,
+  StockAsset,
+  CryptoAsset,
+  Transaction,
+  CryptoWallet,
+  CurrencyMode,
+  AutoSyncNotificationConfig,
+  CapturedNotificationLog,
+} from '../types';
 import {
   INITIAL_ACCOUNTS,
   INITIAL_STOCKS,
@@ -33,6 +42,15 @@ const STORAGE_KEYS = {
   CRYPTO_WALLETS: '@omniwealth_crypto_wallets_v3',
   CURRENCY: '@omniwealth_currency_v3',
   USD_RATE: '@omniwealth_usd_rate_v3',
+  NOTIFICATION_CONFIG: '@omniwealth_notif_config_v3',
+  NOTIFICATION_LOGS: '@omniwealth_notif_logs_v3',
+};
+
+const DEFAULT_NOTIFICATION_CONFIG: AutoSyncNotificationConfig = {
+  enabled: true,
+  autoCommit: true,
+  monitoredApps: ['bca', 'mandiri', 'bri', 'bni', 'jago', 'gopay', 'ovo', 'dana', 'shopeepay'],
+  clipboardDetection: false,
 };
 
 const DEFAULT_MARKET_CACHE: MarketCacheData = {
@@ -347,6 +365,78 @@ export const StorageService = {
       await AsyncStorage.removeItem(STORAGE_KEYS.MARKET_CACHE);
     } catch (e) {
       console.warn('Failed to clear market cache:', e);
+    }
+  },
+
+  /**
+   * Notification Auto-Sync Config
+   */
+  async getNotificationConfig(): Promise<AutoSyncNotificationConfig> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATION_CONFIG);
+      if (data) {
+        return { ...DEFAULT_NOTIFICATION_CONFIG, ...JSON.parse(data) };
+      }
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.NOTIFICATION_CONFIG,
+        JSON.stringify(DEFAULT_NOTIFICATION_CONFIG)
+      );
+      return DEFAULT_NOTIFICATION_CONFIG;
+    } catch {
+      return DEFAULT_NOTIFICATION_CONFIG;
+    }
+  },
+
+  async saveNotificationConfig(config: AutoSyncNotificationConfig): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.NOTIFICATION_CONFIG, JSON.stringify(config));
+    } catch (e) {
+      console.warn('Failed to save notification config:', e);
+    }
+  },
+
+  /**
+   * Notification Logs (recent captured transactions)
+   */
+  async getNotificationLogs(): Promise<CapturedNotificationLog[]> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATION_LOGS);
+      if (data) {
+        return JSON.parse(data);
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  },
+
+  async saveNotificationLogs(logs: CapturedNotificationLog[]): Promise<void> {
+    try {
+      // Store at most 50 recent logs
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.NOTIFICATION_LOGS,
+        JSON.stringify(logs.slice(0, 50))
+      );
+    } catch (e) {
+      console.warn('Failed to save notification logs:', e);
+    }
+  },
+
+  async addNotificationLog(log: CapturedNotificationLog): Promise<void> {
+    try {
+      const existing = await this.getNotificationLogs();
+      const updated = [log, ...existing].slice(0, 50);
+      await this.saveNotificationLogs(updated);
+    } catch (e) {
+      console.warn('Failed to add notification log:', e);
+    }
+  },
+
+  async clearNotificationLogs(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEYS.NOTIFICATION_LOGS);
+    } catch (e) {
+      console.warn('Failed to clear notification logs:', e);
     }
   },
 

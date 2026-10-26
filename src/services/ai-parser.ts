@@ -5,7 +5,7 @@ export const AIParserService = {
   /**
    * Parse Bank / QRIS / E-wallet mutation text
    */
-  async parseBankMutation(rawText: string): Promise<BankMutationResult> {
+  async parseBankMutation(rawText: string, sourceAppHint?: string): Promise<BankMutationResult> {
     const text = rawText.trim();
 
     // 1. Check if Gemini API Key is available
@@ -38,6 +38,7 @@ Notification: "${text}"
             category: parsed.category || 'General',
             description: parsed.description || text,
             merchantOrSender: parsed.merchantOrSender,
+            sourceApp: sourceAppHint,
           };
         }
       } catch (e) {
@@ -46,68 +47,159 @@ Notification: "${text}"
     }
 
     // 2. High-precision Deterministic & Intelligent Fallback Parser
-    return AIParserService.deterministicBankParse(text);
+    return AIParserService.deterministicBankParse(text, sourceAppHint);
   },
 
-  deterministicBankParse(text: string): BankMutationResult {
+  deterministicBankParse(text: string, sourceAppHint?: string): BankMutationResult {
     const lower = text.toLowerCase();
 
-    // Extract amount
+    // 1. High-precision Amount Extraction
     let amount = 0;
-    const amountMatch = text.match(/(?:rp|idr|sebesar|sebesar rp|sebesar idr)?\s*([0-9]{1,3}(?:\.[0-9]{3})+|[0-9]{4,})/i);
+    // Matches Rp 48.500 or Rp 2.500.000 or Rp48500 or 48.500,00
+    const amountMatch = text.match(
+      /(?:rp\.?|idr|sebesar|sebesar rp|sebesar idr|nominal|total)?\s*([0-9]{1,3}(?:\.[0-9]{3})+|[0-9]{4,})(?:,[0-9]{2})?/i
+    );
     if (amountMatch && amountMatch[1]) {
       const cleanNum = amountMatch[1].replace(/\./g, '');
       amount = parseFloat(cleanNum);
+    } else {
+      const fallbackAmountMatch = text.match(/(?:rp\.?|idr)\s*([0-9]+)/i);
+      if (fallbackAmountMatch && fallbackAmountMatch[1]) {
+        amount = parseFloat(fallbackAmountMatch[1]);
+      }
     }
 
-    // Determine type
+    // 2. Transaction Type & Category Detection
     let type: 'INCOME' | 'EXPENSE' | 'TRANSFER' = 'EXPENSE';
     let category = 'General';
 
-    if (lower.includes('top up rdn') || lower.includes('topup rdn') || (lower.includes('transfer') && lower.includes('rdn'))) {
+    if (
+      lower.includes('top up rdn') ||
+      lower.includes('topup rdn') ||
+      (lower.includes('transfer') && lower.includes('rdn'))
+    ) {
       type = 'TRANSFER';
       category = 'Investment Top-Up';
     } else if (
       lower.includes('transfer masuk') ||
       lower.includes('dana masuk') ||
+      lower.includes('uang masuk') ||
       lower.includes('diterima dari') ||
+      lower.includes('kredit') ||
+      lower.includes('cashback') ||
       (lower.includes('bi-fast') && lower.includes('dari'))
     ) {
       type = 'INCOME';
-      category = lower.includes('pt') || lower.includes('salary') ? 'Salary & Freelance' : 'Income';
-    } else if (lower.includes('qris') || lower.includes('pembayaran') || lower.includes('debit') || lower.includes('berhasil')) {
+      if (lower.includes('pt') || lower.includes('salary') || lower.includes('gaji')) {
+        category = 'Salary & Freelance';
+      } else if (lower.includes('cashback') || lower.includes('reward')) {
+        category = 'Cashback & Rewards';
+      } else {
+        category = 'Income';
+      }
+    } else if (
+      lower.includes('qris') ||
+      lower.includes('pembayaran') ||
+      lower.includes('debit') ||
+      lower.includes('berhasil') ||
+      lower.includes('terpotong') ||
+      lower.includes('uang keluar') ||
+      lower.includes('transaksi')
+    ) {
       type = 'EXPENSE';
-      if (lower.includes('kopi') || lower.includes('makan') || lower.includes('resto') || lower.includes('cafe')) {
+      if (
+        lower.includes('kopi') ||
+        lower.includes('coffee') ||
+        lower.includes('makan') ||
+        lower.includes('resto') ||
+        lower.includes('cafe') ||
+        lower.includes('gofood') ||
+        lower.includes('shopeefood')
+      ) {
         category = 'Food & Beverage';
-      } else if (lower.includes('transport') || lower.includes('grab') || lower.includes('gojek')) {
+      } else if (
+        lower.includes('transport') ||
+        lower.includes('grab') ||
+        lower.includes('gojek') ||
+        lower.includes('goride') ||
+        lower.includes('gocar') ||
+        lower.includes('m-tix')
+      ) {
         category = 'Transport';
+      } else if (
+        lower.includes('alfamart') ||
+        lower.includes('indomaret') ||
+        lower.includes('supermarket') ||
+        lower.includes('hypermart')
+      ) {
+        category = 'Groceries';
+      } else if (lower.includes('pln') || lower.includes('listrik') || lower.includes('pdam') || lower.includes('pulsa')) {
+        category = 'Bills & Utilities';
       } else {
         category = 'Shopping';
       }
     }
 
-    // Determine Bank Name
+    // 3. Bank / E-Wallet Institution Identification
     let bankName = 'BCA Tahapan';
-    if (lower.includes('mandiri')) {
+    const appHint = sourceAppHint?.toLowerCase() || '';
+
+    if (lower.includes('mandiri') || lower.includes('livin') || appHint.includes('mandiri')) {
       bankName = "Mandiri Livin'";
-    } else if (lower.includes('jago')) {
-      bankName = 'RDN Stockbit Jago';
+    } else if (lower.includes('brimo') || lower.includes('bri') || appHint.includes('bri')) {
+      bankName = 'BRImo';
+    } else if (lower.includes('bni') || appHint.includes('bni')) {
+      bankName = 'BNI Mobile';
+    } else if (lower.includes('jago') || appHint.includes('jago')) {
+      if (lower.includes('rdn') || lower.includes('stockbit')) {
+        bankName = 'RDN Stockbit Jago';
+      } else {
+        bankName = 'Bank Jago';
+      }
+    } else if (lower.includes('gopay') || lower.includes('gojek') || appHint.includes('gojek') || appHint.includes('gopay')) {
+      bankName = 'GoPay Utama';
+    } else if (lower.includes('ovo') || appHint.includes('ovo')) {
+      bankName = 'OVO';
+    } else if (lower.includes('dana') || appHint.includes('dana')) {
+      bankName = 'DANA';
+    } else if (lower.includes('shopeepay') || lower.includes('shopee') || appHint.includes('shopee')) {
+      bankName = 'ShopeePay';
+    } else if (lower.includes('seabank')) {
+      bankName = 'SeaBank';
+    } else if (lower.includes('flip')) {
+      bankName = 'Flip';
+    } else if (lower.includes('jenius') || lower.includes('btpn')) {
+      bankName = 'Jenius BTPN';
     } else if (lower.includes('rdn') || lower.includes('stockbit')) {
       bankName = 'RDN Stockbit BCA';
-    } else if (lower.includes('gopay')) {
-      bankName = 'GoPay Utama';
-    } else if (lower.includes('bca')) {
+    } else if (lower.includes('bca') || appHint.includes('bca')) {
       bankName = 'BCA Tahapan';
     }
 
-    // Merchant or Sender
+    // 4. Merchant or Sender Extraction
     let merchantOrSender = '';
     const atMatch = text.match(/di\s+([^,.\n]+)/i);
-    const fromMatch = text.match(/dari\s+([^,.\n]+)/i);
-    if (atMatch) {
+    const toMatch = text.match(/ke\s+(?:rekening\s+)?([^,.\n]+)/i);
+    const fromMatch = text.match(/dari\s+(?:rekening\s+)?([^,.\n]+)/i);
+    const forMatch = text.match(/untuk\s+([^,.\n]+)/i);
+
+    if (type === 'INCOME' && fromMatch) {
+      merchantOrSender = fromMatch[1].trim();
+    } else if (atMatch) {
       merchantOrSender = atMatch[1].trim();
+    } else if (toMatch) {
+      merchantOrSender = toMatch[1].trim();
+    } else if (forMatch) {
+      merchantOrSender = forMatch[1].trim();
     } else if (fromMatch) {
       merchantOrSender = fromMatch[1].trim();
+    }
+
+    // Clean up trailing words like 'berhasil', 'telah', 'sebesar', 'ke', 'melalui', 'via'
+    if (merchantOrSender) {
+      merchantOrSender = merchantOrSender
+        .replace(/\b(berhasil|telah|sukses|pada|sebesar|rp|idr|ke|melalui|via)\b.*/gi, '')
+        .trim();
     }
 
     return {
@@ -116,7 +208,8 @@ Notification: "${text}"
       bankName,
       category,
       description: text,
-      merchantOrSender,
+      merchantOrSender: merchantOrSender || undefined,
+      sourceApp: sourceAppHint,
     };
   },
 

@@ -19,6 +19,7 @@ import { LiquidSegmentControl } from '../../src/components/common/liquid-segment
 import { AccountModal } from '../../src/components/modals/account-modal';
 import { CashMutationModal } from '../../src/components/modals/cash-mutation-modal';
 import { CryptoWalletModal } from '../../src/components/modals/crypto-wallet-modal';
+import { BankAutoSyncModal } from '../../src/components/modals/bank-auto-sync-modal';
 import { CryptoWalletService } from '../../src/services/crypto-wallet-service';
 import { useWealth } from '../../src/store/wealth-context';
 import { formatIDR, formatDate } from '../../src/utils/format';
@@ -61,10 +62,13 @@ export default function AccountsScreen() {
     cryptoWallets,
     syncCryptoWallet,
     deleteCryptoWallet,
+    notificationConfig,
+    processIncomingNotification,
   } = useWealth();
 
   const [accountModalVisible, setAccountModalVisible] = useState(false);
   const [walletModalVisible, setWalletModalVisible] = useState(false);
+  const [autoSyncModalVisible, setAutoSyncModalVisible] = useState(false);
   const [syncingWalletId, setSyncingWalletId] = useState<string | null>(null);
   const [mutationModalVisible, setMutationModalVisible] = useState(false);
   const [activeAccountForMutation, setActiveAccountForMutation] = useState<string | undefined>(undefined);
@@ -112,7 +116,7 @@ export default function AccountsScreen() {
     }
   };
 
-  const handleSimulateAndroidListener = () => {
+  const handleSimulateAndroidListener = async () => {
     triggerHaptic('medium');
     const merchants = ['Kopi Kenangan Senopati', 'Fore Coffee Grand Indonesia', 'Point Coffee Sudirman', 'FamilyMart Thamrin'];
     const randomAmount = Math.floor(Math.random() * 45000) + 25000;
@@ -120,9 +124,7 @@ export default function AccountsScreen() {
     const text = `Transaksi QRIS Rp ${randomAmount.toLocaleString('id-ID')} di ${randomMerchant} berhasil dari rekening BCA Tahapan`;
 
     setSimulatedNotification(text);
-    setTimeout(() => {
-      handleProcessMutation(text);
-    }, 600);
+    await processIncomingNotification(text, 'bca');
   };
 
   const openMutationModal = (accId: string, type: 'INCOME' | 'EXPENSE') => {
@@ -425,28 +427,63 @@ export default function AccountsScreen() {
           </Pressable>
         </GlassCard>
 
-        {/* 4. ANDROID NOTIFICATION LISTENER SIMULATOR */}
+        {/* 4. AUTO-SYNC NOTIFIKASI BANK & E-WALLET (PILAR 1) */}
         <GlassCard level="base" style={styles.simulatorCard}>
           <View style={styles.simulatorHeader}>
-            <Icon name="BellRing" size={16} color={color.accent} />
-            <Text style={styles.simulatorTitle}>Simulasi notifikasi Android</Text>
+            <View style={styles.autoSyncTitleRow}>
+              <View style={styles.autoSyncIconCircle}>
+                <Icon name="BellRing" size={16} color="#38BDF8" />
+              </View>
+              <View>
+                <Text style={styles.simulatorTitle}>Auto-Sync Notifikasi Bank</Text>
+                <Text style={styles.simulatorSubBadge}>
+                  {notificationConfig.enabled
+                    ? '● Aktif (Mendukung 9 Institusi)'
+                    : '○ Nonaktif'}
+                </Text>
+              </View>
+            </View>
+
+            <Pressable
+              onPress={() => {
+                triggerHaptic('selection');
+                setAutoSyncModalVisible(true);
+              }}
+              style={styles.manageSyncHeaderBtn}
+            >
+              <Icon name="Settings" size={12} color="#38BDF8" />
+              <Text style={styles.manageSyncHeaderBtnText}>Atur</Text>
+            </Pressable>
           </View>
+
           <Text style={styles.simulatorDesc}>
-            Uji interseptor notifikasi otomatis saat transaksi QRIS atau SMS bank diterima.
+            Menangkap notifikasi mutasi QRIS, transfer masuk BI-FAST, dan debit secara otomatis dari m-Banking dan e-Wallet tanpa input manual.
           </Text>
 
-          {simulatedNotification && (
-            <View style={styles.simulatedBox}>
-              <Text style={styles.simulatedText}>"{simulatedNotification}"</Text>
-            </View>
-          )}
+          {/* Quick Action Button Row */}
+          <View style={styles.autoSyncActionRow}>
+            <Pressable
+              onPress={() => {
+                triggerHaptic('selection');
+                setAutoSyncModalVisible(true);
+              }}
+              style={styles.openModalBtn}
+            >
+              <Icon name="Sliders" size={13} color="#fff" />
+              <Text style={styles.openModalBtnText}>Kelola & Setup 1-Klik</Text>
+            </Pressable>
 
-          <Pressable
-            onPress={handleSimulateAndroidListener}
-            style={styles.simulatorButton}
-          >
-            <Text style={styles.simulatorButtonText}>Simulasi notifikasi QRIS masuk</Text>
-          </Pressable>
+            <Pressable
+              onPress={() => {
+                triggerHaptic('medium');
+                handleSimulateAndroidListener();
+              }}
+              style={styles.quickTestBtn}
+            >
+              <Icon name="Play" size={13} color="#38BDF8" />
+              <Text style={styles.quickTestBtnText}>Uji QRIS</Text>
+            </Pressable>
+          </View>
         </GlassCard>
 
         {/* 5. RIWAYAT TRANSAKSI TERBARU (SINGLE CARD WITH ROWS SEPARATED BY HAIRLINE) */}
@@ -526,6 +563,11 @@ export default function AccountsScreen() {
       <CryptoWalletModal
         visible={walletModalVisible}
         onClose={() => setWalletModalVisible(false)}
+      />
+
+      <BankAutoSyncModal
+        visible={autoSyncModalVisible}
+        onClose={() => setAutoSyncModalVisible(false)}
       />
     </ScreenTransition>
   );
@@ -784,45 +826,95 @@ const styles = StyleSheet.create({
   simulatorHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.xs + 2,
-    marginBottom: 4,
+    justifyContent: 'space-between',
+    marginBottom: space.xs,
+  },
+  autoSyncTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  autoSyncIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(56, 189, 248, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   simulatorTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: color.text,
+  },
+  simulatorSubBadge: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: color.gain,
+    marginTop: 1,
+  },
+  manageSyncHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
+  },
+  manageSyncHeaderBtnText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#38BDF8',
   },
   simulatorDesc: {
-    fontSize: 12,
-    color: color.textMuted,
-    lineHeight: 17,
-    marginBottom: space.md,
-  },
-  simulatedBox: {
-    padding: space.sm,
-    backgroundColor: color.glassFillInset,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: color.hairline,
-    marginBottom: space.sm,
-  },
-  simulatedText: {
     fontSize: 11,
-    color: color.accent,
-    fontStyle: 'italic',
+    color: color.textMuted,
+    lineHeight: 16,
+    marginVertical: space.xs,
   },
-  simulatorButton: {
-    backgroundColor: color.glassFillInset,
-    borderWidth: 1,
-    borderColor: color.hairline,
-    paddingVertical: 10,
-    borderRadius: radius.pill,
+  autoSyncActionRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: space.sm,
+    marginTop: space.xs,
   },
-  simulatorButtonText: {
+  openModalBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#0284C7',
+    paddingVertical: 9,
+    borderRadius: radius.pill,
+    ...shadow.e1,
+  },
+  openModalBtnText: {
     fontSize: 12,
-    color: color.text,
-    fontWeight: '500',
+    fontWeight: '700',
+    color: '#fff',
+  },
+  quickTestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.3)',
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: radius.pill,
+  },
+  quickTestBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#38BDF8',
   },
 
   // History

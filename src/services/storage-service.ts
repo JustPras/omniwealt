@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Account, StockAsset, CryptoAsset, Transaction, CryptoWallet } from '../types';
+import { Account, StockAsset, CryptoAsset, Transaction, CryptoWallet, CurrencyMode } from '../types';
 import {
   INITIAL_ACCOUNTS,
   INITIAL_STOCKS,
@@ -31,6 +31,8 @@ const STORAGE_KEYS = {
   PRIVACY: '@omniwealth_privacy_v3',
   MARKET_CACHE: '@omniwealth_market_cache_v3',
   CRYPTO_WALLETS: '@omniwealth_crypto_wallets_v3',
+  CURRENCY: '@omniwealth_currency_v3',
+  USD_RATE: '@omniwealth_usd_rate_v3',
 };
 
 const DEFAULT_MARKET_CACHE: MarketCacheData = {
@@ -159,6 +161,41 @@ export const StorageService = {
       await AsyncStorage.setItem(STORAGE_KEYS.PRIVACY, JSON.stringify(enabled));
     } catch (e) {
       console.warn('Failed to save privacy mode:', e);
+    }
+  },
+
+  async getCurrency(): Promise<CurrencyMode> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.CURRENCY);
+      return data === 'USD' ? 'USD' : 'IDR';
+    } catch {
+      return 'IDR';
+    }
+  },
+
+  async saveCurrency(currency: CurrencyMode): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.CURRENCY, currency);
+    } catch (e) {
+      console.warn('Failed to save currency mode:', e);
+    }
+  },
+
+  async getUsdRate(): Promise<number> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.USD_RATE);
+      const rate = data ? parseFloat(data) : 16250;
+      return rate > 0 ? rate : 16250;
+    } catch {
+      return 16250;
+    }
+  },
+
+  async saveUsdRate(rate: number): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.USD_RATE, rate.toString());
+    } catch (e) {
+      console.warn('Failed to save USD exchange rate:', e);
     }
   },
 

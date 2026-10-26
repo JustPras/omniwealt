@@ -11,6 +11,7 @@ import {
   IngestionPayload,
   CryptoWallet,
   CryptoNetworkType,
+  CurrencyMode,
 } from '../types';
 import { StorageService } from '../services/storage-service';
 import { MarketService } from '../services/market-service';
@@ -78,6 +79,12 @@ interface WealthContextType {
   syncAllCryptoWallets: (isSilent?: boolean) => Promise<void>;
   deleteCryptoWallet: (walletId: string) => Promise<void>;
 
+  // Currency Display Mode
+  currency: CurrencyMode;
+  usdRate: number;
+  toggleCurrency: () => void;
+  setCurrency: (c: CurrencyMode) => void;
+
   resetToInitialSeed: () => Promise<void>;
   clearAllData: () => Promise<void>;
   loadDemoData: () => Promise<void>;
@@ -95,6 +102,8 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [stagingBatches, setStagingBatches] = useState<RDNStagingBatch[]>([]);
   const [activeStagingBatch, setActiveStagingBatch] = useState<RDNStagingBatch | null>(null);
   const [privacyMode, setPrivacyMode] = useState<boolean>(false);
+  const [currency, setCurrencyState] = useState<CurrencyMode>('IDR');
+  const [usdRate, setUsdRateState] = useState<number>(16250);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -104,7 +113,18 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     let isMounted = true;
     const hydrate = async () => {
       try {
-        const [storedAcc, storedStocks, storedCryptos, storedTx, storedPrivacy, storedMarket, storedBatches, storedWallets] = await Promise.all([
+        const [
+          storedAcc,
+          storedStocks,
+          storedCryptos,
+          storedTx,
+          storedPrivacy,
+          storedMarket,
+          storedBatches,
+          storedWallets,
+          storedCurrency,
+          storedUsdRate,
+        ] = await Promise.all([
           StorageService.getAccounts(),
           StorageService.getStocks(),
           StorageService.getCryptos(),
@@ -113,6 +133,8 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           StorageService.getMarketCache(),
           RDNStagingService.getBatches(),
           StorageService.getCryptoWallets(),
+          StorageService.getCurrency(),
+          StorageService.getUsdRate(),
         ]);
 
         if (isMounted) {
@@ -122,6 +144,8 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           setCryptoWallets(storedWallets);
           setTransactions(storedTx);
           setPrivacyMode(storedPrivacy);
+          setCurrencyState(storedCurrency);
+          setUsdRateState(storedUsdRate);
           setStagingBatches(storedBatches);
           if (storedBatches.length > 0) {
             setActiveStagingBatch(storedBatches[0]);
@@ -349,7 +373,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     };
   }, [isHydrated, stocks.length, cryptos.length, refreshMarketPrices]);
 
-  // 4. Privacy Toggle
+  // 4. Privacy & Currency Toggles
   const togglePrivacy = useCallback(() => {
     triggerHaptic('selection');
     setPrivacyMode((prev) => {
@@ -357,6 +381,21 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       StorageService.savePrivacyMode(next);
       return next;
     });
+  }, []);
+
+  const toggleCurrency = useCallback(() => {
+    triggerHaptic('selection');
+    setCurrencyState((prev) => {
+      const next: CurrencyMode = prev === 'IDR' ? 'USD' : 'IDR';
+      StorageService.saveCurrency(next);
+      return next;
+    });
+  }, []);
+
+  const setCurrency = useCallback((c: CurrencyMode) => {
+    triggerHaptic('selection');
+    setCurrencyState(c);
+    StorageService.saveCurrency(c);
   }, []);
 
   // 5. Account Management
@@ -1251,6 +1290,10 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       discardRDNStagingBatch,
       toggleAccountAutoCommit,
       togglePrivacy,
+      currency,
+      usdRate,
+      toggleCurrency,
+      setCurrency,
       refreshMarketPrices,
       addAccount,
       updateAccountBalance,
@@ -1298,6 +1341,10 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       discardRDNStagingBatch,
       toggleAccountAutoCommit,
       togglePrivacy,
+      currency,
+      usdRate,
+      toggleCurrency,
+      setCurrency,
       refreshMarketPrices,
       addAccount,
       updateAccountBalance,

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Text, TextStyle, StyleProp, StyleSheet, Animated } from 'react-native';
 import { useWealth } from '../../store/wealth-context';
-import { formatIDR } from '../../utils/format';
+import { formatCurrency } from '../../utils/format';
 import { color } from '../../theme/tokens';
 
 interface PrivacyValueProps {
@@ -23,10 +23,10 @@ export const PrivacyValue: React.FC<PrivacyValueProps> = ({
   style,
   maskedLength = 8,
 }) => {
-  const { privacyMode } = useWealth();
+  const { privacyMode, currency, usdRate } = useWealth();
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // 180ms soft transition when toggling privacy mode
+  // 180ms soft transition when toggling privacy mode or currency mode
   useEffect(() => {
     Animated.sequence([
       Animated.timing(fadeAnim, {
@@ -40,23 +40,24 @@ export const PrivacyValue: React.FC<PrivacyValueProps> = ({
         useNativeDriver: true,
       }),
     ]).start();
-  }, [privacyMode, fadeAnim]);
+  }, [privacyMode, currency, fadeAnim]);
 
   if (privacyMode) {
     const dots = '••••';
+    const currencyPrefix = currency === 'USD' ? '$' : 'Rp';
     return (
       <Animated.Text
         selectable={false}
         style={[styles.tabularText, { opacity: fadeAnim }, style]}
       >
-        {isCurrency ? `Rp ${dots}` : dots}
+        {isCurrency ? `${currencyPrefix} ${dots}` : dots}
       </Animated.Text>
     );
   }
 
   let display = '';
   if (typeof value === 'number') {
-    display = isCurrency ? formatIDR(value, compact) : value.toString();
+    display = isCurrency ? formatCurrency(value, currency, usdRate, compact) : value.toString();
   } else {
     display = value;
   }

@@ -14,6 +14,11 @@ export interface ScanWalletResult {
   scannedAt: string;
 }
 
+export interface ExtractedWalletAddress {
+  address: string;
+  networkType: CryptoNetworkType;
+}
+
 // Chain and Token configurations
 interface EvmChainConfig {
   name: string;
@@ -302,6 +307,32 @@ export const CryptoWalletService = {
     const clean = address.trim();
     if (clean.length <= lead + tail) return clean;
     return `${clean.slice(0, lead)}...${clean.slice(-tail)}`;
+  },
+
+  /**
+   * Smart Multi-Address Batch Extractor:
+   * Parses arbitrary user text/notes and extracts all valid EVM, Bitcoin, and Solana addresses.
+   */
+  extractAddresses(text: string): ExtractedWalletAddress[] {
+    const raw = text.trim();
+    if (!raw) return [];
+
+    const evmRegex = /0x[a-fA-F0-9]{40}/g;
+    const btcRegex = /\b(bc1[a-zA-HJ-NP-Z0-9]{25,62}|[13][a-km-zA-HJ-NP-Z1-9]{25,34})\b/g;
+    const solRegex = /\b[1-9A-HJ-NP-Za-km-z]{32,44}\b/g;
+
+    const evmMatches = Array.from(new Set(raw.match(evmRegex) || []));
+    const btcMatches = Array.from(new Set((raw.match(btcRegex) || []).filter((a) => !evmMatches.includes(a))));
+    const solMatches = Array.from(
+      new Set((raw.match(solRegex) || []).filter((a) => !evmMatches.includes(a) && !btcMatches.includes(a)))
+    );
+
+    const results: ExtractedWalletAddress[] = [];
+    evmMatches.forEach((addr) => results.push({ address: addr, networkType: 'EVM' }));
+    solMatches.forEach((addr) => results.push({ address: addr, networkType: 'SOLANA' }));
+    btcMatches.forEach((addr) => results.push({ address: addr, networkType: 'BITCOIN' }));
+
+    return results;
   },
 
   /**

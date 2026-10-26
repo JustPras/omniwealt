@@ -105,3 +105,25 @@ test('3. Format & Pemendekan Alamat Dompet (Truncate Address)', () => {
   // String pendek tidak dipotong
   assert.strictEqual(CryptoWalletService.truncateAddress('0x123', 6, 4), '0x123');
 });
+
+test('4. Ekstraksi Multi-Alamat Sekaligus dari Teks Bebas (Smart Batch Extract)', () => {
+  const rawNotes = `
+    Daftar Dompet Kripto Saya:
+    - Metamask Utama: 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+    - Phantom Solana: vines1vzrYbzLMRdu58sy5XTSEPbEK9aZXgHG7xXt21
+    - Bitcoin Cold Storage: bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq
+    - Bitcoin Donasi: 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+  `;
+
+  const extracted = CryptoWalletService.extractAddresses(rawNotes);
+  assert.strictEqual(extracted.length, 4, 'Harus mendeteksi 4 alamat unik');
+
+  const evm = extracted.find((e) => e.networkType === 'EVM');
+  assert.strictEqual(evm?.address, '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045');
+
+  const sol = extracted.find((e) => e.networkType === 'SOLANA');
+  assert.strictEqual(sol?.address, 'vines1vzrYbzLMRdu58sy5XTSEPbEK9aZXgHG7xXt21');
+
+  const btcList = extracted.filter((e) => e.networkType === 'BITCOIN');
+  assert.strictEqual(btcList.length, 2);
+});

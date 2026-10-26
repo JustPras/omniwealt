@@ -1,4 +1,44 @@
 // Currency, percentage, and date formatting utilities
+import { CurrencyMode } from '../types';
+
+export function formatUSD(amountInIdr: number, usdRate: number = 16250, compact: boolean = false): string {
+  const isNegative = amountInIdr < 0;
+  const absIdr = Math.abs(amountInIdr);
+  const amountUsd = absIdr / (usdRate > 0 ? usdRate : 16250);
+
+  if (compact && amountUsd >= 1_000_000_000) {
+    const val = (amountUsd / 1_000_000_000).toFixed(2);
+    return `${isNegative ? '−' : ''}$ ${val}B`;
+  }
+  if (compact && amountUsd >= 1_000_000) {
+    const val = (amountUsd / 1_000_000).toFixed(2);
+    return `${isNegative ? '−' : ''}$ ${val}M`;
+  }
+  if (compact && amountUsd >= 1_000) {
+    const val = (amountUsd / 1_000).toFixed(1);
+    return `${isNegative ? '−' : ''}$ ${val}K`;
+  }
+
+  const fractionDigits = amountUsd >= 100 ? 2 : amountUsd >= 1 ? 2 : 4;
+  const formatted = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: fractionDigits,
+  }).format(amountUsd);
+
+  return `${isNegative ? '−' : ''}$ ${formatted}`;
+}
+
+export function formatCurrency(
+  amountInIdr: number,
+  currency: CurrencyMode = 'IDR',
+  usdRate: number = 16250,
+  compact: boolean = false
+): string {
+  if (currency === 'USD') {
+    return formatUSD(amountInIdr, usdRate, compact);
+  }
+  return formatIDR(amountInIdr, compact);
+}
 
 export function formatIDR(amount: number, compact: boolean = false): string {
   const isNegative = amount < 0;

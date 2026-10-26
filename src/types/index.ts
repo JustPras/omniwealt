@@ -1,5 +1,7 @@
 // TypeScript definitions for OmniWealth Tracker v2
 
+export type CurrencyMode = 'IDR' | 'USD';
+
 export type AccountType = 'BANK' | 'E-WALLET' | 'RDN' | 'CRYPTO_WALLET';
 
 export interface Account {

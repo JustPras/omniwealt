@@ -15,7 +15,7 @@ import { CryptoNetworkType, CryptoWalletToken } from '../../types';
 import { useWealth } from '../../store/wealth-context';
 import { CryptoWalletService } from '../../services/crypto-wallet-service';
 import { triggerHaptic } from '../../utils/haptics';
-import { formatIDR } from '../../utils/format';
+import { formatCurrency } from '../../utils/format';
 import { color, space, radius, shadow, font } from '../../theme/tokens';
 
 interface CryptoWalletModalProps {
@@ -24,8 +24,10 @@ interface CryptoWalletModalProps {
 }
 
 export const CryptoWalletModal: React.FC<CryptoWalletModalProps> = ({ visible, onClose }) => {
-  const { addCryptoWallet } = useWealth();
+  const { addCryptoWallet, currency, usdRate } = useWealth();
 
+  const [importMode, setImportMode] = useState<'SINGLE' | 'BATCH'>('BATCH');
+  const [batchText, setBatchText] = useState('');
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [networkType, setNetworkType] = useState<CryptoNetworkType>('EVM');
@@ -38,11 +40,18 @@ export const CryptoWalletModal: React.FC<CryptoWalletModalProps> = ({ visible, o
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Extracted addresses from batch text
+  const detectedAddresses = React.useMemo(() => {
+    return CryptoWalletService.extractAddresses(batchText);
+  }, [batchText]);
+
   // Reset modal state on open/close
   React.useEffect(() => {
     if (visible) {
       setName('');
       setAddress('');
+      setBatchText('');
+      setImportMode('BATCH');
       setNetworkType('EVM');
       setScanResult(null);
       setErrorMsg(null);
@@ -65,7 +74,7 @@ export const CryptoWalletModal: React.FC<CryptoWalletModalProps> = ({ visible, o
     }
   };
 
-  // Perform live on-chain scan
+  // Perform live on-chain scan for single address
   const handleScanPreview = async () => {
     const clean = address.trim();
     if (!clean) {
@@ -100,7 +109,8 @@ export const CryptoWalletModal: React.FC<CryptoWalletModalProps> = ({ visible, o
     }
   };
 
-  const handleSubmit = async () => {
+  // Submit single wallet
+  const handleSingleSubmit = async () => {
     const clean = address.trim();
     if (!clean) {
       setErrorMsg('Alamat publik wajib diisi');
@@ -127,6 +137,35 @@ export const CryptoWalletModal: React.FC<CryptoWalletModalProps> = ({ visible, o
       onClose();
     } catch (e: any) {
       setErrorMsg(e?.message || 'Gagal menambahkan dompet Web3.');
+      triggerHaptic('warning');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Submit batch multi-addresses at once
+  const handleBatchSubmit = async () => {
+    if (detectedAddresses.length === 0) {
+      setErrorMsg('Tidak ada alamat valid yang terdeteksi dari teks.');
+      triggerHaptic('warning');
+      return;
+    }
+
+    setIsSubmitting(true);
+    triggerHaptic('medium');
+
+    try {
+      for (const item of detectedAddresses) {
+        await addCryptoWallet(
+          `Dompet ${item.networkType}`,
+          item.address,
+          item.networkType
+        );
+      }
+      triggerHaptic('success');
+      onClose();
+    } catch (e: any) {
+      setErrorMsg(e?.message || 'Gagal menambahkan beberapa dompet.');
       triggerHaptic('warning');
     } finally {
       setIsSubmitting(false);
@@ -164,152 +203,296 @@ export const CryptoWalletModal: React.FC<CryptoWalletModalProps> = ({ visible, o
               contentContainerStyle={styles.scrollContent}
               keyboardShouldPersistTaps="handled"
             >
-              {/* Network Selector Tabs */}
-              <Text style={styles.inputLabel}>Pilih Jaringan Blockchain</Text>
-              <View style={styles.networkRow}>
-                {(['EVM', 'SOLANA', 'BITCOIN'] as CryptoNetworkType[]).map((net) => {
-                  const isActive = networkType === net;
-                  const label =
-                    net === 'EVM' ? 'EVM Multi-Chain' : net === 'SOLANA' ? 'Solana' : 'Bitcoin';
-                  return (
-                    <Pressable
-                      key={net}
-                      onPress={() => {
-                        triggerHaptic('selection');
-                        setNetworkType(net);
-                        setScanResult(null);
-                        setErrorMsg(null);
-                      }}
-                      style={[styles.networkTab, isActive && styles.activeNetworkTab]}
+              {/* Import Mode Switcher */}
+              <View style={styles.modeRow}>
+                <Pressable
+                  onPress={() => {
+                    triggerHaptic('selection');
+                    setImportMode('BATCH');
+                    setErrorMsg(null);
+                  }}
+                  style={[styles.modeTab, importMode === 'BATCH' && styles.activeModeTab]}
+                >
+                  <View style={styles.batchTagRow}>
+                    <Icon
+                      name="Zap"
+                      size={13}
+                      color={importMode === 'BATCH' ? '#DDD6FE' : color.textMuted}
+                    />
+                    <Text
+                      style={[
+                        styles.modeTabText,
+                        importMode === 'BATCH' && styles.activeModeTabText,
+                      ]}
                     >
-                      <Text style={[styles.networkTabText, isActive && styles.activeNetworkTabText]}>
-                        {label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
+                      Tempel Sekaligus
+                    </Text>
+                    <View style={styles.quickBadge}>
+                      <Text style={styles.quickBadgeText}>Rekomendasi</Text>
+                    </View>
+                  </View>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => {
+                    triggerHaptic('selection');
+                    setImportMode('SINGLE');
+                    setErrorMsg(null);
+                  }}
+                  style={[styles.modeTab, importMode === 'SINGLE' && styles.activeModeTab]}
+                >
+                  <Text
+                    style={[
+                      styles.modeTabText,
+                      importMode === 'SINGLE' && styles.activeModeTabText,
+                    ]}
+                  >
+                    Input Tunggal
+                  </Text>
+                </Pressable>
               </View>
 
-              {networkType === 'EVM' && (
-                <View style={styles.networkSubNote}>
-                  <Text style={styles.networkSubNoteText}>
-                    Mendukung 5 chain sekaligus: Ethereum, BSC, Polygon, Arbitrum & Base
-                  </Text>
+              {importMode === 'BATCH' ? (
+                /* BATCH MODE: PASTE ALL AT ONCE */
+                <View style={styles.batchContainer}>
+                  <View style={styles.labelRow}>
+                    <Text style={styles.inputLabel}>Tempel Daftar Alamat Publik</Text>
+                    <Text style={styles.readOnlyTag}>Auto-Detect Multi-Chain</Text>
+                  </View>
+                  <TextInput
+                    style={styles.batchInput}
+                    placeholder={`Tempel satu atau beberapa alamat publik di sini.\nBisa dipisah baris, koma, spasi, atau teks bebas.\nContoh:\n0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045\nvines1vzrYbzLMRdu58sy5XTSEPbEK9aZXgHG7xXt21\nbc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq`}
+                    placeholderTextColor={color.textFaint}
+                    multiline
+                    numberOfLines={5}
+                    value={batchText}
+                    onChangeText={(t) => {
+                      setBatchText(t);
+                      setErrorMsg(null);
+                    }}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+
+                  {/* Detected Address Chips */}
+                  <View style={styles.detectedSummaryBox}>
+                    <Text style={styles.detectedSummaryTitle}>
+                      {detectedAddresses.length > 0
+                        ? `Terdeteksi ${detectedAddresses.length} Alamat Blockchain Valid:`
+                        : 'Tempel alamat publik untuk mendeteksi otomatis'}
+                    </Text>
+                    {detectedAddresses.length > 0 && (
+                      <View style={styles.detectedPillsRow}>
+                        {detectedAddresses.map((item, idx) => (
+                          <View key={`${item.address}-${idx}`} style={styles.detectedPill}>
+                            <View style={styles.chainPillDot} />
+                            <Text style={styles.detectedPillNetwork}>
+                              {item.networkType === 'EVM' ? 'EVM (5 Chain)' : item.networkType}
+                            </Text>
+                            <Text style={styles.detectedPillAddress}>
+                              {CryptoWalletService.truncateAddress(item.address, 5, 4)}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Submit Batch Button */}
+                  <Pressable
+                    onPress={handleBatchSubmit}
+                    disabled={isSubmitting || detectedAddresses.length === 0}
+                    style={[
+                      styles.submitBtn,
+                      (detectedAddresses.length === 0 || isSubmitting) && styles.disabledSubmitBtn,
+                    ]}
+                  >
+                    {isSubmitting ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <>
+                        <Icon name="Link2" size={16} color="#fff" />
+                        <Text style={styles.submitBtnText}>
+                          {detectedAddresses.length > 0
+                            ? `Hubungkan ${detectedAddresses.length} Dompet Sekaligus`
+                            : 'Tempel Alamat Terlebih Dahulu'}
+                        </Text>
+                      </>
+                    )}
+                  </Pressable>
+                </View>
+              ) : (
+                /* SINGLE MODE: ONE BY ONE */
+                <View>
+                  {/* Network Selector Tabs */}
+                  <Text style={styles.inputLabel}>Pilih Jaringan Blockchain</Text>
+                  <View style={styles.networkRow}>
+                    {(['EVM', 'SOLANA', 'BITCOIN'] as CryptoNetworkType[]).map((net) => {
+                      const isActive = networkType === net;
+                      const label =
+                        net === 'EVM' ? 'EVM Multi-Chain' : net === 'SOLANA' ? 'Solana' : 'Bitcoin';
+                      return (
+                        <Pressable
+                          key={net}
+                          onPress={() => {
+                            triggerHaptic('selection');
+                            setNetworkType(net);
+                            setScanResult(null);
+                            setErrorMsg(null);
+                          }}
+                          style={[styles.networkTab, isActive && styles.activeNetworkTab]}
+                        >
+                          <Text style={[styles.networkTabText, isActive && styles.activeNetworkTabText]}>
+                            {label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  {networkType === 'EVM' && (
+                    <View style={styles.networkSubNote}>
+                      <Text style={styles.networkSubNoteText}>
+                        Mendukung 5 chain sekaligus: Ethereum, BSC, Polygon, Arbitrum & Base
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Wallet Name */}
+                  <Text style={styles.inputLabel}>Nama Dompet (Opsional)</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Contoh: Metamask Utama, Ledger Cold, Phantom"
+                    placeholderTextColor={color.textFaint}
+                    value={name}
+                    onChangeText={setName}
+                    maxLength={40}
+                  />
+
+                  {/* Public Address */}
+                  <View style={styles.labelRow}>
+                    <Text style={styles.inputLabel}>Alamat Publik (Public Address)</Text>
+                    <Text style={styles.readOnlyTag}>Read-Only</Text>
+                  </View>
+                  <View style={styles.addressInputContainer}>
+                    <TextInput
+                      style={[styles.input, styles.addressInput]}
+                      placeholder={
+                        networkType === 'EVM'
+                          ? '0x...'
+                          : networkType === 'SOLANA'
+                          ? 'Alamat Solana Base58...'
+                          : 'bc1... atau 1... atau 3...'
+                      }
+                      placeholderTextColor={color.textFaint}
+                      value={address}
+                      onChangeText={handleAddressChange}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      multiline={false}
+                    />
+                  </View>
+
+                  {/* Scan Trigger Button */}
+                  <Pressable
+                    onPress={handleScanPreview}
+                    disabled={isScanning || !address.trim()}
+                    style={[
+                      styles.scanPreviewBtn,
+                      (!address.trim() || isScanning) && styles.disabledBtn,
+                    ]}
+                  >
+                    {isScanning ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <>
+                        <Icon name="RefreshCw" size={14} color="#fff" />
+                        <Text style={styles.scanPreviewBtnText}>Pindai Saldo On-Chain</Text>
+                      </>
+                    )}
+                  </Pressable>
+
+                  {/* Live Scan Result Preview */}
+                  {scanResult && (
+                    <View style={styles.scanResultContainer}>
+                      <View style={styles.scanHeader}>
+                        <Text style={styles.scanResultTitle}>Hasil Pindaian On-Chain</Text>
+                        <Text style={styles.scanTotalValue}>
+                          {formatCurrency(scanResult.totalBalanceIdr, currency, usdRate)}
+                        </Text>
+                      </View>
+
+                      {/* Chains detected */}
+                      <View style={styles.chainPillRow}>
+                        {scanResult.chains.map((c) => (
+                          <View key={c} style={styles.chainPill}>
+                            <View style={styles.chainPillDot} />
+                            <Text style={styles.chainPillText}>{c}</Text>
+                          </View>
+                        ))}
+                      </View>
+
+                      {/* Tokens detected */}
+                      {scanResult.tokens.length > 0 ? (
+                        <View style={styles.tokensList}>
+                          {scanResult.tokens.map((t, idx) => (
+                            <View key={`${t.chain}-${t.symbol}-${idx}`} style={styles.tokenRow}>
+                              <View style={styles.tokenLeft}>
+                                <View style={styles.tokenIconBadge}>
+                                  <Text style={styles.tokenIconText}>{t.symbol.slice(0, 3)}</Text>
+                                </View>
+                                <View>
+                                  <Text style={styles.tokenSymbol}>{t.symbol}</Text>
+                                  <Text style={styles.tokenChain}>{t.chain}</Text>
+                                </View>
+                              </View>
+                              <View style={styles.tokenRight}>
+                                <Text style={styles.tokenAmount}>
+                                  {t.balance < 0.001 ? t.balance.toFixed(6) : t.balance.toFixed(4)}
+                                </Text>
+                                <Text style={styles.tokenValue}>
+                                  {formatCurrency(t.valueIdr, currency, usdRate)}
+                                </Text>
+                              </View>
+                            </View>
+                          ))}
+                        </View>
+                      ) : (
+                        <View style={styles.emptyTokens}>
+                          <Text style={styles.emptyTokensText}>
+                            Tidak ditemukan saldo aktif pada alamat ini. Anda tetap dapat menghubungkannya untuk pemantauan masa depan.
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+
+                  {/* Submit Single Button */}
+                  <Pressable
+                    onPress={handleSingleSubmit}
+                    disabled={isSubmitting || !address.trim()}
+                    style={[
+                      styles.submitBtn,
+                      (!address.trim() || isSubmitting) && styles.disabledSubmitBtn,
+                    ]}
+                  >
+                    {isSubmitting ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <>
+                        <Icon name="Link2" size={16} color="#fff" />
+                        <Text style={styles.submitBtnText}>Simpan & Aktifkan Auto-Sync</Text>
+                      </>
+                    )}
+                  </Pressable>
                 </View>
               )}
-
-              {/* Wallet Name */}
-              <Text style={styles.inputLabel}>Nama Dompet (Opsional)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Contoh: Metamask Utama, Ledger Cold, Phantom"
-                placeholderTextColor={color.textFaint}
-                value={name}
-                onChangeText={setName}
-                maxLength={40}
-              />
-
-              {/* Public Address */}
-              <View style={styles.labelRow}>
-                <Text style={styles.inputLabel}>Alamat Publik (Public Address)</Text>
-                <Text style={styles.readOnlyTag}>Read-Only</Text>
-              </View>
-              <View style={styles.addressInputContainer}>
-                <TextInput
-                  style={[styles.input, styles.addressInput]}
-                  placeholder={
-                    networkType === 'EVM'
-                      ? '0x...'
-                      : networkType === 'SOLANA'
-                      ? 'Alamat Solana Base58...'
-                      : 'bc1... atau 1... atau 3...'
-                  }
-                  placeholderTextColor={color.textFaint}
-                  value={address}
-                  onChangeText={handleAddressChange}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  multiline={false}
-                />
-              </View>
-
-              {/* Scan Trigger Button */}
-              <Pressable
-                onPress={handleScanPreview}
-                disabled={isScanning || !address.trim()}
-                style={[
-                  styles.scanPreviewBtn,
-                  (!address.trim() || isScanning) && styles.disabledBtn,
-                ]}
-              >
-                {isScanning ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <>
-                    <Icon name="RefreshCw" size={14} color="#fff" />
-                    <Text style={styles.scanPreviewBtnText}>Pindai Saldo On-Chain</Text>
-                  </>
-                )}
-              </Pressable>
 
               {/* Error Message */}
               {errorMsg && (
                 <View style={styles.errorBox}>
                   <Icon name="AlertCircle" size={14} color={color.loss} />
                   <Text style={styles.errorText}>{errorMsg}</Text>
-                </View>
-              )}
-
-              {/* Live Scan Result Preview */}
-              {scanResult && (
-                <View style={styles.scanResultContainer}>
-                  <View style={styles.scanHeader}>
-                    <Text style={styles.scanResultTitle}>Hasil Pindaian On-Chain</Text>
-                    <Text style={styles.scanTotalValue}>
-                      {formatIDR(scanResult.totalBalanceIdr)}
-                    </Text>
-                  </View>
-
-                  {/* Chains detected */}
-                  <View style={styles.chainPillRow}>
-                    {scanResult.chains.map((c) => (
-                      <View key={c} style={styles.chainPill}>
-                        <View style={styles.chainPillDot} />
-                        <Text style={styles.chainPillText}>{c}</Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  {/* Tokens detected */}
-                  {scanResult.tokens.length > 0 ? (
-                    <View style={styles.tokensList}>
-                      {scanResult.tokens.map((t, idx) => (
-                        <View key={`${t.chain}-${t.symbol}-${idx}`} style={styles.tokenRow}>
-                          <View style={styles.tokenLeft}>
-                            <View style={styles.tokenIconBadge}>
-                              <Text style={styles.tokenIconText}>{t.symbol.slice(0, 3)}</Text>
-                            </View>
-                            <View>
-                              <Text style={styles.tokenSymbol}>{t.symbol}</Text>
-                              <Text style={styles.tokenChain}>{t.chain}</Text>
-                            </View>
-                          </View>
-                          <View style={styles.tokenRight}>
-                            <Text style={styles.tokenAmount}>
-                              {t.balance < 0.001 ? t.balance.toFixed(6) : t.balance.toFixed(4)}
-                            </Text>
-                            <Text style={styles.tokenValue}>{formatIDR(t.valueIdr)}</Text>
-                          </View>
-                        </View>
-                      ))}
-                    </View>
-                  ) : (
-                    <View style={styles.emptyTokens}>
-                      <Text style={styles.emptyTokensText}>
-                        Tidak ditemukan saldo aktif pada alamat ini. Anda tetap dapat menghubungkannya untuk pemantauan masa depan.
-                      </Text>
-                    </View>
-                  )}
                 </View>
               )}
 
@@ -324,25 +507,6 @@ export const CryptoWalletModal: React.FC<CryptoWalletModalProps> = ({ visible, o
                   </Text>
                 </View>
               </View>
-
-              {/* Submit Button */}
-              <Pressable
-                onPress={handleSubmit}
-                disabled={isSubmitting || !address.trim()}
-                style={[
-                  styles.submitBtn,
-                  (!address.trim() || isSubmitting) && styles.disabledSubmitBtn,
-                ]}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <>
-                    <Icon name="Link2" size={16} color="#fff" />
-                    <Text style={styles.submitBtnText}>Simpan & Aktifkan Auto-Sync</Text>
-                  </>
-                )}
-              </Pressable>
             </ScrollView>
           </GlassCard>
         </View>
@@ -409,6 +573,112 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: space.xl,
+  },
+  modeRow: {
+    flexDirection: 'row',
+    gap: space.xs,
+    marginBottom: space.md,
+  },
+  modeTab: {
+    flex: 1,
+    paddingVertical: space.sm,
+    paddingHorizontal: space.xs,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeModeTab: {
+    backgroundColor: 'rgba(139, 92, 246, 0.22)',
+    borderColor: '#8B5CF6',
+  },
+  modeTabText: {
+    fontSize: 12,
+    fontFamily: font.uiSemi,
+    fontWeight: '600',
+    color: color.textMuted,
+  },
+  activeModeTabText: {
+    color: '#DDD6FE',
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+  },
+  batchTagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  quickBadge: {
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: radius.pill,
+  },
+  quickBadgeText: {
+    fontSize: 9,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: color.gain,
+  },
+  batchContainer: {
+    gap: space.xs,
+  },
+  batchInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: radius.md,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    color: color.text,
+    fontSize: 12,
+    fontFamily: font.num,
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  detectedSummaryBox: {
+    marginTop: space.sm,
+    padding: space.sm,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  detectedSummaryTitle: {
+    fontSize: 11,
+    fontFamily: font.uiSemi,
+    fontWeight: '600',
+    color: color.textMuted,
+    marginBottom: 6,
+  },
+  detectedPillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  detectedPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(139, 92, 246, 0.18)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.35)',
+  },
+  detectedPillNetwork: {
+    fontSize: 10,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: '#DDD6FE',
+  },
+  detectedPillAddress: {
+    fontSize: 10,
+    fontFamily: font.num,
+    color: color.textMuted,
   },
   inputLabel: {
     fontSize: 13,

@@ -13,11 +13,19 @@ import { Icon } from '../common/icon';
 import { useWealth } from '../../store/wealth-context';
 import { formatTime } from '../../utils/format';
 import { triggerHaptic } from '../../utils/haptics';
-import { color, space, radius, shadow, motion } from '../../theme/tokens';
+import { color, space, radius, shadow, motion, font } from '../../theme/tokens';
 
 export const HeaderBar: React.FC = () => {
   const insets = useSafeAreaInsets();
-  const { privacyMode, togglePrivacy, isRefreshing, refreshMarketPrices, lastUpdated } = useWealth();
+  const {
+    privacyMode,
+    togglePrivacy,
+    currency,
+    toggleCurrency,
+    isRefreshing,
+    refreshMarketPrices,
+    lastUpdated,
+  } = useWealth();
 
   // Pulse animation for LIVE indicator dot (The only authorized idle loop in the app per design)
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -135,8 +143,51 @@ export const HeaderBar: React.FC = () => {
         </View>
       </View>
 
-      {/* Header Actions: Refresh & Privacy Toggle */}
+      {/* Header Actions: Currency, Refresh & Privacy Toggle */}
       <View style={styles.actionGroup}>
+        {/* Currency Switcher (IDR / USD) */}
+        <Pressable
+          onPress={() => {
+            triggerHaptic('selection');
+            toggleCurrency();
+          }}
+          hitSlop={6}
+          accessibilityLabel="Ganti tampilan mata uang Rupiah atau Dollar"
+          accessibilityRole="button"
+          style={styles.currencyToggleBtn}
+        >
+          <View
+            style={[
+              styles.currencySegment,
+              currency === 'IDR' && styles.activeCurrencySegment,
+            ]}
+          >
+            <Text
+              style={[
+                styles.currencySegmentText,
+                currency === 'IDR' && styles.activeCurrencySegmentText,
+              ]}
+            >
+              Rp
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.currencySegment,
+              currency === 'USD' && styles.activeCurrencySegment,
+            ]}
+          >
+            <Text
+              style={[
+                styles.currencySegmentText,
+                currency === 'USD' && styles.activeCurrencySegmentText,
+              ]}
+            >
+              $
+            </Text>
+          </View>
+        </Pressable>
+
         {/* Refresh Market Prices Button */}
         <Pressable
           onPress={() => {
@@ -273,5 +324,35 @@ const styles = StyleSheet.create({
   activeIconButton: {
     borderColor: color.accentRim,
     backgroundColor: color.accentSoft,
+  },
+  currencyToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: color.glassFillRaised,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: color.rim,
+    padding: 3,
+    height: 38,
+    ...shadow.e1,
+  },
+  currencySegment: {
+    paddingHorizontal: 9,
+    height: '100%',
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeCurrencySegment: {
+    backgroundColor: color.accent,
+  },
+  currencySegmentText: {
+    fontSize: 11,
+    fontFamily: font.uiSemi,
+    fontWeight: '700',
+    color: color.textMuted,
+  },
+  activeCurrencySegmentText: {
+    color: '#FFFFFF',
   },
 });

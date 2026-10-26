@@ -15,6 +15,7 @@ import { GlassCard } from '../../src/components/common/glass-card';
 import { ScreenTransition } from '../../src/components/common/screen-transition';
 import { AmbientBackground } from '../../src/components/common/ambient-background';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
+import { LiquidSegmentControl } from '../../src/components/common/liquid-segment-control';
 import { AccountModal } from '../../src/components/modals/account-modal';
 import { CashMutationModal } from '../../src/components/modals/cash-mutation-modal';
 import { CryptoWalletModal } from '../../src/components/modals/crypto-wallet-modal';
@@ -453,30 +454,20 @@ export default function AccountsScreen() {
           <Text style={styles.sectionHeadline}>Riwayat mutasi</Text>
 
           {/* Mini Tx Filter */}
-          <View style={styles.txFilterGroup}>
-            {(['ALL', 'INCOME', 'EXPENSE'] as TxFilter[]).map((f) => (
-              <Pressable
-                key={f}
-                onPress={() => {
-                  triggerHaptic('light');
-                  setSelectedTxFilter(f);
-                }}
-                style={[
-                  styles.txFilterBtn,
-                  selectedTxFilter === f && styles.txFilterBtnActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.txFilterBtnText,
-                    selectedTxFilter === f && styles.txFilterBtnTextActive,
-                  ]}
-                >
-                  {f === 'ALL' ? 'Semua' : f === 'INCOME' ? 'Masuk' : 'Keluar'}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+          <LiquidSegmentControl<TxFilter>
+            items={[
+              { key: 'ALL', label: 'Semua' },
+              { key: 'INCOME', label: 'Masuk' },
+              { key: 'EXPENSE', label: 'Keluar' },
+            ]}
+            activeKey={selectedTxFilter}
+            onSelect={setSelectedTxFilter}
+            style={[styles.txFilterGroup, { width: isSmall ? 175 : 195 }]}
+            height={32}
+            fontSize={11}
+            compact
+            hapticType="light"
+          />
         </View>
 
         {filteredTransactions.length === 0 ? (
@@ -841,12 +832,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   txFilterGroup: {
-    flexDirection: 'row',
-    backgroundColor: color.glassFillInset,
-    borderRadius: radius.pill,
-    padding: 2,
-    borderWidth: 1,
-    borderColor: color.hairline,
+    alignSelf: 'center',
   },
   txFilterBtn: {
     paddingVertical: 4,

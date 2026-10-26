@@ -17,6 +17,7 @@ import { ScreenTransition } from '../../src/components/common/screen-transition'
 import { AmbientBackground } from '../../src/components/common/ambient-background';
 import { Sparkline } from '../../src/components/common/sparkline';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
+import { LiquidSegmentControl } from '../../src/components/common/liquid-segment-control';
 import { StockModal } from '../../src/components/modals/stock-modal';
 import { CryptoModal } from '../../src/components/modals/crypto-modal';
 import { CryptoWalletModal } from '../../src/components/modals/crypto-wallet-modal';
@@ -238,34 +239,20 @@ export default function PortfolioScreen() {
           />
         </GlassCard>
 
-        {/* 2. SLIDING SEGMENT FILTER (Saham | Kripto) & SORT */}
+        {/* 2. SLIDING SEGMENT FILTER (Semua | Saham | Crypto) & SORT */}
         <View style={styles.filterRow}>
-          <View style={styles.segmentContainer}>
-            {(['ALL', 'STOCKS', 'CRYPTO'] as AssetFilter[]).map((f) => {
-              const isActive = activeFilter === f;
-              const label = f === 'ALL' ? 'Semua' : f === 'STOCKS' ? 'Saham' : 'Kripto';
-              const count = f === 'ALL'
-                ? stocks.length + cryptos.length
-                : f === 'STOCKS'
-                ? stocks.length
-                : cryptos.length;
-
-              return (
-                <Pressable
-                  key={f}
-                  onPress={() => {
-                    triggerHaptic('selection');
-                    setActiveFilter(f);
-                  }}
-                  style={[styles.segmentBtn, isActive && styles.activeSegmentBtn]}
-                >
-                  <Text style={[styles.segmentText, isActive && styles.activeSegmentText]}>
-                    {label} ({count})
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          <LiquidSegmentControl<AssetFilter>
+            items={[
+              { key: 'ALL', label: 'Semua', count: stocks.length + cryptos.length },
+              { key: 'STOCKS', label: 'Saham', count: stocks.length },
+              { key: 'CRYPTO', label: 'Crypto', count: cryptos.length },
+            ]}
+            activeKey={activeFilter}
+            onSelect={setActiveFilter}
+            style={styles.segmentContainer}
+            height={36}
+            fontSize={isSmall ? 11 : 12}
+          />
 
           <Pressable onPress={toggleSort} style={styles.sortBtn} hitSlop={6}>
             <Text style={styles.sortBtnText}>
@@ -796,14 +783,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: space.sm,
   },
   segmentContainer: {
-    flexDirection: 'row',
-    backgroundColor: color.glassFillInset,
-    borderRadius: radius.pill,
-    padding: 3,
-    borderWidth: 1,
-    borderColor: color.hairline,
+    flex: 1,
   },
   segmentBtn: {
     paddingVertical: 6,

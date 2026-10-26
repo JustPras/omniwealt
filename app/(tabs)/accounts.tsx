@@ -20,6 +20,7 @@ import { AccountModal } from '../../src/components/modals/account-modal';
 import { CashMutationModal } from '../../src/components/modals/cash-mutation-modal';
 import { CryptoWalletModal } from '../../src/components/modals/crypto-wallet-modal';
 import { BankAutoSyncModal } from '../../src/components/modals/bank-auto-sync-modal';
+import { BankStatementModal } from '../../src/components/modals/bank-statement-modal';
 import { CryptoWalletService } from '../../src/services/crypto-wallet-service';
 import { useWealth } from '../../src/store/wealth-context';
 import { formatIDR, formatDate } from '../../src/utils/format';
@@ -69,6 +70,7 @@ export default function AccountsScreen() {
   const [accountModalVisible, setAccountModalVisible] = useState(false);
   const [walletModalVisible, setWalletModalVisible] = useState(false);
   const [autoSyncModalVisible, setAutoSyncModalVisible] = useState(false);
+  const [bankStatementModalVisible, setBankStatementModalVisible] = useState(false);
   const [syncingWalletId, setSyncingWalletId] = useState<string | null>(null);
   const [mutationModalVisible, setMutationModalVisible] = useState(false);
   const [activeAccountForMutation, setActiveAccountForMutation] = useState<string | undefined>(undefined);
@@ -489,7 +491,53 @@ export default function AccountsScreen() {
           </View>
         </GlassCard>
 
-        {/* 5. RIWAYAT TRANSAKSI TERBARU (SINGLE CARD WITH ROWS SEPARATED BY HAIRLINE) */}
+        {/* 5. IMPORT REKENING KORAN BULANAN (PILAR 3) */}
+        <GlassCard level="base" style={styles.statementCard}>
+          <View style={styles.simulatorHeader}>
+            <View style={styles.autoSyncTitleRow}>
+              <View style={[styles.autoSyncIconCircle, { backgroundColor: 'rgba(167, 139, 250, 0.16)' }]}>
+                <Icon name="FileText" size={16} color="#A78BFA" />
+              </View>
+              <View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.simulatorTitle}>Rekening Koran Bulanan</Text>
+                  <View style={styles.pilar3Badge}>
+                    <Text style={styles.pilar3BadgeText}>Pilar 3</Text>
+                  </View>
+                </View>
+                <Text style={styles.simulatorSubBadge}>e-Statement PDF BCA, Mandiri & Jago</Text>
+              </View>
+            </View>
+
+            <Pressable
+              onPress={() => {
+                triggerHaptic('selection');
+                setBankStatementModalVisible(true);
+              }}
+              style={styles.manageStatementBtn}
+            >
+              <Icon name="UploadCloud" size={12} color="#A78BFA" />
+              <Text style={styles.manageStatementBtnText}>Import</Text>
+            </Pressable>
+          </View>
+
+          <Text style={styles.simulatorDesc}>
+            Impor seluruh mutasi bulanan sekaligus dari file PDF rekening koran, lengkap dengan rekonsiliasi saldo awal vs akhir dan anti-duplikasi buku kas.
+          </Text>
+
+          <Pressable
+            onPress={() => {
+              triggerHaptic('medium');
+              setBankStatementModalVisible(true);
+            }}
+            style={styles.openStatementBtn}
+          >
+            <Icon name="FileText" size={13} color="#fff" />
+            <Text style={styles.openStatementBtnText}>Buka Rekonsiliasi e-Statement</Text>
+          </Pressable>
+        </GlassCard>
+
+        {/* 6. RIWAYAT TRANSAKSI TERBARU (SINGLE CARD WITH ROWS SEPARATED BY HAIRLINE) */}
         <View style={styles.historyHeaderRow}>
           <Text style={styles.sectionHeadline}>Riwayat mutasi</Text>
 
@@ -585,6 +633,11 @@ export default function AccountsScreen() {
       <BankAutoSyncModal
         visible={autoSyncModalVisible}
         onClose={() => setAutoSyncModalVisible(false)}
+      />
+
+      <BankStatementModal
+        visible={bankStatementModalVisible}
+        onClose={() => setBankStatementModalVisible(false)}
       />
     </ScreenTransition>
   );
@@ -839,6 +892,56 @@ const styles = StyleSheet.create({
   // Simulator Card
   simulatorCard: {
     padding: space.lg,
+  },
+  statementCard: {
+    padding: space.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(167, 139, 250, 0.25)',
+  },
+  pilar3Badge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(167, 139, 250, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(167, 139, 250, 0.3)',
+  },
+  pilar3BadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#A78BFA',
+  },
+  manageStatementBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(167, 139, 250, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(167, 139, 250, 0.28)',
+  },
+  manageStatementBtnText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#A78BFA',
+  },
+  openStatementBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#7C3AED',
+    paddingVertical: 10,
+    paddingHorizontal: space.md,
+    borderRadius: radius.md,
+    marginTop: space.xs,
+  },
+  openStatementBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#fff',
   },
   simulatorHeader: {
     flexDirection: 'row',

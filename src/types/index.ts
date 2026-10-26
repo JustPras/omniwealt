@@ -184,3 +184,46 @@ export interface CapturedNotificationLog {
   status: 'COMMITTED' | 'PENDING' | 'DUPLICATE' | 'FAILED' | 'RECONCILED_TRANSFER';
   matchPlan?: InternalTransferMatchPlan;
 }
+
+// Pilar 3: Bank Statement PDF & Reconciliation
+export interface BankStatementMutation {
+  id: string;
+  date: string;
+  rawDate: string;
+  description: string;
+  type: TransactionType;
+  amount: number;
+  balance?: number;
+  category: string;
+  isInternalTransfer?: boolean;
+  destinationAccountHint?: string;
+  status: 'NEW' | 'DUPLICATE_SKIPPED' | 'RECONCILED';
+}
+
+export interface BankStatementParseResult {
+  bankName: string;
+  accountNumber: string;
+  accountHolder?: string;
+  periodStart?: string;
+  periodEnd?: string;
+  currency: string;
+  openingBalance: number;
+  closingBalance: number;
+  totalInflow: number;
+  totalOutflow: number;
+  calculatedClosingBalance: number;
+  discrepancy: number;
+  status: 'VERIFIED' | 'NEEDS_REVIEW';
+  mutations: BankStatementMutation[];
+  rawText?: string;
+}
+
+export interface BankStatementCommitResult {
+  accountId: string;
+  accountName: string;
+  totalImported: number;
+  totalDuplicatesSkipped: number;
+  newBalance: number;
+  verified: boolean;
+  summary: string;
+}

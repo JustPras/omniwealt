@@ -22,6 +22,7 @@ import { formatIDR } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
 import { AIParserService } from '../../src/services/ai-parser';
 import { PDFExtractorService } from '../../src/services/pdf-extractor';
+import { BankStatementModal } from '../../src/components/modals/bank-statement-modal';
 import { color, space, radius, shadow, font } from '../../src/theme/tokens';
 import { IngestionPayload } from '../../src/types/rdn-pipeline';
 
@@ -81,6 +82,7 @@ export default function SyncScreen() {
   const [confirmationNotice, setConfirmationNotice] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'MANUAL' | 'EMAIL_WEBHOOK'>('MANUAL');
   const [webhookSender, setWebhookSender] = useState('statement@stockbit.com');
+  const [bankStatementModalVisible, setBankStatementModalVisible] = useState(false);
 
   const rdnAccount = useMemo(() => {
     return accounts.find((a) => a.type === 'RDN') || accounts[0];
@@ -277,6 +279,33 @@ export default function SyncScreen() {
             </View>
           )}
         </GlassCard>
+
+        {/* BANK E-STATEMENT BANNER (PILAR 3) */}
+        <Pressable
+          onPress={() => {
+            triggerHaptic('medium');
+            setBankStatementModalVisible(true);
+          }}
+          style={styles.bankStatementBanner}
+        >
+          <View style={styles.bankStatementBannerLeft}>
+            <View style={styles.bankStatementBannerIcon}>
+              <Icon name="FileText" size={16} color="#A78BFA" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={styles.bankStatementBannerTitle}>Rekening Koran Bank</Text>
+                <View style={styles.pilar3Badge}>
+                  <Text style={styles.pilar3BadgeText}>Pilar 3</Text>
+                </View>
+              </View>
+              <Text style={styles.bankStatementBannerDesc}>
+                Import e-Statement bulanan BCA, Mandiri, BRI & Jago dengan rekonsiliasi saldo & anti-duplikat.
+              </Text>
+            </View>
+          </View>
+          <Icon name="ChevronRight" size={16} color="#A78BFA" />
+        </Pressable>
 
         {/* 2. INGESTION ENTRY POINTS TABS */}
         <View style={styles.tabSelector}>
@@ -621,6 +650,11 @@ export default function SyncScreen() {
           })}
         </GlassCard>
       </ScrollView>
+
+      <BankStatementModal
+        visible={bankStatementModalVisible}
+        onClose={() => setBankStatementModalVisible(false)}
+      />
     </ScreenTransition>
   );
 }
@@ -636,6 +670,53 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     padding: space.lg,
+  },
+  bankStatementBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(167, 139, 250, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(167, 139, 250, 0.25)',
+    borderRadius: radius.lg,
+    padding: space.md,
+  },
+  bankStatementBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+    marginRight: space.sm,
+  },
+  bankStatementBannerIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(167, 139, 250, 0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bankStatementBannerTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#DDD6FE',
+  },
+  pilar3Badge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(167, 139, 250, 0.2)',
+  },
+  pilar3BadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#A78BFA',
+  },
+  bankStatementBannerDesc: {
+    fontSize: 11,
+    color: color.textMuted,
+    lineHeight: 15,
+    marginTop: 2,
   },
   heroLabel: {
     fontSize: 13,

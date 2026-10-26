@@ -14,12 +14,15 @@ import {
   CurrencyMode,
   AutoSyncNotificationConfig,
   CapturedNotificationLog,
+  BankStatementParseResult,
+  BankStatementCommitResult,
 } from '../types';
 import { StorageService } from '../services/storage-service';
 import { MarketService } from '../services/market-service';
 import { CryptoWalletService } from '../services/crypto-wallet-service';
 import { NotificationSyncService } from '../services/notification-sync-service';
 import { InternalTransferService } from '../services/internal-transfer-service';
+import { BankStatementReconciliationService } from '../services/bank-statement-reconciliation-service';
 import { AIParserService } from '../services/ai-parser';
 import {
   IngestionService,
@@ -95,6 +98,9 @@ interface WealthContextType {
   notificationLogs: CapturedNotificationLog[];
   processIncomingNotification: (text: string, app?: string) => Promise<{ success: boolean; result?: BankMutationResult }>;
   clearNotificationLogs: () => Promise<void>;
+
+  // Pilar 3: Bank Statement Import & Reconciliation
+  commitBankStatement: (result: BankStatementParseResult, targetAccountId?: string) => Promise<BankStatementCommitResult>;
 
   resetToInitialSeed: () => Promise<void>;
   clearAllData: () => Promise<void>;
@@ -1484,6 +1490,99 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     [notificationConfig.autoCommit, applyMutationText]
   );
 
+  // Pilar 3: Bank Statement Import & Reconciliation
+  const commitBankStatement = useCallback(
+    async (
+      result: BankStatementParseResult,
+      targetAccountId?: string
+    ): Promise<BankStatementCommitResult> => {
+      triggerHaptic('medium');
+
+      // 1. Resolve Target Account
+      let targetAccount =
+        accounts.find((a) => a.id === targetAccountId) ||
+        accounts.find((a) => a.accountNumber === result.accountNumber) ||
+        accounts.find((a) => a.name.toLowerCase().includes(result.bankName.toLowerCase())) ||
+        accounts.find((a) => a.type === 'BANK') ||
+        accounts[0];
+
+      if (!targetAccount) {
+        const isJago = result.bankName.toLowerCase().includes('jago');
+        targetAccount = {
+          id: `acc-stmt-${Date.now()}`,
+          name: result.bankName || 'Rekening Bank',
+          type: 'BANK',
+          accountNumber: result.accountNumber || 'Aktif',
+          balance: result.closingBalance,
+          color: isJago ? '#8B5CF6' : '#00529C',
+          icon: isJago ? 'smartphone' : 'landmark',
+          updatedAt: new Date().toISOString(),
+        };
+        setAccounts((prev) => {
+          const updated = [targetAccount, ...prev];
+          StorageService.saveAccounts(updated);
+          return updated;
+        });
+      }
+
+      // 2. Reconcile with existing ledger transactions (deduplicate against Pilar 1 notifs)
+      const { reconciledMutations, newCount, duplicateCount } =
+        BankStatementReconciliationService.reconcileWithLedger(
+          result.mutations,
+          targetAccount,
+          transactions
+        );
+
+      // 3. Prepare new Transaction objects
+      const { newTransactions } = BankStatementReconciliationService.prepareCommitPayload(
+        reconciledMutations,
+        targetAccount
+      );
+
+      // 4. Update ledger
+      if (newTransactions.length > 0) {
+        setTransactions((prev) => {
+          const updated = [...newTransactions, ...prev];
+          StorageService.saveTransactions(updated);
+          return updated;
+        });
+      }
+
+      // 5. Update Account Balance to the statement's verified closing balance
+      setAccounts((prev) => {
+        const updated = prev.map((a) => {
+          if (a.id === targetAccount.id) {
+            return {
+              ...a,
+              balance: result.closingBalance,
+              accountNumber:
+                a.accountNumber === 'Aktif' && result.accountNumber !== 'Aktif'
+                  ? result.accountNumber
+                  : a.accountNumber,
+              updatedAt: new Date().toISOString(),
+            };
+          }
+          return a;
+        });
+        StorageService.saveAccounts(updated);
+        return updated;
+      });
+
+      triggerHaptic('success');
+
+      return {
+        accountId: targetAccount.id,
+        accountName: targetAccount.name,
+        totalImported: newCount,
+        totalDuplicatesSkipped: duplicateCount,
+        newBalance: result.closingBalance,
+        verified: result.status === 'VERIFIED',
+        summary: `Berhasil mengimpor ${newCount} mutasi baru ke ${targetAccount.name}. ${duplicateCount} transaksi duplikat berhasil dilewati. Saldo terverifikasi: Rp ${result.closingBalance.toLocaleString('id-ID')}.`,
+      };
+    },
+    [accounts, transactions]
+  );
+
   const contextValue = useMemo<WealthContextType>(
     () => ({
       accounts,
@@ -1522,6 +1621,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       notificationLogs,
       processIncomingNotification,
       clearNotificationLogs,
+      commitBankStatement,
       refreshMarketPrices,
       addAccount,
       updateAccountBalance,

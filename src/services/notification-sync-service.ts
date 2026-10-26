@@ -92,6 +92,34 @@ export const MONITORED_BANK_APPS: MonitoredBankApp[] = [
 
 export const NOTIFICATION_TEST_PRESETS = [
   {
+    id: 'test-transfer-pair-bca',
+    title: 'Pilar 2: Transfer Keluar (BCA)',
+    badge: 'Leg 1 (BCA ➔ Jago)',
+    appId: 'bca',
+    text: 'Transfer keluar Rp 500.000 ke Bank Jago dari rekening BCA Tahapan',
+  },
+  {
+    id: 'test-transfer-pair-jago',
+    title: 'Pilar 2: Transfer Masuk (Jago)',
+    badge: 'Leg 2 (Pair Match)',
+    appId: 'jago',
+    text: 'Pemberitahuan: Uang masuk Rp 500.000 via BI-FAST dari BCA ke Kantong Utama Bank Jago',
+  },
+  {
+    id: 'test-transfer-single-gopay',
+    title: 'Pilar 2: Direct Top Up GoPay',
+    badge: 'BCA ➔ GoPay',
+    appId: 'bca',
+    text: 'Top up GoPay Rp 150.000 dari BCA Tahapan berhasil',
+  },
+  {
+    id: 'test-transfer-jago-pockets',
+    title: 'Pilar 2: Pindah Kantong Jago',
+    badge: 'Utama ➔ Nabung',
+    appId: 'jago',
+    text: 'Pindah kantong Rp 200.000 dari Kantong Utama ke Kantong Nabung Bank Jago berhasil',
+  },
+  {
     id: 'test-jago-fnb',
     title: 'Jago Uang Keluar F&B',
     badge: 'Kantong Utama Jago',

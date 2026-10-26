@@ -51,6 +51,7 @@ const DEFAULT_NOTIFICATION_CONFIG: AutoSyncNotificationConfig = {
   autoCommit: true,
   monitoredApps: ['bca', 'mandiri', 'bri', 'bni', 'jago', 'gopay', 'ovo', 'dana', 'shopeepay'],
   clipboardDetection: false,
+  internalTransferMatching: true,
 };
 
 const DEFAULT_MARKET_CACHE: MarketCacheData = {

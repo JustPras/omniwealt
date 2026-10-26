@@ -27,7 +27,7 @@ import { triggerHaptic } from '../../src/utils/haptics';
 import { BankMutationResult, AccountType } from '../../src/types';
 import { color, space, radius, shadow } from '../../src/theme/tokens';
 
-type TxFilter = 'ALL' | 'INCOME' | 'EXPENSE';
+type TxFilter = 'ALL' | 'INCOME' | 'EXPENSE' | 'TRANSFER';
 
 const PRESETS = [
   {
@@ -92,7 +92,10 @@ export default function AccountsScreen() {
 
   const filteredTransactions = useMemo(() => {
     if (selectedTxFilter === 'ALL') return transactions;
-    return transactions.filter((tx) => tx.type === selectedTxFilter);
+    if (selectedTxFilter === 'TRANSFER') {
+      return transactions.filter((tx) => tx.type === 'TRANSFER' || tx.isInternalTransfer);
+    }
+    return transactions.filter((tx) => tx.type === selectedTxFilter && !tx.isInternalTransfer);
   }, [transactions, selectedTxFilter]);
 
   const handleProcessMutation = async (customText?: string) => {
@@ -496,10 +499,11 @@ export default function AccountsScreen() {
               { key: 'ALL', label: 'Semua' },
               { key: 'INCOME', label: 'Masuk' },
               { key: 'EXPENSE', label: 'Keluar' },
+              { key: 'TRANSFER', label: 'Transfer' },
             ]}
             activeKey={selectedTxFilter}
             onSelect={setSelectedTxFilter}
-            style={[styles.txFilterGroup, { width: isSmall ? 175 : 195 }]}
+            style={[styles.txFilterGroup, { width: isSmall ? 220 : 250 }]}
             height={32}
             fontSize={11}
             compact
@@ -515,24 +519,37 @@ export default function AccountsScreen() {
           <GlassCard level="base" noPadding style={styles.txCard}>
             {filteredTransactions.slice(0, 10).map((tx, index) => {
               const isInc = tx.type === 'INCOME';
+              const isTransfer = tx.type === 'TRANSFER' || tx.isInternalTransfer;
               const isLast = index === Math.min(filteredTransactions.length, 10) - 1;
               return (
                 <View key={tx.id}>
                   <View style={styles.txRow}>
                     <View style={styles.txLeft}>
-                      <Text style={styles.txDescription}>{tx.description}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        {isTransfer && (
+                          <View style={styles.transferTagBadge}>
+                            <Text style={styles.transferTagText}>Transfer</Text>
+                          </View>
+                        )}
+                        <Text style={styles.txDescription}>{tx.description}</Text>
+                      </View>
                       <Text style={styles.txMeta}>
                         {formatDate(tx.transactionDate)} • {tx.accountName || 'Kas'}
+                        {tx.destinationAccountName ? ` ➔ ${tx.destinationAccountName}` : ''}
                       </Text>
                     </View>
 
                     <Text
                       style={[
                         styles.txAmountText,
-                        isInc ? styles.textGain : styles.textLoss,
+                        isTransfer
+                          ? styles.textTransfer
+                          : isInc
+                          ? styles.textGain
+                          : styles.textLoss,
                       ]}
                     >
-                      {isInc ? '▲ +' : '▼ −'}
+                      {isTransfer ? '⇄ ' : isInc ? '▲ +' : '▼ −'}
                       {formatIDR(Math.abs(tx.amount))}
                     </Text>
                   </View>
@@ -976,6 +993,22 @@ const styles = StyleSheet.create({
   },
   textLoss: {
     color: color.loss,
+  },
+  textTransfer: {
+    color: '#38BDF8',
+  },
+  transferTagBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(56, 189, 248, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.28)',
+  },
+  transferTagText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#38BDF8',
   },
   emptyCard: {
     padding: space.lg,

@@ -133,12 +133,16 @@ export const NotificationToast: React.FC = () => {
             {/* Middle Details */}
             <View style={styles.textColumn}>
               <View style={styles.headerRow}>
-                <Text style={styles.autoTag}>⚡ Auto-Sync Notifikasi</Text>
+                <Text style={[styles.autoTag, isTransfer && { color: '#A78BFA' }]}>
+                  {isTransfer ? '🔄 Transfer Internal' : '⚡ Auto-Sync Notifikasi'}
+                </Text>
                 <Text style={styles.bankName}>{result.bankName}</Text>
               </View>
 
               <Text style={styles.descText} numberOfLines={1}>
-                {result.merchantOrSender
+                {isTransfer && result.destinationHint
+                  ? `Transfer ke ${result.destinationHint}`
+                  : result.merchantOrSender
                   ? `${result.merchantOrSender}`
                   : result.category}
               </Text>
@@ -149,10 +153,14 @@ export const NotificationToast: React.FC = () => {
               <Text
                 style={[
                   styles.amountText,
-                  isIncome ? styles.textIncome : styles.textExpense,
+                  isIncome
+                    ? styles.textIncome
+                    : isTransfer
+                    ? styles.textTransfer
+                    : styles.textExpense,
                 ]}
               >
-                {isIncome ? `+${formattedAmount}` : `-${formattedAmount}`}
+                {isIncome ? `+${formattedAmount}` : isTransfer ? `⇄ ${formattedAmount}` : `-${formattedAmount}`}
               </Text>
               <Text style={styles.categorySub}>{result.category}</Text>
             </View>
@@ -272,6 +280,9 @@ const styles = StyleSheet.create({
   },
   textExpense: {
     color: '#F87171',
+  },
+  textTransfer: {
+    color: '#38BDF8',
   },
   categorySub: {
     fontSize: 10,

@@ -85,6 +85,27 @@ export const BankAutoSyncModal: React.FC<BankAutoSyncModalProps> = ({
     }
   };
 
+  const handleRunTwoLeggedPair = async () => {
+    setIsSimulating(true);
+    triggerHaptic('medium');
+    try {
+      // Leg 1: BCA Outflow
+      await processIncomingNotification(
+        'Transfer keluar Rp 500.000 ke Bank Jago dari rekening BCA Tahapan',
+        'bca'
+      );
+      // Brief pause between legs
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Leg 2: Jago Inflow (Complementary Leg)
+      await processIncomingNotification(
+        'Pemberitahuan: Uang masuk Rp 500.000 via BI-FAST dari BCA ke Kantong Utama Bank Jago',
+        'jago'
+      );
+    } finally {
+      setIsSimulating(false);
+    }
+  };
+
   const handleRunCustom = async () => {
     if (!customText.trim()) return;
     setIsSimulating(true);
@@ -203,6 +224,30 @@ export const BankAutoSyncModal: React.FC<BankAutoSyncModalProps> = ({
                     />
                   </View>
 
+                  {/* Pilar 2: Anti-Duplikat Transfer Toggle */}
+                  <View style={styles.settingRow}>
+                    <View style={styles.settingTextContainer}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={styles.settingLabel}>Pilar 2: Smart Anti-Duplikat Transfer</Text>
+                        <View style={styles.pilarBadge}>
+                          <Text style={styles.pilarBadgeText}>Pilar 2</Text>
+                        </View>
+                      </View>
+                      <Text style={styles.settingDesc}>
+                        Mencocokkan mutasi transfer antar rekening sendiri (BCA, Mandiri, Jago, GoPay, RDN) tanpa menduplikasi uang masuk/keluar.
+                      </Text>
+                    </View>
+                    <Switch
+                      value={notificationConfig.internalTransferMatching !== false}
+                      onValueChange={(val) => {
+                        triggerHaptic('selection');
+                        updateNotificationConfig({ internalTransferMatching: val });
+                      }}
+                      trackColor={{ false: 'rgba(255,255,255,0.1)', true: '#A78BFA' }}
+                      thumbColor="#fff"
+                    />
+                  </View>
+
                   {/* Monitored Apps Grid */}
                   <Text style={styles.sectionHeader}>Aplikasi Bank & E-Wallet Dipantau</Text>
                   <Text style={styles.sectionSubDesc}>
@@ -286,6 +331,36 @@ export const BankAutoSyncModal: React.FC<BankAutoSyncModalProps> = ({
               {/* TAB 3: UJI SIMULASI */}
               {activeTab === 'SIMULASI' && (
                 <View style={styles.tabBody}>
+                  {/* Interactive Pilar 2 Test Card */}
+                  <View style={styles.pilar2FeatureCard}>
+                    <View style={styles.pilar2CardHeader}>
+                      <View style={styles.pilar2IconCircle}>
+                        <Icon name="Repeat" size={16} color="#A78BFA" />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.pilar2CardTitle}>Uji Rekonsiliasi Transfer 2 Arah</Text>
+                        <Text style={styles.pilar2CardDesc}>
+                          Simulasikan debit BCA Rp 500k disusul kredit Jago Rp 500k. Aplikasi akan menyatukannya menjadi 1 transaksi Transfer tanpa double-counting.
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Pressable
+                      disabled={isSimulating}
+                      onPress={handleRunTwoLeggedPair}
+                      style={[styles.pilar2RunBtn, isSimulating && styles.disabledButton]}
+                    >
+                      {isSimulating ? (
+                        <ActivityIndicator color="#fff" size="small" />
+                      ) : (
+                        <>
+                          <Icon name="Play" size={13} color="#fff" />
+                          <Text style={styles.pilar2RunBtnText}>Jalankan Simulasi 2 Arah (BCA ➔ Jago)</Text>
+                        </>
+                      )}
+                    </Pressable>
+                  </View>
+
                   <Text style={styles.sectionHeader}>Pilih Preset Transaksi Nyata:</Text>
                   <Text style={styles.sectionSubDesc}>
                     Sentuh salah satu preset untuk menguji interseptor mutasi & banner secara langsung:
@@ -805,6 +880,74 @@ const styles = StyleSheet.create({
   },
   textExpense: {
     color: '#F87171',
+  },
+  pilarBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(167, 139, 250, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(167, 139, 250, 0.3)',
+  },
+  pilarBadgeText: {
+    fontSize: 9,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: '#A78BFA',
+  },
+  pilar2FeatureCard: {
+    backgroundColor: 'rgba(167, 139, 250, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(167, 139, 250, 0.25)',
+    borderRadius: radius.lg,
+    padding: space.md,
+    marginBottom: space.md,
+  },
+  pilar2CardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginBottom: space.sm,
+  },
+  pilar2IconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(167, 139, 250, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pilar2CardTitle: {
+    fontSize: 13,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: '#DDD6FE',
+    marginBottom: 2,
+  },
+  pilar2CardDesc: {
+    fontSize: 11,
+    fontFamily: font.ui,
+    color: color.textMuted,
+    lineHeight: 16,
+  },
+  pilar2RunBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#8B5CF6',
+    paddingVertical: 9,
+    paddingHorizontal: space.md,
+    borderRadius: radius.md,
+  },
+  pilar2RunBtnText: {
+    fontSize: 12,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
   logRawText: {
     fontSize: 10,

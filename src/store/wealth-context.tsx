@@ -19,6 +19,7 @@ import { StorageService } from '../services/storage-service';
 import { MarketService } from '../services/market-service';
 import { CryptoWalletService } from '../services/crypto-wallet-service';
 import { NotificationSyncService } from '../services/notification-sync-service';
+import { InternalTransferService } from '../services/internal-transfer-service';
 import { AIParserService } from '../services/ai-parser';
 import {
   IngestionService,
@@ -67,7 +68,7 @@ interface WealthContextType {
   refreshMarketPrices: (isSilent?: boolean) => Promise<void>;
   addAccount: (account: Omit<Account, 'id'>) => Promise<void>;
   updateAccountBalance: (id: string, delta: number, description: string, type: 'INCOME' | 'EXPENSE') => Promise<void>;
-  applyMutationText: (text: string) => Promise<BankMutationResult>;
+  applyMutationText: (text: string, sourceApp?: string) => Promise<BankMutationResult>;
   confirmBrokerTrades: (result: BrokerExtractionResult, targetRdnId?: string) => Promise<{ success: boolean; message: string }>;
   saveStock: (stock: Omit<StockAsset, 'id'>, id?: string) => Promise<void>;
   deleteStock: (id: string) => Promise<void>;
@@ -475,10 +476,75 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     []
   );
 
-  // 6. Bank Mutation Processing
+  // 6. Bank Mutation Processing (Pilar 1 & Pilar 2: Smart Internal Transfer Matching)
   const applyMutationText = useCallback(
-    async (text: string): Promise<BankMutationResult> => {
-      const parsed = await AIParserService.parseBankMutation(text);
+    async (text: string, sourceApp?: string): Promise<BankMutationResult> => {
+      const parsed = await AIParserService.parseBankMutation(text, sourceApp);
+      const isInternalMatchingEnabled = notificationConfig.internalTransferMatching !== false;
+
+      // STEP 1: Check if this notification is an acknowledgment leg for an ALREADY RECONCILED transfer
+      if (isInternalMatchingEnabled) {
+        const bankLower = parsed.bankName.toLowerCase();
+        const currentAcc =
+          accounts.find((a) => a.name.toLowerCase().includes(bankLower)) ||
+          accounts.find((a) => a.type === 'BANK') ||
+          accounts[0];
+
+        if (currentAcc && InternalTransferService.checkAlreadyReconciled(parsed, currentAcc, transactions)) {
+          triggerHaptic('success');
+          return {
+            ...parsed,
+            type: 'TRANSFER',
+            category: 'Internal Transfer',
+          };
+        }
+      }
+
+      // STEP 2: Check Direct Single Notification Transfer (e.g. BCA to GoPay, Jago to RDN)
+      if (isInternalMatchingEnabled) {
+        const directPlan = InternalTransferService.checkDirectSingleTransfer(parsed, text, accounts);
+        if (directPlan && directPlan.isMatched) {
+          const { sourceAccount, destinationAccount, transferAmount, consolidatedTransaction } = directPlan;
+
+          // Update balances atomically & auto-provision destination if new
+          setAccounts((prev) => {
+            let hasDest = prev.some((a) => a.id === destinationAccount.id);
+            let updated = prev.map((a) => {
+              if (a.id === sourceAccount.id) {
+                return { ...a, balance: Math.max(0, a.balance - transferAmount) };
+              }
+              if (a.id === destinationAccount.id) {
+                return { ...a, balance: a.balance + transferAmount };
+              }
+              return a;
+            });
+
+            if (!hasDest) {
+              const newDest = { ...destinationAccount, balance: transferAmount };
+              updated = [newDest, ...updated];
+            }
+
+            StorageService.saveAccounts(updated);
+            return updated;
+          });
+
+          // Record consolidated transfer transaction
+          setTransactions((prev) => {
+            const updated = [consolidatedTransaction, ...prev];
+            StorageService.saveTransactions(updated);
+            return updated;
+          });
+
+          triggerHaptic('success');
+          return {
+            ...parsed,
+            type: 'TRANSFER',
+            category: 'Internal Transfer',
+            destinationHint: destinationAccount.name,
+            sourceHint: sourceAccount.name,
+          };
+        }
+      }
 
       // Find matched account or create one
       const bankLower = parsed.bankName.toLowerCase();
@@ -516,6 +582,83 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         });
       }
 
+      // STEP 3: Check Two-Legged Match with Recent Transactions (e.g. BCA Outflow Leg 1 + Jago Inflow Leg 2)
+      if (isInternalMatchingEnabled) {
+        const twoLeggedPlan = InternalTransferService.findTwoLeggedMatch(
+          parsed,
+          text,
+          matchedAccount,
+          transactions,
+          accounts
+        );
+
+        if (twoLeggedPlan && twoLeggedPlan.isMatched) {
+          const {
+            sourceAccount,
+            destinationAccount,
+            transferAmount,
+            feeAmount,
+            matchedTransactionId,
+            consolidatedTransaction,
+          } = twoLeggedPlan;
+
+          // Update destination account balance (source account was already debited by previous leg)
+          setAccounts((prev) => {
+            const updated = prev.map((a) => {
+              if (a.id === destinationAccount.id) {
+                return { ...a, balance: a.balance + transferAmount };
+              }
+              return a;
+            });
+            StorageService.saveAccounts(updated);
+            return updated;
+          });
+
+          // Replace the previous leg with consolidated transaction
+          setTransactions((prev) => {
+            let found = false;
+            let updated = prev.map((tx) => {
+              if (tx.id === matchedTransactionId) {
+                found = true;
+                return consolidatedTransaction;
+              }
+              return tx;
+            });
+            if (!found) {
+              updated = [consolidatedTransaction, ...prev];
+            }
+
+            if (feeAmount && feeAmount > 0) {
+              const feeTx: Transaction = {
+                id: `tx-fee-${Date.now()}`,
+                accountId: sourceAccount.id,
+                accountName: sourceAccount.name,
+                type: 'EXPENSE',
+                amount: feeAmount,
+                category: 'Bank Admin & Fees',
+                description: `Biaya Admin Transfer (${sourceAccount.name})`,
+                source: 'ANDROID_AUTO',
+                transactionDate: new Date().toISOString(),
+              };
+              updated = [feeTx, ...updated];
+            }
+
+            StorageService.saveTransactions(updated);
+            return updated;
+          });
+
+          triggerHaptic('success');
+          return {
+            ...parsed,
+            type: 'TRANSFER',
+            category: 'Internal Transfer',
+            destinationHint: destinationAccount.name,
+            sourceHint: sourceAccount.name,
+          };
+        }
+      }
+
+      // STEP 4: Standard single leg processing (when no match found)
       let delta = 0;
       if (parsed.type === 'EXPENSE') delta = -parsed.amount;
       else if (parsed.type === 'INCOME') delta = parsed.amount;
@@ -576,7 +719,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       triggerHaptic('success');
       return parsed;
     },
-    [accounts]
+    [accounts, transactions, notificationConfig.internalTransferMatching]
   );
 
   // 7. Broker Trade Confirmation Engine (Auto-Update Lots, Avg Buy Price & RDN)
@@ -1324,7 +1467,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         app,
         notificationConfig.autoCommit
           ? async (parsed) => {
-              await applyMutationText(text);
+              await applyMutationText(text, app);
             }
           : undefined,
         async (log) => {

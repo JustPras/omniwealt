@@ -221,6 +221,37 @@ Notification: "${text}"
         .trim();
     }
 
+    // 5. Transfer Hints Extraction (Pilar 2: Smart Internal Transfer)
+    let destinationHint: string | undefined;
+    let sourceHint: string | undefined;
+
+    const toHintMatch = text.match(/\bke\s+(?:rekening\s+|kantong\s+|e-wallet\s+|wallet\s+)?([a-zA-Z0-9\s()&'-]+?)(?:\s+(?:dari|sebesar|rp|idr|via|berhasil|sukses|pada)|$)/i);
+    if (toHintMatch) {
+      destinationHint = toHintMatch[1].trim();
+    }
+
+    const topUpMatch = text.match(/\b(?:top\s*up|topup|isi\s*saldo)\s+(?:saldo\s+)?([a-zA-Z0-9\s()&'-]+?)(?:\s+(?:sebesar|rp|idr|dari|via|berhasil|sukses)|$)/i);
+    if (topUpMatch && !destinationHint) {
+      destinationHint = topUpMatch[1].trim();
+    }
+
+    const fromHintMatch = text.match(/\bdari\s+(?:rekening\s+|kantong\s+|e-wallet\s+|wallet\s+)?([a-zA-Z0-9\s()&'-]+?)(?:\s+(?:ke|sebesar|rp|idr|via|berhasil|sukses|pada)|$)/i);
+    if (fromHintMatch) {
+      sourceHint = fromHintMatch[1].trim();
+    }
+
+    const isTransferCandidate =
+      type === 'TRANSFER' ||
+      category === 'Investment Top-Up' ||
+      lower.includes('transfer') ||
+      lower.includes('top up') ||
+      lower.includes('topup') ||
+      lower.includes('isi saldo') ||
+      lower.includes('bi-fast') ||
+      lower.includes('pindah kantong') ||
+      (type === 'INCOME' && sourceHint !== undefined && (lower.includes('dari bca') || lower.includes('dari mandiri') || lower.includes('dari jago') || lower.includes('dari bri'))) ||
+      (type === 'EXPENSE' && destinationHint !== undefined && (lower.includes('ke jago') || lower.includes('ke bca') || lower.includes('ke mandiri') || lower.includes('ke gopay') || lower.includes('ke ovo') || lower.includes('ke dana') || lower.includes('ke shopeepay') || lower.includes('ke rdn')));
+
     return {
       type,
       amount: amount || 50000,
@@ -229,6 +260,9 @@ Notification: "${text}"
       description: text,
       merchantOrSender: merchantOrSender || undefined,
       sourceApp: sourceAppHint,
+      destinationHint,
+      sourceHint,
+      isTransferCandidate,
     };
   },
 

@@ -140,6 +140,9 @@ export interface BankMutationResult {
   description: string;
   merchantOrSender?: string;
   sourceApp?: string;
+  destinationHint?: string;
+  sourceHint?: string;
+  isTransferCandidate?: boolean;
 }
 
 export interface MonitoredBankApp {
@@ -157,6 +160,19 @@ export interface AutoSyncNotificationConfig {
   autoCommit: boolean;
   monitoredApps: string[];
   clipboardDetection: boolean;
+  internalTransferMatching?: boolean;
+}
+
+export interface InternalTransferMatchPlan {
+  isMatched: boolean;
+  matchType: 'DIRECT_SINGLE' | 'TWO_LEGGED_PAIR' | 'FEE_ADJUSTED';
+  sourceAccount: Account;
+  destinationAccount: Account;
+  transferAmount: number;
+  feeAmount?: number;
+  matchedTransactionId?: string;
+  consolidatedTransaction: Transaction;
+  notes?: string;
 }
 
 export interface CapturedNotificationLog {
@@ -165,5 +181,6 @@ export interface CapturedNotificationLog {
   rawText: string;
   parsedResult: BankMutationResult;
   timestamp: string;
-  status: 'COMMITTED' | 'PENDING' | 'DUPLICATE' | 'FAILED';
+  status: 'COMMITTED' | 'PENDING' | 'DUPLICATE' | 'FAILED' | 'RECONCILED_TRANSFER';
+  matchPlan?: InternalTransferMatchPlan;
 }

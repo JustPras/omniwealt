@@ -27,8 +27,8 @@ export const ScreenTransition: React.FC<ScreenTransitionProps> = ({
       anim.setValue(0);
       Animated.spring(anim, {
         toValue: 1,
-        tension: 135,
-        friction: 13,
+        tension: 160,
+        friction: 14,
         useNativeDriver: true,
       }).start();
     } else {
@@ -37,20 +37,20 @@ export const ScreenTransition: React.FC<ScreenTransitionProps> = ({
     }
   }, [isFocused, anim]);
 
-  // Interpolations
+  // Smooth fluid entrance interpolations
   const opacity = anim.interpolate({
-    inputRange: [0, 0.4, 1],
-    outputRange: [0, 0.75, 1],
+    inputRange: [0, 0.3, 1],
+    outputRange: [0.75, 0.9, 1],
   });
 
   const translateY = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [14, 0],
+    outputRange: [10, 0],
   });
 
   const scale = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.985, 1],
+    outputRange: [0.99, 1],
   });
 
   return (

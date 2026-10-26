@@ -36,13 +36,13 @@ const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = React.memo(({ name, focu
   }, [focused, anim]);
 
   const iconScale = anim.interpolate({
-    inputRange: [0, 0.45, 1],
-    outputRange: [0.94, 1.18, 1.05],
+    inputRange: [0, 0.5, 1],
+    outputRange: [0.95, 1.12, 1.05],
   });
 
   const iconTranslateY = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, -2],
+    outputRange: [0.5, -1.5],
   });
 
   return (
@@ -86,7 +86,7 @@ const TabBarButton: React.FC<TabBarButtonProps> = React.memo(
 
     const handlePressIn = useCallback(() => {
       Animated.spring(pressScale, {
-        toValue: 0.88,
+        toValue: 0.9,
         tension: 260,
         friction: 10,
         useNativeDriver: true,
@@ -215,10 +215,10 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
       const distance = Math.abs(toIndex - fromIndex);
 
       // Dynamic water stretch factor based on distance:
-      // 1 tab: 1.45x stretch
-      // 2 tabs: 1.75x stretch
-      // 3 tabs: 2.10x stretch
-      const maxStretch = Math.min(1.0 + distance * 0.38, 2.15);
+      // 1 tab: 1.35x stretch
+      // 2 tabs: 1.60x stretch
+      // 3 tabs: 1.85x stretch
+      const maxStretch = Math.min(1.0 + distance * 0.32, 1.95);
 
       waveAnim.setValue(0);
 
@@ -226,7 +226,7 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
         // 1. Water center fluid spring glide
         Animated.spring(currentPosition, {
           toValue: toIndex,
-          tension: 160,
+          tension: 165,
           friction: 14,
           useNativeDriver: true,
         }),
@@ -234,7 +234,7 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
         Animated.sequence([
           Animated.timing(flowSurge, {
             toValue: maxStretch,
-            duration: 130,
+            duration: 120,
             easing: Easing.out(Easing.cubic),
             useNativeDriver: true,
           }),
@@ -248,7 +248,7 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
         // 3. Shimmering water wave flowing along the stream
         Animated.timing(waveAnim, {
           toValue: 1,
-          duration: 340,
+          duration: 320,
           easing: Easing.bezier(0.2, 0.0, 0.2, 1),
           useNativeDriver: true,
         }),
@@ -272,12 +272,12 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
   // Viscous fluid mass conservation: stretch horizontally, compress vertically
   const scaleX = flowSurge.interpolate({
     inputRange: [0, 1],
-    outputRange: [1.0, 1.35],
+    outputRange: [1.0, 1.32],
   });
 
   const scaleY = flowSurge.interpolate({
     inputRange: [0, 1],
-    outputRange: [1.0, 0.82],
+    outputRange: [1.0, 0.85],
   });
 
   // Flowing wave shimmer across the water stream
@@ -288,7 +288,7 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
 
   const waveOpacity = waveAnim.interpolate({
     inputRange: [0, 0.25, 0.75, 1],
-    outputRange: [0, 0.75, 0.75, 0],
+    outputRange: [0, 0.7, 0.7, 0],
   });
 
   return (
@@ -328,10 +328,10 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
             },
           ]}
         >
-          {/* Base Water Glass Lens with Refractive Rim and Caustic Glow */}
+          {/* Inner clipped liquid container for wave shimmer and water lens */}
           <View
             style={[
-              styles.liquidGlassLens,
+              styles.liquidInnerContainer,
               {
                 backgroundColor: isDark
                   ? 'rgba(0, 122, 255, 0.20)'
@@ -339,40 +339,38 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
                 borderColor: isDark
                   ? 'rgba(255, 255, 255, 0.34)'
                   : 'rgba(0, 122, 255, 0.40)',
-                shadowColor: '#007AFF',
-                shadowOpacity: isDark ? 0.55 : 0.32,
               },
             ]}
-          />
+          >
+            {/* Internal Radiant Water Tint Nucleus */}
+            <View
+              style={[
+                styles.liquidNucleus,
+                {
+                  backgroundColor: isDark
+                    ? 'rgba(0, 140, 255, 0.22)'
+                    : 'rgba(0, 122, 255, 0.16)',
+                },
+              ]}
+            />
 
-          {/* Internal Radiant Water Tint Nucleus */}
-          <View
-            style={[
-              styles.liquidNucleus,
-              {
-                backgroundColor: isDark
-                  ? 'rgba(0, 140, 255, 0.22)'
-                  : 'rgba(0, 122, 255, 0.16)',
-              },
-            ]}
-          />
+            {/* Flowing Water Wave Shimmer Ribbon */}
+            <Animated.View
+              style={[
+                styles.waterWaveShimmer,
+                {
+                  opacity: waveOpacity,
+                  transform: [
+                    { translateX: waveTranslateX },
+                    { rotate: '25deg' },
+                  ],
+                },
+              ]}
+            />
 
-          {/* Flowing Water Wave Shimmer Ribbon */}
-          <Animated.View
-            style={[
-              styles.waterWaveShimmer,
-              {
-                opacity: waveOpacity,
-                transform: [
-                  { translateX: waveTranslateX },
-                  { rotate: '25deg' },
-                ],
-              },
-            ]}
-          />
-
-          {/* Specular Water Meniscus Arc on Top Rim */}
-          <View style={styles.specularGlossGlint} />
+            {/* Specular Water Meniscus Arc on Top Rim */}
+            <View style={styles.specularGlossGlint} />
+          </View>
 
           {/* Ambient Glowing Bottom Active Water Droplet */}
           <View
@@ -448,20 +446,16 @@ export default function TabsLayout() {
           sceneStyleInterpolator: ({ current }) => ({
             sceneStyle: {
               opacity: current.progress.interpolate({
-                inputRange: [-1, -0.25, 0, 0.25, 1],
-                outputRange: [0, 0.7, 1, 0.7, 0],
+                inputRange: [-1, 0, 1],
+                outputRange: [0, 1, 0],
+                extrapolate: 'clamp',
               }),
               transform: [
                 {
                   translateX: current.progress.interpolate({
                     inputRange: [-1, 0, 1],
-                    outputRange: [-40, 0, 40],
-                  }),
-                },
-                {
-                  scale: current.progress.interpolate({
-                    inputRange: [-1, 0, 1],
-                    outputRange: [0.975, 1, 0.975],
+                    outputRange: [-26, 0, 26],
+                    extrapolate: 'clamp',
                   }),
                 },
               ],
@@ -470,12 +464,12 @@ export default function TabsLayout() {
           transitionSpec: {
             animation: 'timing',
             config: {
-              duration: 260,
-              easing: Easing.bezier(0.2, 0.0, 0.2, 1),
+              duration: 220,
+              easing: Easing.bezier(0.25, 0.1, 0.25, 1),
             },
           },
           lazy: false,
-          freezeOnBlur: true,
+          freezeOnBlur: false,
         }}
       >
         <Tabs.Screen
@@ -528,14 +522,17 @@ const styles = StyleSheet.create({
     zIndex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 14,
+    shadowOpacity: 0.45,
+    elevation: 6,
   },
-  liquidGlassLens: {
+  liquidInnerContainer: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: radius.pill,
     borderWidth: 1.5,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 16,
-    elevation: 8,
+    overflow: 'hidden',
   },
   liquidNucleus: {
     position: 'absolute',

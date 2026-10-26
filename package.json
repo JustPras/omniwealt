@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "prebuild": "expo prebuild",
     "dev": "expo start --web",
-    "test": "tsc -p tsconfig.test.json && node --test dist-tests/tests/rdn-pipeline/reconciliation.test.js dist-tests/tests/rdn-pipeline/deduplication.test.js dist-tests/tests/rdn-pipeline/portfolio-recalculation.test.js dist-tests/tests/rdn-pipeline/pdf-extraction.test.js dist-tests/tests/rdn-pipeline/warrant-rights.test.js dist-tests/tests/crypto-wallet/crypto-wallet.test.js dist-tests/tests/notification-sync/notification-sync.test.js dist-tests/tests/notification-sync/internal-transfer.test.js dist-tests/tests/bank-statement/bank-statement.test.js"
+    "test": "tsc -p tsconfig.test.json && node --test dist-tests/tests/rdn-pipeline/reconciliation.test.js dist-tests/tests/rdn-pipeline/deduplication.test.js dist-tests/tests/rdn-pipeline/portfolio-recalculation.test.js dist-tests/tests/rdn-pipeline/pdf-extraction.test.js dist-tests/tests/rdn-pipeline/warrant-rights.test.js dist-tests/tests/crypto-wallet/crypto-wallet.test.js dist-tests/tests/notification-sync/notification-sync.test.js dist-tests/tests/notification-sync/internal-transfer.test.js dist-tests/tests/bank-statement/bank-statement.test.js dist-tests/tests/liabilities/liability-management.test.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",

@@ -1,4 +1,4 @@
-import { Account, StockAsset, CryptoAsset, Transaction } from '../types';
+import { Account, StockAsset, CryptoAsset, Transaction, Liability } from '../types';
 
 /**
  * Clean Slate: New users start with 0 data (empty state).
@@ -7,6 +7,7 @@ export const INITIAL_ACCOUNTS: Account[] = [];
 export const INITIAL_STOCKS: StockAsset[] = [];
 export const INITIAL_CRYPTOS: CryptoAsset[] = [];
 export const INITIAL_TRANSACTIONS: Transaction[] = [];
+export const INITIAL_LIABILITIES: Liability[] = [];
 
 /**
  * Demo Datasets for testing, developer preview, and 1-click simulation.
@@ -164,5 +165,53 @@ export const DEMO_TRANSACTIONS: Transaction[] = [
     destinationAccountName: 'RDN Stockbit BCA',
     source: 'MANUAL',
     transactionDate: new Date(Date.now() - 3600000 * 48).toISOString(),
+  },
+];
+
+export const DEMO_LIABILITIES: Liability[] = [
+  {
+    id: 'liab-bca-cc',
+    name: 'BCA Everyday Card',
+    type: 'CREDIT_CARD',
+    institution: 'BCA',
+    outstandingAmount: 3450000,
+    creditLimit: 20000000,
+    dueDate: 20, // Tgl 20 tiap bulan
+    billingCycleDate: 5,
+    minimumPayment: 345000,
+    accountNumber: '4821',
+    color: '#3B82F6',
+    icon: 'CreditCard',
+    notes: 'Tagihan belanja bulanan & operasional',
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'liab-shopee-paylater',
+    name: 'Shopee PayLater',
+    type: 'PAYLATER',
+    institution: 'Shopee',
+    outstandingAmount: 850000,
+    creditLimit: 5000000,
+    dueDate: 5, // Tgl 5 tiap bulan
+    billingCycleDate: 25,
+    minimumPayment: 850000,
+    color: '#EE4D2D',
+    icon: 'Smartphone',
+    notes: 'Cicilan perlengkapan kerja & elektronik',
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'liab-mandiri-loan',
+    name: 'Mandiri Cicilan Gadget',
+    type: 'LOAN',
+    institution: 'Mandiri',
+    outstandingAmount: 7200000,
+    monthlyInstallment: 1200000,
+    tenorRemainingMonths: 6,
+    dueDate: 15, // Tgl 15 tiap bulan
+    color: '#0284C7',
+    icon: 'Landmark',
+    notes: 'Cicilan flat laptop 0% (sisa 6 bulan)',
+    updatedAt: new Date().toISOString(),
   },
 ];

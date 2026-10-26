@@ -16,6 +16,8 @@ import {
   CapturedNotificationLog,
   BankStatementParseResult,
   BankStatementCommitResult,
+  Liability,
+  LiabilityPaymentResult,
 } from '../types';
 import { StorageService } from '../services/storage-service';
 import { MarketService } from '../services/market-service';
@@ -38,6 +40,7 @@ interface WealthContextType {
   accounts: Account[];
   stocks: StockAsset[];
   cryptos: CryptoAsset[];
+  liabilities: Liability[];
   transactions: Transaction[];
   privacyMode: boolean;
   isHydrated: boolean;
@@ -58,6 +61,8 @@ interface WealthContextType {
   totalCash: number;
   totalStocks: number;
   totalCryptos: number;
+  totalGrossAssets: number;
+  totalLiabilities: number;
   totalNetWorth: number;
   totalInvestments: number;
   totalInvestmentCost: number;
@@ -102,6 +107,12 @@ interface WealthContextType {
   // Pilar 3: Bank Statement Import & Reconciliation
   commitBankStatement: (result: BankStatementParseResult, targetAccountId?: string) => Promise<BankStatementCommitResult>;
 
+  // Liabilities & Debt Management (Pilihan 1)
+  addLiability: (liability: Omit<Liability, 'id'>) => Promise<Liability>;
+  updateLiability: (id: string, updates: Partial<Liability>) => Promise<void>;
+  deleteLiability: (id: string) => Promise<void>;
+  payLiability: (liabilityId: string, amount: number, fromAccountId: string, notes?: string) => Promise<LiabilityPaymentResult>;
+
   resetToInitialSeed: () => Promise<void>;
   clearAllData: () => Promise<void>;
   loadDemoData: () => Promise<void>;
@@ -113,6 +124,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [stocks, setStocks] = useState<StockAsset[]>([]);
   const [cryptos, setCryptos] = useState<CryptoAsset[]>([]);
+  const [liabilities, setLiabilities] = useState<Liability[]>([]);
   const [cryptoWallets, setCryptoWallets] = useState<CryptoWallet[]>([]);
   const [isSyncingWallets, setIsSyncingWallets] = useState<boolean>(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -138,9 +150,10 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const hydrate = async () => {
       try {
         const [
-          storedAcc,
+          storedAccounts,
           storedStocks,
           storedCryptos,
+          storedLiabilities,
           storedTx,
           storedPrivacy,
           storedMarket,
@@ -154,6 +167,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           StorageService.getAccounts(),
           StorageService.getStocks(),
           StorageService.getCryptos(),
+          StorageService.getLiabilities(),
           StorageService.getTransactions(),
           StorageService.getPrivacyMode(),
           StorageService.getMarketCache(),
@@ -166,9 +180,10 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         ]);
 
         if (isMounted) {
-          setAccounts(storedAcc);
+          setAccounts(storedAccounts);
           setStocks(storedStocks);
           setCryptos(storedCryptos);
+          setLiabilities(storedLiabilities);
           setCryptoWallets(storedWallets);
           setTransactions(storedTx);
           setPrivacyMode(storedPrivacy);
@@ -203,6 +218,8 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     totalStockCost,
     totalCryptos,
     totalCryptoCost,
+    totalGrossAssets,
+    totalLiabilities,
     totalNetWorth,
     totalInvestments,
     totalInvestmentCost,
@@ -233,7 +250,11 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       return acc + (Number(c.holdings) || 0) * (Number(c.avgBuyPriceIdr) || 0);
     }, 0);
 
-    const netWorth = cash + stocksVal + cryptosVal;
+    const grossAssets = cash + stocksVal + cryptosVal;
+    const liabilitiesVal = liabilities.reduce((acc, l) => {
+      return acc + (Number(l.outstandingAmount) || 0);
+    }, 0);
+    const netWorth = grossAssets - liabilitiesVal;
     const investments = stocksVal + cryptosVal;
     const investmentCost = stocksCost + cryptosCost;
     const unrealizedPnL = investments - investmentCost;
@@ -258,6 +279,8 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       totalStockCost: stocksCost,
       totalCryptos: cryptosVal,
       totalCryptoCost: cryptosCost,
+      totalGrossAssets: grossAssets,
+      totalLiabilities: liabilitiesVal,
       totalNetWorth: netWorth,
       totalInvestments: investments,
       totalInvestmentCost: investmentCost,
@@ -266,7 +289,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       dailyChangeRp: changeRp,
       dailyChangePercent: changePercent,
     };
-  }, [accounts, stocks, cryptos]);
+  }, [accounts, stocks, cryptos, liabilities]);
 
   // 3. Market Price Refresh (manual or automatic background silent refresh)
   const refreshMarketPrices = useCallback(async (isSilent: boolean = false) => {
@@ -1430,6 +1453,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setAccounts([]);
     setStocks([]);
     setCryptos([]);
+    setLiabilities([]);
     setCryptoWallets([]);
     setTransactions([]);
   }, []);
@@ -1437,15 +1461,17 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const loadDemoData = useCallback(async () => {
     triggerHaptic('medium');
     await StorageService.loadDemoData();
-    const [storedAcc, storedStocks, storedCryptos, storedTx] = await Promise.all([
+    const [storedAcc, storedStocks, storedCryptos, storedLiabilities, storedTx] = await Promise.all([
       StorageService.getAccounts(),
       StorageService.getStocks(),
       StorageService.getCryptos(),
+      StorageService.getLiabilities(),
       StorageService.getTransactions(),
     ]);
     setAccounts(storedAcc);
     setStocks(storedStocks);
     setCryptos(storedCryptos);
+    setLiabilities(storedLiabilities);
     setTransactions(storedTx);
   }, []);
 
@@ -1583,11 +1609,135 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     [accounts, transactions]
   );
 
+  // 12. Liabilities & Debt Management (Pilihan 1)
+  const addLiability = useCallback(
+    async (newLiabData: Omit<Liability, 'id'>): Promise<Liability> => {
+      triggerHaptic('medium');
+      const liability: Liability = {
+        ...newLiabData,
+        id: `liab-${Date.now()}`,
+        updatedAt: new Date().toISOString(),
+      };
+      setLiabilities((prev) => {
+        const updated = [liability, ...prev];
+        StorageService.saveLiabilities(updated);
+        return updated;
+      });
+      return liability;
+    },
+    []
+  );
+
+  const updateLiability = useCallback(
+    async (id: string, updates: Partial<Liability>): Promise<void> => {
+      triggerHaptic('selection');
+      setLiabilities((prev) => {
+        const updated = prev.map((l) =>
+          l.id === id ? { ...l, ...updates, updatedAt: new Date().toISOString() } : l
+        );
+        StorageService.saveLiabilities(updated);
+        return updated;
+      });
+    },
+    []
+  );
+
+  const deleteLiability = useCallback(
+    async (id: string): Promise<void> => {
+      triggerHaptic('medium');
+      setLiabilities((prev) => {
+        const updated = prev.filter((l) => l.id !== id);
+        StorageService.saveLiabilities(updated);
+        return updated;
+      });
+    },
+    []
+  );
+
+  const payLiability = useCallback(
+    async (
+      liabilityId: string,
+      amount: number,
+      fromAccountId: string,
+      notes?: string
+    ): Promise<LiabilityPaymentResult> => {
+      if (amount <= 0) {
+        throw new Error('Nominal pembayaran harus lebih dari Rp 0');
+      }
+
+      const targetLiab = liabilities.find((l) => l.id === liabilityId);
+      if (!targetLiab) {
+        throw new Error('Akun liabilitas / kartu tidak ditemukan');
+      }
+
+      const targetAccount = accounts.find((a) => a.id === fromAccountId);
+      if (!targetAccount) {
+        throw new Error('Rekening sumber pembayaran tidak ditemukan');
+      }
+
+      if (targetAccount.balance < amount) {
+        throw new Error(`Saldo ${targetAccount.name} tidak mencukupi (Tersedia ${formatIDR(targetAccount.balance)})`);
+      }
+
+      const newLiabBalance = Math.max(0, targetLiab.outstandingAmount - amount);
+      const newAccBalance = targetAccount.balance - amount;
+
+      // 1. Update liability balance
+      const updatedLiabilities = liabilities.map((l) =>
+        l.id === liabilityId
+          ? { ...l, outstandingAmount: newLiabBalance, updatedAt: new Date().toISOString() }
+          : l
+      );
+      setLiabilities(updatedLiabilities);
+      await StorageService.saveLiabilities(updatedLiabilities);
+
+      // 2. Update source account balance
+      const updatedAccounts = accounts.map((a) =>
+        a.id === fromAccountId
+          ? { ...a, balance: newAccBalance, updatedAt: new Date().toISOString() }
+          : a
+      );
+      setAccounts(updatedAccounts);
+      await StorageService.saveAccounts(updatedAccounts);
+
+      // 3. Record transaction to ledger
+      const paymentTx: Transaction = {
+        id: `tx-pay-${Date.now()}`,
+        accountId: fromAccountId,
+        accountName: targetAccount.name,
+        type: 'EXPENSE',
+        amount: amount,
+        category: 'Tagihan & Utang',
+        description: `Bayar ${targetLiab.name}${notes ? ` - ${notes}` : ''}`,
+        source: 'MANUAL',
+        transactionDate: new Date().toISOString(),
+      };
+
+      const updatedTx = [paymentTx, ...transactions];
+      setTransactions(updatedTx);
+      await StorageService.saveTransactions(updatedTx);
+
+      triggerHaptic('success');
+
+      return {
+        success: true,
+        message: `Pembayaran ${targetLiab.name} sebesar ${formatIDR(amount)} berhasil diproses!`,
+        liabilityId,
+        paidAmount: amount,
+        newOutstandingAmount: newLiabBalance,
+        fromAccountId,
+        newAccountBalance: newAccBalance,
+      };
+    },
+    [accounts, liabilities, transactions]
+  );
+
   const contextValue = useMemo<WealthContextType>(
     () => ({
       accounts,
       stocks,
       cryptos,
+      liabilities,
       transactions,
       privacyMode,
       isHydrated,
@@ -1596,6 +1746,8 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       totalCash,
       totalStocks,
       totalCryptos,
+      totalGrossAssets,
+      totalLiabilities,
       totalNetWorth,
       totalInvestments,
       totalInvestmentCost,
@@ -1622,6 +1774,10 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       processIncomingNotification,
       clearNotificationLogs,
       commitBankStatement,
+      addLiability,
+      updateLiability,
+      deleteLiability,
+      payLiability,
       refreshMarketPrices,
       addAccount,
       updateAccountBalance,
@@ -1645,6 +1801,7 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       accounts,
       stocks,
       cryptos,
+      liabilities,
       transactions,
       privacyMode,
       isHydrated,
@@ -1653,6 +1810,8 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       totalCash,
       totalStocks,
       totalCryptos,
+      totalGrossAssets,
+      totalLiabilities,
       totalNetWorth,
       totalInvestments,
       totalInvestmentCost,
@@ -1678,6 +1837,11 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       notificationLogs,
       processIncomingNotification,
       clearNotificationLogs,
+      commitBankStatement,
+      addLiability,
+      updateLiability,
+      deleteLiability,
+      payLiability,
       refreshMarketPrices,
       addAccount,
       updateAccountBalance,

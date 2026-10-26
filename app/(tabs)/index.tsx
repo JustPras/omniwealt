@@ -19,10 +19,11 @@ import { AmbientBackground } from '../../src/components/common/ambient-backgroun
 import { Sparkline, ScrubPoint } from '../../src/components/common/sparkline';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
 import { CashMutationModal } from '../../src/components/modals/cash-mutation-modal';
+import { LiabilityService } from '../../src/services/liability-service';
 import { useWealth } from '../../src/store/wealth-context';
 import { formatPercent, formatChangePercent, formatIDR } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
-import { color, space, radius, shadow, motion, useTheme, themes } from '../../src/theme/tokens';
+import { color, space, radius, shadow, motion, useTheme, themes, font } from '../../src/theme/tokens';
 
 type Timeframe = '1H' | '1M' | '1B' | '1T' | 'Semua';
 type AllocationType = 'ALL' | 'CASH' | 'STOCKS' | 'CRYPTO';
@@ -319,6 +320,9 @@ export default function OverviewScreen() {
     totalCash,
     totalStocks,
     totalCryptos,
+    totalGrossAssets,
+    totalLiabilities,
+    liabilities,
     totalInvestments,
     totalUnrealizedPnL,
     totalUnrealizedPnLPercent,
@@ -333,6 +337,12 @@ export default function OverviewScreen() {
   const [mutationModalVisible, setMutationModalVisible] = useState(false);
   const [activeTimeframe, setActiveTimeframe] = useState<Timeframe>('1H');
   const [selectedAllocation, setSelectedAllocation] = useState<AllocationType>('ALL');
+
+  // Upcoming Due Date Alerts for liabilities
+  const upcomingBills = useMemo(() => {
+    return LiabilityService.getDueAlerts(liabilities);
+  }, [liabilities]);
+  const topDueAlert = upcomingBills.length > 0 ? upcomingBills[0] : null;
 
   // Hero Scrubber State: When user drags across the chart
   const [isScrubbing, setIsScrubbing] = useState(false);
@@ -505,6 +515,24 @@ export default function OverviewScreen() {
             />
           </View>
 
+          {/* True Net Worth Breakdown Sub-Row */}
+          {totalLiabilities > 0 && !isScrubbing && (
+            <View style={styles.netWorthBreakdownRow}>
+              <View style={styles.breakdownItem}>
+                <Text style={styles.breakdownItemLabel}>Total Aset</Text>
+                <PrivacyValue value={totalGrossAssets} style={styles.breakdownItemValGross} />
+              </View>
+              <View style={styles.breakdownDivider} />
+              <View style={styles.breakdownItem}>
+                <Text style={styles.breakdownItemLabel}>Liabilitas / Utang</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                  <Text style={styles.breakdownMinus}>-</Text>
+                  <PrivacyValue value={totalLiabilities} style={styles.breakdownItemValDebt} />
+                </View>
+              </View>
+            </View>
+          )}
+
           {/* Interactive Scrubbable Sparkline */}
           <Sparkline
             data={activePoints}
@@ -523,6 +551,65 @@ export default function OverviewScreen() {
             onSelectTimeframe={setActiveTimeframe}
           />
         </GlassCard>
+
+        {/* UPCOMING DUE DATE ALERT CARD */}
+        {topDueAlert && (
+          <Pressable
+            onPress={() => {
+              triggerHaptic('selection');
+              router.push('/(tabs)/accounts');
+            }}
+            style={[
+              styles.dueAlertCard,
+              topDueAlert.isOverdue && styles.dueAlertCardOverdue,
+            ]}
+          >
+            <View style={styles.dueAlertLeft}>
+              <View
+                style={[
+                  styles.dueAlertIconCircle,
+                  topDueAlert.isOverdue && { backgroundColor: 'rgba(239, 68, 68, 0.2)' },
+                ]}
+              >
+                <Icon
+                  name="Calendar"
+                  size={15}
+                  color={topDueAlert.isOverdue ? '#EF4444' : '#F59E0B'}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.dueAlertTitle}>
+                    {topDueAlert.isOverdue
+                      ? `Tagihan ${topDueAlert.liability.name} Lewat Jatuh Tempo!`
+                      : topDueAlert.isDueToday
+                      ? `Tagihan ${topDueAlert.liability.name} Jatuh Tempo Hari Ini!`
+                      : `Tagihan ${topDueAlert.liability.name} Jatuh Tempo dlm ${topDueAlert.daysLeft} Hari`}
+                  </Text>
+                  <View
+                    style={[
+                      styles.dueAlertBadge,
+                      topDueAlert.isOverdue && { backgroundColor: 'rgba(239, 68, 68, 0.16)', borderColor: 'rgba(239, 68, 68, 0.3)' },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.dueAlertBadgeText,
+                        topDueAlert.isOverdue && { color: '#EF4444' },
+                      ]}
+                    >
+                      {topDueAlert.isOverdue ? 'Jatuh Tempo' : `Tgl ${topDueAlert.dueDate}`}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.dueAlertSub}>
+                  Total tagihan: {formatIDR(topDueAlert.liability.outstandingAmount)} • Ketuk untuk bayar
+                </Text>
+              </View>
+            </View>
+            <Icon name="ChevronRight" size={15} color={color.textMuted} />
+          </Pressable>
+        )}
 
         {/* 2. INTERACTIVE ASSET ALLOCATION CARD */}
         <GlassCard level="base" style={styles.allocationCard}>
@@ -1267,5 +1354,108 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: color.onAccent,
+  },
+  netWorthBreakdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: space.xs,
+    marginBottom: space.sm,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    alignSelf: 'center',
+    gap: 12,
+  },
+  breakdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  breakdownItemLabel: {
+    fontSize: 11,
+    fontFamily: font.ui,
+    color: color.textMuted,
+  },
+  breakdownItemValGross: {
+    fontSize: 11,
+    fontFamily: font.num,
+    fontWeight: '700',
+    color: color.text,
+  },
+  breakdownDivider: {
+    width: 1,
+    height: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  breakdownMinus: {
+    fontSize: 11,
+    fontFamily: font.num,
+    fontWeight: '700',
+    color: '#F87171',
+  },
+  breakdownItemValDebt: {
+    fontSize: 11,
+    fontFamily: font.num,
+    fontWeight: '700',
+    color: '#F87171',
+  },
+  dueAlertCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: space.md,
+    borderRadius: radius.lg,
+    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.25)',
+    marginBottom: space.md,
+  },
+  dueAlertCardOverdue: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  dueAlertLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+    marginRight: 8,
+  },
+  dueAlertIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(245, 158, 11, 0.16)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dueAlertTitle: {
+    fontSize: 12,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: color.text,
+  },
+  dueAlertBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(245, 158, 11, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+  },
+  dueAlertBadgeText: {
+    fontSize: 9,
+    fontFamily: font.uiBold,
+    color: '#F59E0B',
+  },
+  dueAlertSub: {
+    fontSize: 10,
+    fontFamily: font.ui,
+    color: color.textMuted,
+    marginTop: 2,
   },
 });

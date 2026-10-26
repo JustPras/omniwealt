@@ -8,16 +8,19 @@ import {
   CurrencyMode,
   AutoSyncNotificationConfig,
   CapturedNotificationLog,
+  Liability,
 } from '../types';
 import {
   INITIAL_ACCOUNTS,
   INITIAL_STOCKS,
   INITIAL_CRYPTOS,
   INITIAL_TRANSACTIONS,
+  INITIAL_LIABILITIES,
   DEMO_ACCOUNTS,
   DEMO_STOCKS,
   DEMO_CRYPTOS,
   DEMO_TRANSACTIONS,
+  DEMO_LIABILITIES,
 } from '../constants/initial-data';
 
 export interface CachedMarketQuote {
@@ -37,6 +40,7 @@ const STORAGE_KEYS = {
   STOCKS: '@omniwealth_stocks_v3',
   CRYPTOS: '@omniwealth_cryptos_v3',
   TRANSACTIONS: '@omniwealth_transactions_v3',
+  LIABILITIES: '@omniwealth_liabilities_v3',
   PRIVACY: '@omniwealth_privacy_v3',
   MARKET_CACHE: '@omniwealth_market_cache_v3',
   CRYPTO_WALLETS: '@omniwealth_crypto_wallets_v3',
@@ -163,6 +167,27 @@ export const StorageService = {
       await AsyncStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
     } catch (e) {
       console.warn('Failed to save transactions to storage:', e);
+    }
+  },
+
+  async getLiabilities(): Promise<Liability[]> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.LIABILITIES);
+      if (data) {
+        return JSON.parse(data);
+      }
+      await AsyncStorage.setItem(STORAGE_KEYS.LIABILITIES, JSON.stringify(INITIAL_LIABILITIES));
+      return INITIAL_LIABILITIES;
+    } catch {
+      return INITIAL_LIABILITIES;
+    }
+  },
+
+  async saveLiabilities(liabilities: Liability[]): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.LIABILITIES, JSON.stringify(liabilities));
+    } catch (e) {
+      console.warn('Failed to save liabilities to storage:', e);
     }
   },
 
@@ -451,6 +476,7 @@ export const StorageService = {
       await AsyncStorage.setItem(STORAGE_KEYS.CRYPTOS, JSON.stringify([]));
       await AsyncStorage.setItem(STORAGE_KEYS.CRYPTO_WALLETS, JSON.stringify([]));
       await AsyncStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
+      await AsyncStorage.setItem(STORAGE_KEYS.LIABILITIES, JSON.stringify([]));
       await this.clearMarketCache();
     } catch (e) {
       console.warn('Failed to clear data:', e);
@@ -473,6 +499,7 @@ export const StorageService = {
       await AsyncStorage.setItem(STORAGE_KEYS.STOCKS, JSON.stringify(DEMO_STOCKS));
       await AsyncStorage.setItem(STORAGE_KEYS.CRYPTOS, JSON.stringify(DEMO_CRYPTOS));
       await AsyncStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(DEMO_TRANSACTIONS));
+      await AsyncStorage.setItem(STORAGE_KEYS.LIABILITIES, JSON.stringify(DEMO_LIABILITIES));
     } catch (e) {
       console.warn('Failed to load demo data:', e);
     }

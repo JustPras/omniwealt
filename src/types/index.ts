@@ -16,6 +16,38 @@ export interface Account {
   autoCommitVerifiedEmail?: boolean;
 }
 
+export type LiabilityType = 'CREDIT_CARD' | 'PAYLATER' | 'LOAN' | 'OTHER';
+
+export interface Liability {
+  id: string;
+  name: string; // e.g. "BCA Everyday Card", "Shopee PayLater", "KPR Mandiri"
+  type: LiabilityType;
+  institution: string; // "BCA", "Shopee", "Mandiri", "Kredivo", etc.
+  outstandingAmount: number; // Saldo tagihan berjalan (IDR)
+  creditLimit?: number; // Total limit kredit (untuk CC / PayLater)
+  dueDate?: number; // Tanggal jatuh tempo bulanan (1-31)
+  billingCycleDate?: number; // Tanggal cetak tagihan (1-31)
+  minimumPayment?: number; // Pembayaran minimum
+  monthlyInstallment?: number; // Angsuran tetap per bulan
+  tenorRemainingMonths?: number; // Sisa tenor (bulan)
+  interestRatePercent?: number; // Bunga %
+  accountNumber?: string; // 4 digit terakhir kartu atau no kontrak
+  color?: string;
+  icon?: string;
+  notes?: string;
+  updatedAt?: string;
+}
+
+export interface LiabilityPaymentResult {
+  success: boolean;
+  message: string;
+  liabilityId: string;
+  paidAmount: number;
+  newOutstandingAmount: number;
+  fromAccountId: string;
+  newAccountBalance: number;
+}
+
 export interface StockAsset {
   id: string;
   ticker: string; // e.g. BBCA.JK

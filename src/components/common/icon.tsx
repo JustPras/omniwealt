@@ -48,7 +48,9 @@ export type IconName =
   | 'Check'
   | 'Share2'
   | 'Send'
-  | 'Bell';
+  | 'Bell'
+  | 'CreditCard'
+  | 'Calendar';
 
 interface IconProps {
   name: IconName;
@@ -107,6 +109,8 @@ const IONICONS_MAP: Partial<Record<IconName, IoniconsName>> = {
   Share2: 'share-social',
   Send: 'send',
   Bell: 'notifications-outline',
+  CreditCard: 'card-outline',
+  Calendar: 'calendar-outline',
 };
 
 export function Icon({ name, size = 20, color = '#FFFFFF' }: IconProps) {

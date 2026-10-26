@@ -21,11 +21,13 @@ import { CashMutationModal } from '../../src/components/modals/cash-mutation-mod
 import { CryptoWalletModal } from '../../src/components/modals/crypto-wallet-modal';
 import { BankAutoSyncModal } from '../../src/components/modals/bank-auto-sync-modal';
 import { BankStatementModal } from '../../src/components/modals/bank-statement-modal';
+import { LiabilityModal } from '../../src/components/modals/liability-modal';
+import { PayLiabilityModal } from '../../src/components/modals/pay-liability-modal';
 import { CryptoWalletService } from '../../src/services/crypto-wallet-service';
 import { useWealth } from '../../src/store/wealth-context';
 import { formatIDR, formatDate } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
-import { BankMutationResult, AccountType } from '../../src/types';
+import { BankMutationResult, AccountType, Liability } from '../../src/types';
 import { color, space, radius, shadow } from '../../src/theme/tokens';
 
 type TxFilter = 'ALL' | 'INCOME' | 'EXPENSE' | 'TRANSFER';
@@ -58,6 +60,8 @@ export default function AccountsScreen() {
   const {
     accounts,
     totalCash,
+    liabilities,
+    totalLiabilities,
     transactions,
     applyMutationText,
     cryptoWallets,
@@ -71,6 +75,10 @@ export default function AccountsScreen() {
   const [walletModalVisible, setWalletModalVisible] = useState(false);
   const [autoSyncModalVisible, setAutoSyncModalVisible] = useState(false);
   const [bankStatementModalVisible, setBankStatementModalVisible] = useState(false);
+  const [liabilityModalVisible, setLiabilityModalVisible] = useState(false);
+  const [selectedLiabilityForEdit, setSelectedLiabilityForEdit] = useState<Liability | null>(null);
+  const [payLiabilityModalVisible, setPayLiabilityModalVisible] = useState(false);
+  const [selectedLiabilityForPay, setSelectedLiabilityForPay] = useState<Liability | null>(null);
   const [syncingWalletId, setSyncingWalletId] = useState<string | null>(null);
   const [mutationModalVisible, setMutationModalVisible] = useState(false);
   const [activeAccountForMutation, setActiveAccountForMutation] = useState<string | undefined>(undefined);
@@ -297,6 +305,154 @@ export default function AccountsScreen() {
     );
   };
 
+  const renderLiabilitiesGroupCard = () => {
+    return (
+      <View style={styles.groupContainer} key="liabilities-group">
+        <View style={styles.groupHeaderRow}>
+          <Icon name="CreditCard" size={15} color="#F87171" />
+          <Text style={[styles.groupTitleText, { color: '#FCA5A5' }]}>Liabilitas & Tagihan</Text>
+          <Text style={styles.groupCountText}>({liabilities.length})</Text>
+
+          {totalLiabilities > 0 && (
+            <View style={styles.totalDebtBadge}>
+              <Text style={styles.totalDebtBadgeText}>
+                -{formatIDR(totalLiabilities)}
+              </Text>
+            </View>
+          )}
+
+          <Pressable
+            onPress={() => {
+              triggerHaptic('light');
+              setSelectedLiabilityForEdit(null);
+              setLiabilityModalVisible(true);
+            }}
+            style={styles.addLiabilityHeaderBtn}
+            hitSlop={6}
+          >
+            <Icon name="Plus" size={12} color="#F87171" />
+            <Text style={styles.addLiabilityHeaderBtnText}>Tambah</Text>
+          </Pressable>
+        </View>
+
+        <GlassCard level="base" noPadding style={styles.groupCard}>
+          {liabilities.length === 0 ? (
+            <Pressable
+              onPress={() => {
+                triggerHaptic('medium');
+                setSelectedLiabilityForEdit(null);
+                setLiabilityModalVisible(true);
+              }}
+              style={styles.emptyWeb3Row}
+            >
+              <View style={[styles.web3RowIconCircle, { backgroundColor: 'rgba(248, 113, 113, 0.16)' }]}>
+                <Icon name="CreditCard" size={16} color="#F87171" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.emptyWeb3Title}>Catat Utang / Kartu Kredit</Text>
+                <Text style={styles.emptyWeb3Subtitle}>
+                  Pantau tagihan kartu kredit, Shopee PayLater & cicilan untuk Net Worth sejati
+                </Text>
+              </View>
+              <Icon name="ChevronRight" size={16} color={color.textMuted} />
+            </Pressable>
+          ) : (
+            liabilities.map((item, index) => {
+              const isLast = index === liabilities.length - 1;
+              const hasLimit = typeof item.creditLimit === 'number' && item.creditLimit > 0;
+              const utilPercent = hasLimit
+                ? Math.min(100, Math.round((item.outstandingAmount / item.creditLimit!) * 100))
+                : 0;
+
+              return (
+                <View key={item.id}>
+                  <Pressable
+                    onPress={() => {
+                      triggerHaptic('selection');
+                      setSelectedLiabilityForEdit(item);
+                      setLiabilityModalVisible(true);
+                    }}
+                    style={styles.accountRow}
+                  >
+                    <View style={styles.accountLeft}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <View style={[styles.liabilityTypeBadge, { borderColor: item.color || '#F87171' }]}>
+                          <Text style={[styles.liabilityTypeBadgeText, { color: item.color || '#F87171' }]}>
+                            {item.type === 'CREDIT_CARD'
+                              ? 'KARTU KREDIT'
+                              : item.type === 'PAYLATER'
+                              ? 'PAYLATER'
+                              : item.type === 'LOAN'
+                              ? 'CICILAN'
+                              : 'LAINNYA'}
+                          </Text>
+                        </View>
+                        <Text style={styles.accountName}>{item.name}</Text>
+                      </View>
+
+                      <View style={styles.liabilityMetaRow}>
+                        {item.dueDate ? (
+                          <Text style={styles.accountMeta}>
+                            Jatuh tempo tgl {item.dueDate}
+                          </Text>
+                        ) : null}
+                        {hasLimit ? (
+                          <Text style={styles.utilizationText}>
+                            • Terpakai {utilPercent}% ({formatIDR(item.creditLimit!)})
+                          </Text>
+                        ) : item.monthlyInstallment ? (
+                          <Text style={styles.utilizationText}>
+                            • Cicilan {formatIDR(item.monthlyInstallment)}/bln
+                          </Text>
+                        ) : null}
+                      </View>
+
+                      {hasLimit && (
+                        <View style={styles.miniProgressTrack}>
+                          <View
+                            style={[
+                              styles.miniProgressBar,
+                              {
+                                width: `${Math.max(4, utilPercent)}%`,
+                                backgroundColor:
+                                  utilPercent > 50 ? '#EF4444' : utilPercent > 30 ? '#F59E0B' : '#3B82F6',
+                              },
+                            ]}
+                          />
+                        </View>
+                      )}
+                    </View>
+
+                    <View style={styles.liabilityRight}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                        <Text style={styles.liabilityMinus}>-</Text>
+                        <PrivacyValue value={item.outstandingAmount} style={styles.liabilityAmount} />
+                      </View>
+
+                      {item.outstandingAmount > 0 && (
+                        <Pressable
+                          onPress={() => {
+                            triggerHaptic('medium');
+                            setSelectedLiabilityForPay(item);
+                            setPayLiabilityModalVisible(true);
+                          }}
+                          style={styles.payActionBtn}
+                        >
+                          <Text style={styles.payActionBtnText}>Bayar</Text>
+                        </Pressable>
+                      )}
+                    </View>
+                  </Pressable>
+                  {!isLast && <View style={styles.rowHairline} />}
+                </View>
+              );
+            })
+          )}
+        </GlassCard>
+      </View>
+    );
+  };
+
   return (
     <ScreenTransition style={styles.screenContainer}>
       <AmbientBackground activeAssetClass="CASH" />
@@ -330,11 +486,11 @@ export default function AccountsScreen() {
         </GlassCard>
 
         {/* 2. REKENING DIKELOMPOKKAN (SATU KARTU PER KELOMPOK DENGAN BARIS) */}
-        {accounts.length === 0 && cryptoWallets.length === 0 ? (
+        {accounts.length === 0 && cryptoWallets.length === 0 && liabilities.length === 0 ? (
           <GlassCard level="base" style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>Belum ada rekening kas</Text>
+            <Text style={styles.emptyTitle}>Belum ada rekening kas atau tagihan</Text>
             <Text style={styles.emptyDesc}>
-              Tambahkan rekening bank, rekening dana nasabah (RDN), dompet digital, atau dompet Web3 untuk memantau saldo likuid.
+              Tambahkan rekening bank, rekening dana nasabah (RDN), dompet digital, kartu kredit, atau dompet Web3 untuk memantau kekayaan bersih sejati.
             </Text>
             <Pressable
               onPress={() => {
@@ -352,6 +508,7 @@ export default function AccountsScreen() {
             {renderAccountGroupCard('Rekening Dana Nasabah (RDN)', rdnAccounts, 'TrendingUp')}
             {renderAccountGroupCard('Dompet digital', ewalletAccounts, 'Smartphone')}
             {renderCryptoWalletsGroupCard()}
+            {renderLiabilitiesGroupCard()}
           </View>
         )}
 
@@ -638,6 +795,18 @@ export default function AccountsScreen() {
       <BankStatementModal
         visible={bankStatementModalVisible}
         onClose={() => setBankStatementModalVisible(false)}
+      />
+
+      <LiabilityModal
+        visible={liabilityModalVisible}
+        onClose={() => setLiabilityModalVisible(false)}
+        liability={selectedLiabilityForEdit}
+      />
+
+      <PayLiabilityModal
+        visible={payLiabilityModalVisible}
+        onClose={() => setPayLiabilityModalVisible(false)}
+        liability={selectedLiabilityForPay}
       />
     </ScreenTransition>
   );
@@ -1212,5 +1381,96 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: radius.pill,
     backgroundColor: 'rgba(239, 68, 68, 0.12)',
+  },
+  totalDebtBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 1.5,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(239, 68, 68, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  totalDebtBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#F87171',
+  },
+  addLiabilityHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
+  },
+  addLiabilityHeaderBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#F87171',
+  },
+  liabilityTypeBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  },
+  liabilityTypeBadgeText: {
+    fontSize: 8,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  liabilityMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+    flexWrap: 'wrap',
+  },
+  utilizationText: {
+    fontSize: 11,
+    color: color.textMuted,
+  },
+  miniProgressTrack: {
+    height: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 2,
+    marginTop: 5,
+    overflow: 'hidden',
+    width: '90%',
+  },
+  miniProgressBar: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  liabilityRight: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  liabilityMinus: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#F87171',
+  },
+  liabilityAmount: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#F87171',
+  },
+  payActionBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(34, 197, 94, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.35)',
+  },
+  payActionBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: color.gain,
   },
 });

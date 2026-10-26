@@ -130,31 +130,34 @@ export const MarketService = {
     const results: Record<string, CryptoQuote> = {};
     const joinedIds = ids.join(',');
 
-    try {
-      const url = `https://api.coingecko.com/api/v3/simple/price?ids=${joinedIds}&vs_currencies=idr&include_24hr_change=true`;
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4500);
+    const isBrowser = typeof window !== 'undefined' && typeof (window as any).document !== 'undefined';
+    if (!isBrowser) {
+      try {
+        const url = `https://api.coingecko.com/api/v3/simple/price?ids=${joinedIds}&vs_currencies=idr&include_24hr_change=true`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4500);
 
-      const res = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeoutId);
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
 
-      if (res.ok) {
-        const json = await res.json();
-        for (const id of ids) {
-          if (json[id]?.idr) {
-            results[id] = {
-              id,
-              priceIdr: json[id].idr,
-              change24h: (json[id].idr_24h_change || 0) / 100,
-            };
+        if (res.ok) {
+          const json = await res.json();
+          for (const id of ids) {
+            if (json[id]?.idr) {
+              results[id] = {
+                id,
+                priceIdr: json[id].idr,
+                change24h: (json[id].idr_24h_change || 0) / 100,
+              };
+            }
+          }
+          if (Object.keys(results).length === ids.length) {
+            return results;
           }
         }
-        if (Object.keys(results).length === ids.length) {
-          return results;
-        }
+      } catch {
+        // CoinGecko public rate limit or network issue: fall back to offline cache
       }
-    } catch {
-      // CoinGecko public rate limit or network issue: fall back to offline cache
     }
 
     // Offline Priority: For any un-fetched cryptos, check local cached market data

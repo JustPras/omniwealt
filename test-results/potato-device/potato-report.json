@@ -1,0 +1,119 @@
+{
+  "profile": {
+    "device": "Budget Android Phone (2GB RAM class)",
+    "cpuThrottling": "6x Slowdown",
+    "viewport": "360x780 @ 2x DPR",
+    "v8MaxHeapMB": 256
+  },
+  "memory": {
+    "initialUsedHeapMB": 24.27,
+    "initialTotalHeapMB": 53.89,
+    "finalUsedHeapMB": 41.23,
+    "finalTotalHeapMB": 94.14,
+    "heapDeltaMB": 16.96,
+    "safeMarginRatio": "16.1% dari batas heap"
+  },
+  "coldStart": {
+    "coldStartTimeMs": 9563,
+    "acceptableThresholdMs": 5000,
+    "isPass": false
+  },
+  "navigation": [
+    {
+      "tab": "Portofolio",
+      "transitionMs": 1467,
+      "verified": true,
+      "isSmooth": false
+    },
+    {
+      "tab": "Akun & Liabilitas",
+      "transitionMs": 1788,
+      "verified": true,
+      "isSmooth": false
+    },
+    {
+      "tab": "Sinkronisasi Otomatis",
+      "transitionMs": 2227,
+      "verified": true,
+      "isSmooth": false
+    },
+    {
+      "tab": "Ringkasan Utama",
+      "transitionMs": 1310,
+      "verified": true,
+      "isSmooth": false
+    }
+  ],
+  "interactions": [
+    {
+      "name": "Currency Toggle (IDR <-> USD)",
+      "latencyMs": 469,
+      "functional": true,
+      "isResponsive": true
+    },
+    {
+      "name": "Privacy Mode Blur Toggle",
+      "latencyMs": 3574,
+      "functional": true,
+      "isResponsive": false
+    },
+    {
+      "name": "Timeframe Selection Capsules",
+      "avgLatencyMs": 421,
+      "functional": true,
+      "isResponsive": false
+    },
+    {
+      "name": "Modal Tambah Rekening (Open & Close)",
+      "openLatencyMs": 818,
+      "functional": false,
+      "isResponsive": true
+    },
+    {
+      "name": "Modal 1-Click Pay Tagihan & Presets",
+      "openLatencyMs": 731,
+      "functional": false,
+      "isResponsive": true
+    }
+  ],
+  "scrolling": [
+    {
+      "screen": "Dashboard (Ringkasan)",
+      "avgFps": 41,
+      "droppedFrames": 20,
+      "p95DeltaMs": 67,
+      "isSmooth": false,
+      "rating": "Cukup (B)"
+    },
+    {
+      "screen": "Portofolio Aset",
+      "avgFps": 55,
+      "droppedFrames": 4,
+      "p95DeltaMs": 33,
+      "isSmooth": true,
+      "rating": "Sangat Mulus (A+)"
+    },
+    {
+      "screen": "Akun & Liabilitas",
+      "avgFps": 50,
+      "droppedFrames": 4,
+      "p95DeltaMs": 33,
+      "isSmooth": true,
+      "rating": "Mulus Stabil (A)"
+    },
+    {
+      "screen": "Sinkronisasi Otomatis",
+      "avgFps": 33,
+      "droppedFrames": 20,
+      "p95DeltaMs": 67,
+      "isSmooth": false,
+      "rating": "Cukup (B)"
+    }
+  ],
+  "domStats": {
+    "nodes": 2173,
+    "layoutCount": 37,
+    "recalcStyleCount": 1329
+  },
+  "errors": []
+}

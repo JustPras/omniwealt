@@ -121,6 +121,8 @@ export const PayLiabilityModal: React.FC<PayLiabilityModalProps> = ({
                 </View>
               </View>
               <Pressable
+                accessibilityLabel="Tutup modal"
+                accessibilityRole="button"
                 onPress={() => {
                   triggerHaptic('light');
                   onClose();

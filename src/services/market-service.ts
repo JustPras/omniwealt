@@ -40,37 +40,42 @@ export const MarketService = {
   async fetchStockPrice(ticker: string, fallbackPrice?: number): Promise<StockQuote> {
     const cleanTicker = ticker.toUpperCase().endsWith('.JK') ? ticker.toUpperCase() : `${ticker.toUpperCase()}.JK`;
 
-    try {
-      // Direct Yahoo Finance v8 chart query
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${cleanTicker}?interval=1d&range=1d`;
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4500);
+    // On web platforms without a backend proxy, Yahoo Finance queries are blocked by browser CORS policy.
+    // Degrade directly to local cached prices on web, while native iOS/Android continues direct queries.
+    const isBrowser = typeof window !== 'undefined' && typeof (window as any).document !== 'undefined';
+    if (!isBrowser) {
+      try {
+        // Direct Yahoo Finance v8 chart query
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${cleanTicker}?interval=1d&range=1d`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4500);
 
-      const res = await fetch(url, {
-        signal: controller.signal,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (OmniWealth Mobile Native App)',
-        },
-      });
-      clearTimeout(timeoutId);
+        const res = await fetch(url, {
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (OmniWealth Mobile Native App)',
+          },
+        });
+        clearTimeout(timeoutId);
 
-      if (res.ok) {
-        const json = await res.json();
-        const meta = json?.chart?.result?.[0]?.meta;
-        if (meta && typeof meta.regularMarketPrice === 'number' && meta.regularMarketPrice > 0) {
-          const current = meta.regularMarketPrice;
-          const prevClose = meta.previousClose || meta.chartPreviousClose || current;
-          const change = prevClose > 0 ? (current - prevClose) / prevClose : 0;
-          return {
-            ticker: cleanTicker,
-            price: current,
-            change24h: change,
-            regularMarketTime: meta.regularMarketTime,
-          };
+        if (res.ok) {
+          const json = await res.json();
+          const meta = json?.chart?.result?.[0]?.meta;
+          if (meta && typeof meta.regularMarketPrice === 'number' && meta.regularMarketPrice > 0) {
+            const current = meta.regularMarketPrice;
+            const prevClose = meta.previousClose || meta.chartPreviousClose || current;
+            const change = prevClose > 0 ? (current - prevClose) / prevClose : 0;
+            return {
+              ticker: cleanTicker,
+              price: current,
+              change24h: change,
+              regularMarketTime: meta.regularMarketTime,
+            };
+          }
         }
+      } catch {
+        // Network or rate-limit: degrade to offline cached price
       }
-    } catch {
-      // Network, CORS or rate-limit: degrade to offline cached price
     }
 
     // 1. Offline Priority: Check local market cache for the latest updated price

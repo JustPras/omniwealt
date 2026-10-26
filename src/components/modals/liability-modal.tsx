@@ -165,6 +165,8 @@ export const LiabilityModal: React.FC<LiabilityModalProps> = ({
                 </Text>
               </View>
               <Pressable
+                accessibilityLabel="Tutup modal"
+                accessibilityRole="button"
                 onPress={() => {
                   triggerHaptic('light');
                   onClose();

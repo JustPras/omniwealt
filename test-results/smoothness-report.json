@@ -1,0 +1,86 @@
+{
+  "navigation": [
+    {
+      "tab": "Portofolio",
+      "transitionMs": 866,
+      "verified": true
+    },
+    {
+      "tab": "Akun & Liabilitas",
+      "transitionMs": 599,
+      "verified": true
+    },
+    {
+      "tab": "Sinkronisasi Otomatis",
+      "transitionMs": 970,
+      "verified": true
+    },
+    {
+      "tab": "Ringkasan Utama",
+      "transitionMs": 806,
+      "verified": true
+    }
+  ],
+  "buttons": [
+    {
+      "name": "Currency Toggle (IDR <-> USD)",
+      "functional": true,
+      "latencyMs": 350
+    },
+    {
+      "name": "Privacy Masking Toggle",
+      "functional": true,
+      "latencyMs": 350
+    },
+    {
+      "name": "Timeframe Selection Capsules",
+      "functional": true,
+      "latencyMs": 180
+    },
+    {
+      "name": "Liquid Glass Modal (Tambah Rekening)",
+      "functional": false,
+      "latencyMs": 400
+    },
+    {
+      "name": "1-Click Pay Liability Modal & Presets",
+      "functional": false,
+      "latencyMs": 450
+    }
+  ],
+  "scrolling": [
+    {
+      "screen": "Dashboard (Ringkasan)",
+      "avgFps": 57,
+      "droppedFrames": 1,
+      "totalFrames": 61,
+      "p95DeltaMs": 17,
+      "isSmooth": true
+    },
+    {
+      "screen": "Portofolio",
+      "avgFps": 60,
+      "droppedFrames": 0,
+      "totalFrames": 60,
+      "p95DeltaMs": 17,
+      "isSmooth": true
+    },
+    {
+      "screen": "Akun & Liabilitas",
+      "avgFps": 60,
+      "droppedFrames": 0,
+      "totalFrames": 64,
+      "p95DeltaMs": 17,
+      "isSmooth": true
+    },
+    {
+      "screen": "Sinkron & MacroDroid",
+      "avgFps": 60,
+      "droppedFrames": 0,
+      "totalFrames": 59,
+      "p95DeltaMs": 17,
+      "isSmooth": true
+    }
+  ],
+  "errors": []
+}

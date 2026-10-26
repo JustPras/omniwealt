@@ -48,6 +48,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({ visible, onClose }) 
             <View style={styles.header}>
               <Text style={styles.title}>Tambah rekening baru</Text>
               <Pressable
+                accessibilityLabel="Tutup modal"
+                accessibilityRole="button"
                 onPress={() => {
                   triggerHaptic('light');
                   onClose();

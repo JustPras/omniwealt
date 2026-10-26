@@ -481,20 +481,32 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       const parsed = await AIParserService.parseBankMutation(text);
 
       // Find matched account or create one
+      const bankLower = parsed.bankName.toLowerCase();
       let matchedAccount =
-        accounts.find((a) => a.name.toLowerCase().includes(parsed.bankName.toLowerCase())) ||
+        accounts.find((a) => a.name.toLowerCase().includes(bankLower)) ||
+        (bankLower.includes('jago')
+          ? accounts.find((a) => a.name.toLowerCase().includes('jago'))
+          : undefined) ||
+        (bankLower.includes('bca')
+          ? accounts.find((a) => a.name.toLowerCase().includes('bca'))
+          : undefined) ||
+        (bankLower.includes('mandiri')
+          ? accounts.find((a) => a.name.toLowerCase().includes('mandiri'))
+          : undefined) ||
         accounts.find((a) => a.type === 'BANK') ||
         accounts[0];
 
       if (!matchedAccount) {
+        const isJago = bankLower.includes('jago');
+        const isRdn = parsed.bankName.includes('RDN');
         matchedAccount = {
           id: `acc-${Date.now()}`,
-          name: parsed.bankName || 'Rekening Utama',
-          type: 'BANK',
+          name: parsed.bankName || (isJago ? 'Bank Jago (Kantong Utama)' : 'Rekening Utama'),
+          type: isRdn ? 'RDN' : 'BANK',
           accountNumber: 'Aktif',
           balance: parsed.type === 'INCOME' ? parsed.amount : 0,
-          color: '#38BDF8',
-          icon: 'landmark',
+          color: isJago ? '#8B5CF6' : '#38BDF8',
+          icon: isJago ? 'smartphone' : 'landmark',
           updatedAt: new Date().toISOString(),
         };
         setAccounts((prev) => {
@@ -510,7 +522,11 @@ export const WealthProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       else if (parsed.type === 'TRANSFER') {
         // Transfer to RDN or another account
         delta = -parsed.amount;
-        const rdnAccount = accounts.find((a) => a.type === 'RDN');
+        const rdnAccount =
+          (bankLower.includes('jago')
+            ? accounts.find((a) => a.type === 'RDN' && a.name.toLowerCase().includes('jago'))
+            : undefined) ||
+          accounts.find((a) => a.type === 'RDN');
         if (rdnAccount) {
           setAccounts((prev) => {
             const updated = prev.map((a) => {

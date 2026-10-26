@@ -76,10 +76,21 @@ Notification: "${text}"
     if (
       lower.includes('top up rdn') ||
       lower.includes('topup rdn') ||
-      (lower.includes('transfer') && lower.includes('rdn'))
+      (lower.includes('transfer') && lower.includes('rdn')) ||
+      (lower.includes('kantong') && lower.includes('rdn'))
     ) {
       type = 'TRANSFER';
       category = 'Investment Top-Up';
+    } else if (
+      lower.includes('bunga kantong') ||
+      lower.includes('bunga tabungan') ||
+      lower.includes('bunga simpanan')
+    ) {
+      type = 'INCOME';
+      category = 'Interest & Dividends';
+    } else if (lower.includes('pajak bunga')) {
+      type = 'EXPENSE';
+      category = 'Tax & Fees';
     } else if (
       lower.includes('transfer masuk') ||
       lower.includes('dana masuk') ||
@@ -114,7 +125,8 @@ Notification: "${text}"
         lower.includes('resto') ||
         lower.includes('cafe') ||
         lower.includes('gofood') ||
-        lower.includes('shopeefood')
+        lower.includes('shopeefood') ||
+        lower.includes('f&b')
       ) {
         category = 'Food & Beverage';
       } else if (
@@ -150,11 +162,15 @@ Notification: "${text}"
       bankName = 'BRImo';
     } else if (lower.includes('bni') || appHint.includes('bni')) {
       bankName = 'BNI Mobile';
-    } else if (lower.includes('jago') || appHint.includes('jago')) {
+    } else if (lower.includes('jago') || appHint.includes('jago') || lower.includes('kantong')) {
       if (lower.includes('rdn') || lower.includes('stockbit')) {
         bankName = 'RDN Stockbit Jago';
+      } else if (lower.includes('nabung') || lower.includes('terkunci')) {
+        bankName = 'Bank Jago (Kantong Nabung)';
+      } else if (lower.includes('belanja') || lower.includes('bayar')) {
+        bankName = 'Bank Jago (Kantong Belanja)';
       } else {
-        bankName = 'Bank Jago';
+        bankName = 'Bank Jago (Kantong Utama)';
       }
     } else if (lower.includes('gopay') || lower.includes('gojek') || appHint.includes('gojek') || appHint.includes('gopay')) {
       bankName = 'GoPay Utama';
@@ -199,6 +215,9 @@ Notification: "${text}"
     if (merchantOrSender) {
       merchantOrSender = merchantOrSender
         .replace(/\b(berhasil|telah|sukses|pada|sebesar|rp|idr|ke|melalui|via)\b.*/gi, '')
+        .replace(/\bvia\s+kantong\b.*/gi, '')
+        .replace(/\bke\s+kantong\b.*/gi, '')
+        .replace(/\bdari\s+kantong\b.*/gi, '')
         .trim();
     }
 

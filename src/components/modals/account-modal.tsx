@@ -91,6 +91,30 @@ export const AccountModal: React.FC<AccountModalProps> = ({ visible, onClose }) 
               })}
             </View>
 
+            {/* Quick Presets */}
+            <Text style={styles.inputLabel}>Pilih instan rekening populer</Text>
+            <View style={styles.quickPresetRow}>
+              {[
+                { label: 'Bank Jago (Kantong Utama)', t: 'BANK' as AccountType },
+                { label: 'RDN Stockbit Jago', t: 'RDN' as AccountType },
+                { label: 'BCA Tahapan', t: 'BANK' as AccountType },
+                { label: "Mandiri Livin'", t: 'BANK' as AccountType },
+                { label: 'GoPay Utama', t: 'E-WALLET' as AccountType },
+              ].map((p) => (
+                <Pressable
+                  key={p.label}
+                  onPress={() => {
+                    triggerHaptic('selection');
+                    setName(p.label);
+                    setType(p.t);
+                  }}
+                  style={styles.quickPresetChip}
+                >
+                  <Text style={styles.quickPresetText}>{p.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+
             {/* Account Name */}
             <Text style={styles.inputLabel}>Nama rekening</Text>
             <TextInput
@@ -200,6 +224,25 @@ const styles = StyleSheet.create({
   activeTypeText: {
     color: color.accent,
     fontWeight: '600',
+  },
+  quickPresetRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: space.xs,
+  },
+  quickPresetChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  quickPresetText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: color.textMuted,
   },
   input: {
     backgroundColor: color.glassFillInset,

@@ -77,3 +77,34 @@ test('6. Template Deep Link MacroDroid Generator', () => {
   assert.ok(guide.steps.length >= 4, 'Panduan harus memiliki minimal 4 langkah');
   assert.ok(guide.deepLinkTemplate.includes('omniwealth://notification'), 'Template harus valid');
 });
+
+test('7. Ekstraksi Notifikasi Bank Jago (Uang Keluar Kantong Utama & F&B)', () => {
+  const text = 'Pemberitahuan: Uang keluar Rp 62.000 untuk F&B via Kantong Utama';
+  const result = AIParserService.deterministicBankParse(text, 'com.jago.digitalbanking');
+
+  assert.strictEqual(result.type, 'EXPENSE', 'Tipe harus EXPENSE');
+  assert.strictEqual(result.amount, 62000, 'Nominal harus Rp 62.000');
+  assert.strictEqual(result.bankName, 'Bank Jago (Kantong Utama)', 'Bank harus Bank Jago (Kantong Utama)');
+  assert.strictEqual(result.category, 'Food & Beverage', 'Kategori harus Food & Beverage');
+  assert.strictEqual(result.merchantOrSender, 'F&B', 'Merchant/Tujuan harus F&B');
+});
+
+test('8. Ekstraksi Notifikasi Bunga Kantong Nabung Bank Jago', () => {
+  const text = 'Pemberitahuan: Bunga kantong Rp 15.200 telah ditambahkan ke Kantong Nabung Bank Jago';
+  const result = AIParserService.deterministicBankParse(text);
+
+  assert.strictEqual(result.type, 'INCOME', 'Bunga kantong harus INCOME');
+  assert.strictEqual(result.amount, 15200, 'Nominal bunga harus Rp 15.200');
+  assert.strictEqual(result.bankName, 'Bank Jago (Kantong Nabung)', 'Harus mendeteksi Kantong Nabung Jago');
+  assert.strictEqual(result.category, 'Interest & Dividends', 'Kategori harus Interest & Dividends');
+});
+
+test('9. Ekstraksi Notifikasi Top Up RDN Stockbit Jago (Transfer)', () => {
+  const text = 'Top up saldo RDN Rp 1.000.000 dari Kantong Utama ke RDN Stockbit Jago berhasil';
+  const result = AIParserService.deterministicBankParse(text);
+
+  assert.strictEqual(result.type, 'TRANSFER', 'Top up RDN harus TRANSFER');
+  assert.strictEqual(result.amount, 1000000, 'Nominal harus Rp 1.000.000');
+  assert.strictEqual(result.bankName, 'RDN Stockbit Jago', 'Bank harus RDN Stockbit Jago');
+  assert.strictEqual(result.category, 'Investment Top-Up', 'Kategori harus Investment Top-Up');
+});

@@ -92,6 +92,27 @@ export const MONITORED_BANK_APPS: MonitoredBankApp[] = [
 
 export const NOTIFICATION_TEST_PRESETS = [
   {
+    id: 'test-jago-fnb',
+    title: 'Jago Uang Keluar F&B',
+    badge: 'Kantong Utama Jago',
+    appId: 'jago',
+    text: 'Pemberitahuan: Uang keluar Rp 62.000 untuk F&B via Kantong Utama Bank Jago',
+  },
+  {
+    id: 'test-jago-interest',
+    title: 'Jago Bunga Kantong',
+    badge: 'Kantong Nabung Jago',
+    appId: 'jago',
+    text: 'Pemberitahuan: Bunga kantong Rp 15.200 telah ditambahkan ke Kantong Nabung Bank Jago',
+  },
+  {
+    id: 'test-jago-rdn',
+    title: 'Jago Top Up RDN Stockbit',
+    badge: 'Jago ke RDN',
+    appId: 'jago',
+    text: 'Top up saldo RDN Rp 1.000.000 dari Kantong Utama ke RDN Stockbit Jago berhasil',
+  },
+  {
     id: 'test-qris',
     title: 'QRIS Kopi Kenangan',
     badge: 'BCA Tahapan',

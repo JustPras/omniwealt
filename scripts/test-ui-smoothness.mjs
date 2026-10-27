@@ -369,7 +369,7 @@ async function runTests() {
     await page.evaluate(() => window.scrollBy(0, 700));
     await delay(400);
 
-    const bayarClicked = await nativeClickText('Bayar', false);
+    const bayarClicked = await nativeClickText('Bayar', true);
     await delay(600);
     const payModalText = await page.evaluate(() => document.body.innerText);
     const payModalOpened = payModalText.includes('Pelunasan / Bayar Tagihan') || payModalText.includes('Total Tagihan Berjalan');

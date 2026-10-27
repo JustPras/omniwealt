@@ -1,69 +1,72 @@
-import { useColorScheme, Platform } from 'react-native';
+import { useColorScheme, Platform, TextStyle } from 'react-native';
+import { Colors } from './colors';
+
+export { Colors };
 
 export const themes = {
   light: {
-    canvas: '#F5F5F7',
-    text: '#1D1D1F',
-    textMuted: '#6E6E73',
-    textFaint: '#AAAAAA',
-    tint: '#007AFF',
-    tintText: '#0066CC', // tautan dan teks biru
+    canvas: Colors.palette.appleBg, // #F5F5F7
+    text: Colors.palette.appleInk, // #1D1D1F
+    textMuted: Colors.palette.appleMuted, // #AAAAAA
+    textFaint: '#BBBBBF',
+    tint: Colors.palette.appleBlue, // #007AFF
+    tintText: '#0066CC',
     onTint: '#FFFFFF',
     glass: {
-      frost: 'rgba(255,255,255,0.62)', // kartu konten
-      lens: 'rgba(255,255,255,0.48)', // hero, tab bar, sheet, tombol melayang
-      inset: 'rgba(29,29,31,0.05)', // input, chip, segmen di dalam kartu
-      tint: 'rgba(0,122,255,0.88)', // tombol utama, kapsul aktif
+      frost: 'rgba(255, 255, 255, 0.72)',
+      lens: 'rgba(255, 255, 255, 0.52)',
+      inset: 'rgba(228, 228, 234, 0.65)',
+      tint: 'rgba(0, 122, 255, 0.88)',
     },
     rim: {
-      hi: 'rgba(255,255,255,0.95)',
-      mid: 'rgba(255,255,255,0.35)',
-      lo: 'rgba(0,122,255,0.35)',
+      hi: 'rgba(255, 255, 255, 0.95)',
+      mid: 'rgba(255, 255, 255, 0.45)',
+      lo: 'rgba(0, 122, 255, 0.35)',
     },
-    hairline: 'rgba(29,29,31,0.08)',
-    gain: '#1E7A37',
-    loss: '#D70015',
+    hairline: 'rgba(29, 29, 31, 0.08)',
+    gain: '#007AFF',
+    loss: '#FF3B30',
     asset: {
-      cash: '#AAAAAA',
-      stock: '#1D1D1F',
-      crypto: '#FF9500',
+      cash: Colors.palette.appleMuted,
+      stock: Colors.palette.appleInk,
+      crypto: Colors.palette.appleBlue,
     },
     lights: [
-      { color: '#007AFF', alpha: 0.16, at: 'topLeft' },
-      { color: '#AAAAAA', alpha: 0.22, at: 'bottomRight' },
+      { color: Colors.palette.appleBlue, alpha: 0.18, at: 'topLeft' },
+      { color: Colors.palette.appleMuted, alpha: 0.22, at: 'bottomRight' },
     ],
-    elev: { e1: 0.1, e2: 0.16 }, // opacity shadow hitam
+    elev: { e1: 0.08, e2: 0.14 },
   },
   dark: {
-    canvas: '#1D1D1F',
-    text: '#F5F5F7',
-    textMuted: '#AAAAAA',
+    canvas: Colors.palette.appleInk, // #1D1D1F
+    text: Colors.palette.appleBg, // #F5F5F7
+    textMuted: Colors.palette.appleMuted, // #AAAAAA
     textFaint: '#6E6E73',
-    tint: '#007AFF',
+    tint: Colors.palette.appleBlue, // #007AFF
     tintText: '#0A84FF',
     onTint: '#FFFFFF',
     glass: {
-      frost: 'rgba(245,245,247,0.07)',
-      lens: 'rgba(245,245,247,0.12)',
-      inset: 'rgba(245,245,247,0.06)',
-      tint: 'rgba(0,122,255,0.80)',
+      frost: 'rgba(46, 46, 50, 0.75)',
+      lens: 'rgba(29, 29, 31, 0.70)',
+      inset: 'rgba(255, 255, 255, 0.06)',
+      tint: 'rgba(0, 122, 255, 0.82)',
     },
     rim: {
-      hi: 'rgba(245,245,247,0.70)',
-      mid: 'rgba(245,245,247,0.14)',
-      lo: 'rgba(0,122,255,0.60)',
+      hi: 'rgba(255, 255, 255, 0.70)',
+      mid: 'rgba(255, 255, 255, 0.16)',
+      lo: 'rgba(0, 122, 255, 0.60)',
     },
-    hairline: 'rgba(245,245,247,0.08)',
+    hairline: 'rgba(255, 255, 255, 0.10)',
     gain: '#30D158',
     loss: '#FF453A',
     asset: {
-      cash: '#AAAAAA',
-      stock: '#F5F5F7',
+      cash: Colors.palette.appleMuted,
+      stock: Colors.palette.appleBg,
       crypto: '#FF9F0A',
     },
     lights: [
-      { color: '#007AFF', alpha: 0.35, at: 'bottomRight' },
-      { color: '#F5F5F7', alpha: 0.08, at: 'topLeft' },
+      { color: Colors.palette.appleBlue, alpha: 0.30, at: 'bottomRight' },
+      { color: Colors.palette.appleBg, alpha: 0.08, at: 'topLeft' },
     ],
     elev: { e1: 0.28, e2: 0.42 },
   },
@@ -76,23 +79,28 @@ export const useTheme = (): Theme => {
   return scheme === 'light' ? themes.light : themes.dark;
 };
 
-// Default static active theme (dark as core default, matching app.json background)
+// Default active theme based on dark/light
 const activeTheme = themes.dark;
 
-// Unified color exports for seamless compatibility with DESIGN.md
 export const color = {
-  obsidian: activeTheme.canvas,
+  obsidian: Colors.palette.appleInk,
   canvas: activeTheme.canvas,
   text: activeTheme.text,
-  textMuted: activeTheme.textMuted,
+  textMuted: Colors.palette.appleMuted,
   textFaint: activeTheme.textFaint,
 
-  tint: activeTheme.tint,
+  tint: Colors.palette.appleBlue,
   tintText: activeTheme.tintText,
   onTint: activeTheme.onTint,
 
-  // Apple Modern accent mappings
-  accent: activeTheme.tint, // #007AFF
+  // Apple Modern palette direct access
+  appleBg: Colors.palette.appleBg,
+  appleInk: Colors.palette.appleInk,
+  appleMuted: Colors.palette.appleMuted,
+  appleBlue: Colors.palette.appleBlue,
+
+  // Accent mappings
+  accent: Colors.palette.appleBlue,
   accentSoft: activeTheme.glass.inset,
   accentRim: activeTheme.rim.mid,
   onAccent: activeTheme.onTint,
@@ -112,9 +120,9 @@ export const color = {
 export const radius = {
   sm: 10,
   md: 14,
-  lg: 22,
-  xl: 30,
-  pill: 999,
+  lg: 20,
+  xl: 24, // Card container radius per DESIGN.md Section 4.1
+  pill: 9999, // Pill & capsule buttons per DESIGN.md Section 4.1
 } as const;
 
 export const space = {
@@ -130,31 +138,39 @@ export const space = {
 
 export const shadow = {
   e1: {
-    shadowColor: '#000',
-    shadowOpacity: activeTheme.elev.e1,
-    shadowRadius: 12,
+    shadowColor: Colors.palette.appleInk,
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
     shadowOffset: { width: 0, height: 6 },
     elevation: 4,
   },
   e2: {
-    shadowColor: '#000',
-    shadowOpacity: activeTheme.elev.e2,
-    shadowRadius: 26,
-    shadowOffset: { width: 0, height: 14 },
-    elevation: 10,
+    shadowColor: Colors.palette.appleInk,
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 5,
+  },
+  azure: {
+    shadowColor: Colors.palette.appleBlue,
+    shadowOpacity: 0.40,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
   },
 } as const;
 
 export const motion = {
-  fast: 120,
+  fast: 110,
   base: 200,
   slow: 320,
   morph: 320,
   bloom: 420,
   count: 450,
   spring: {
-    press: { tension: 220, friction: 12 },
-    settle: { tension: 120, friction: 12 },
+    press: { tension: 160, friction: 4 }, // per DESIGN.md Section 5.1
+    settle: { tension: 160, friction: 4 },
+    segment: { damping: 14, stiffness: 150, mass: 0.8 }, // per DESIGN.md Section 5.2
   },
 } as const;
 
@@ -170,4 +186,47 @@ export const fontWeights = {
   uiSemi: '600' as const,
   uiBold: '700' as const,
   num: '700' as const,
+  extraBold: '800' as const,
+};
+
+// Typography hierarchy per DESIGN.md Section 3
+export const typography: Record<string, TextStyle> = {
+  heroNetWorth: {
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.6,
+    color: Colors.palette.appleInk,
+    fontVariant: ['tabular-nums'],
+  },
+  screenTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: -0.4,
+    color: Colors.palette.appleInk,
+  },
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+    color: Colors.palette.appleInk,
+  },
+  bodyStrong: {
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: -0.1,
+    color: Colors.palette.appleInk,
+    fontVariant: ['tabular-nums'],
+  },
+  captionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+    color: Colors.palette.appleMuted,
+  },
+  microBadge: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    color: Colors.palette.appleBlue,
+  },
 };

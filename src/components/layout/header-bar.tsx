@@ -6,17 +6,22 @@ import {
   Pressable,
   Animated,
   Easing,
-  Image,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../common/icon';
+import { GlassCard } from '../common/glass-card';
+import { LiquidSegmentControl } from '../common/liquid-segment-control';
 import { useWealth } from '../../store/wealth-context';
 import { formatTime } from '../../utils/format';
 import { triggerHaptic } from '../../utils/haptics';
-import { color, space, radius, shadow, motion, font } from '../../theme/tokens';
+import { Colors, useTheme, radius, space, shadow } from '../../theme/tokens';
 
 export const HeaderBar: React.FC = () => {
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
+  const isDark = theme.canvas === Colors.palette.appleInk;
+
   const {
     privacyMode,
     togglePrivacy,
@@ -27,14 +32,14 @@ export const HeaderBar: React.FC = () => {
     lastUpdated,
   } = useWealth();
 
-  // Pulse animation for LIVE indicator dot (The only authorized idle loop in the app per design)
+  // Pulse animation for LIVE indicator dot per DESIGN.md
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const pulseOpacity = useRef(new Animated.Value(1)).current;
 
   // Spin animation for RefreshCw button
   const spinAnim = useRef(new Animated.Value(0)).current;
 
-  // Press feedback scales for the two header action buttons
+  // Press feedback scales for the header action buttons
   const refreshScale = useRef(new Animated.Value(1)).current;
   const eyeScale = useRef(new Animated.Value(1)).current;
 
@@ -43,7 +48,7 @@ export const HeaderBar: React.FC = () => {
       Animated.parallel([
         Animated.sequence([
           Animated.timing(pulseAnim, {
-            toValue: 1.3,
+            toValue: 1.35,
             duration: 1000,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
@@ -57,7 +62,7 @@ export const HeaderBar: React.FC = () => {
         ]),
         Animated.sequence([
           Animated.timing(pulseOpacity, {
-            toValue: 0.5,
+            toValue: 0.45,
             duration: 1000,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
@@ -102,9 +107,9 @@ export const HeaderBar: React.FC = () => {
 
   const handleButtonPressIn = (scaleRef: Animated.Value) => {
     Animated.spring(scaleRef, {
-      toValue: 0.94,
-      tension: motion.spring.press.tension,
-      friction: motion.spring.press.friction,
+      toValue: 0.92,
+      tension: 260,
+      friction: 10,
       useNativeDriver: true,
     }).start();
   };
@@ -112,247 +117,236 @@ export const HeaderBar: React.FC = () => {
   const handleButtonPressOut = (scaleRef: Animated.Value) => {
     Animated.spring(scaleRef, {
       toValue: 1,
-      tension: motion.spring.settle.tension,
-      friction: motion.spring.settle.friction,
+      tension: 160,
+      friction: 4,
       useNativeDriver: true,
     }).start();
   };
 
+  const textColor = isDark ? Colors.palette.appleBg : Colors.palette.appleInk;
+
   return (
-    <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top + 6, 16) }]}>
-      {/* Brand Logo + Live Pill */}
-      <View style={styles.leftGroup}>
-        <Image
-          source={require('../../../assets/icon.png')}
-          style={styles.brandLogo}
-          resizeMode="cover"
-        />
-        {/* Live Market Status Pill */}
-        <View style={styles.liveBadge}>
-          <Animated.View
-            style={[
-              styles.pulseDot,
-              {
-                transform: [{ scale: pulseAnim }],
-                opacity: pulseOpacity,
-              },
-            ]}
-          />
-          <Text style={styles.liveText}>Live</Text>
-          <Text style={styles.timeText}>{formatTime(lastUpdated.toISOString())}</Text>
-        </View>
-      </View>
-
-      {/* Header Actions: Currency, Refresh & Privacy Toggle */}
-      <View style={styles.actionGroup}>
-        {/* Currency Switcher (IDR / USD) */}
-        <Pressable
-          onPress={() => {
-            triggerHaptic('selection');
-            toggleCurrency();
-          }}
-          hitSlop={6}
-          accessibilityLabel="Ganti tampilan mata uang Rupiah atau Dollar"
-          accessibilityRole="button"
-          style={styles.currencyToggleBtn}
-        >
-          <View
-            style={[
-              styles.currencySegment,
-              currency === 'IDR' && styles.activeCurrencySegment,
-            ]}
-          >
-            <Text
-              style={[
-                styles.currencySegmentText,
-                currency === 'IDR' && styles.activeCurrencySegmentText,
-              ]}
-            >
-              Rp
-            </Text>
+    <View style={[styles.outerWrapper, { paddingTop: Math.max(insets.top + 4, 12) }]}>
+      {/* Floating Capsule Glass Card per DESIGN.md Section 6.1 */}
+      <GlassCard
+        level="raised"
+        radius="pill"
+        noPadding
+        style={styles.capsuleCard}
+        contentStyle={styles.capsuleInner}
+      >
+        {/* Kiri: Ikon tetesan air biru #007AFF + teks Omniwealt (#1D1D1F) + badge iOS per DESIGN.md Section 6.1 */}
+        <View style={styles.leftBrandGroup}>
+          <View style={styles.dropletIconBadge}>
+            <Icon name="Droplet" size={16} color={Colors.palette.appleBlue} />
           </View>
-          <View
-            style={[
-              styles.currencySegment,
-              currency === 'USD' && styles.activeCurrencySegment,
-            ]}
-          >
-            <Text
-              style={[
-                styles.currencySegmentText,
-                currency === 'USD' && styles.activeCurrencySegmentText,
-              ]}
-            >
-              $
-            </Text>
-          </View>
-        </Pressable>
-
-        {/* Refresh Market Prices Button */}
-        <Pressable
-          onPress={() => {
-            triggerHaptic('light');
-            refreshMarketPrices();
-          }}
-          onPressIn={() => handleButtonPressIn(refreshScale)}
-          onPressOut={() => handleButtonPressOut(refreshScale)}
-          disabled={isRefreshing}
-          hitSlop={8}
-          accessibilityLabel="Segarkan harga pasar"
-          accessibilityRole="button"
-        >
-          <Animated.View
-            style={[
-              styles.iconButton,
-              isRefreshing && styles.refreshingButton,
-              { transform: [{ scale: refreshScale }] },
-            ]}
-          >
-            <Animated.View style={{ transform: [{ rotate: spin }] }}>
-              <Icon
-                name="RefreshCw"
-                size={16}
-                color={isRefreshing ? color.accent : color.textMuted}
+          <View style={styles.brandTitleCol}>
+            <View style={styles.brandNameRow}>
+              <Text style={[styles.brandTitle, { color: textColor }]}>Omniwealt</Text>
+              <View style={styles.iosBadge}>
+                <Text style={styles.iosBadgeText}>iOS</Text>
+              </View>
+            </View>
+            {/* Live Indicator Sub-text */}
+            <View style={styles.liveSubRow}>
+              <Animated.View
+                style={[
+                  styles.pulseDot,
+                  {
+                    transform: [{ scale: pulseAnim }],
+                    opacity: pulseOpacity,
+                  },
+                ]}
               />
-            </Animated.View>
-          </Animated.View>
-        </Pressable>
+              <Text style={styles.liveTimeText}>{formatTime(lastUpdated.toISOString())}</Text>
+            </View>
+          </View>
+        </View>
 
-        {/* Privacy Eye Toggle Button */}
-        <Pressable
-          onPress={() => {
-            triggerHaptic('medium');
-            togglePrivacy();
-          }}
-          onPressIn={() => handleButtonPressIn(eyeScale)}
-          onPressOut={() => handleButtonPressOut(eyeScale)}
-          hitSlop={8}
-          accessibilityLabel={privacyMode ? 'Tampilkan saldo' : 'Sembunyikan saldo'}
-          accessibilityRole="button"
-        >
-          <Animated.View
-            style={[
-              styles.iconButton,
-              privacyMode && styles.activeIconButton,
-              { transform: [{ scale: eyeScale }] },
+        {/* Kanan: LiquidSegmentControl (IDR/USD) + tombol bulat kaca bening Privacy Mode per DESIGN.md Section 6.1 */}
+        <View style={styles.rightActionGroup}>
+          {/* Liquid Currency Switcher (IDR / USD) */}
+          <LiquidSegmentControl
+            items={[
+              { key: 'IDR', label: 'Rp' },
+              { key: 'USD', label: '$' },
             ]}
+            activeKey={currency}
+            onSelect={() => toggleCurrency()}
+            height={28}
+            fontSize={11}
+            compact
+            style={styles.currencySegmentControl}
+          />
+
+          {/* Refresh Market Prices Button */}
+          <Pressable
+            onPress={() => {
+              triggerHaptic('light');
+              refreshMarketPrices();
+            }}
+            onPressIn={() => handleButtonPressIn(refreshScale)}
+            onPressOut={() => handleButtonPressOut(refreshScale)}
+            disabled={isRefreshing}
+            hitSlop={8}
+            accessibilityLabel="Segarkan harga pasar"
+            accessibilityRole="button"
           >
-            {privacyMode ? (
-              <Icon name="EyeOff" size={16} color={color.accent} />
-            ) : (
-              <Icon name="Eye" size={16} color={color.textMuted} />
-            )}
-          </Animated.View>
-        </Pressable>
-      </View>
+            <Animated.View
+              style={[
+                styles.circularGlassButton,
+                isRefreshing && styles.refreshingButton,
+                {
+                  transform: [{ scale: refreshScale }],
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.65)',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(255, 255, 255, 0.85)',
+                },
+              ]}
+            >
+              <Animated.View style={{ transform: [{ rotate: spin }] }}>
+                <Icon
+                  name="RefreshCw"
+                  size={14}
+                  color={isRefreshing ? Colors.palette.appleBlue : Colors.palette.appleMuted}
+                />
+              </Animated.View>
+            </Animated.View>
+          </Pressable>
+
+          {/* Privacy Eye Toggle Button */}
+          <Pressable
+            onPress={() => {
+              triggerHaptic('medium');
+              togglePrivacy();
+            }}
+            onPressIn={() => handleButtonPressIn(eyeScale)}
+            onPressOut={() => handleButtonPressOut(eyeScale)}
+            hitSlop={8}
+            accessibilityLabel={privacyMode ? 'Tampilkan saldo' : 'Sembunyikan saldo'}
+            accessibilityRole="button"
+          >
+            <Animated.View
+              style={[
+                styles.circularGlassButton,
+                privacyMode && styles.activeEyeButton,
+                {
+                  transform: [{ scale: eyeScale }],
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.65)',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(255, 255, 255, 0.85)',
+                },
+              ]}
+            >
+              {privacyMode ? (
+                <Icon name="EyeOff" size={14} color={Colors.palette.appleBlue} />
+              ) : (
+                <Icon name="Eye" size={14} color={Colors.palette.appleMuted} />
+              )}
+            </Animated.View>
+          </Pressable>
+        </View>
+      </GlassCard>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  headerContainer: {
+  outerWrapper: {
+    paddingHorizontal: space.lg - 2,
+    paddingBottom: 6,
+    zIndex: 10,
+  },
+  capsuleCard: {
+    borderRadius: radius.pill,
+    ...shadow.e1,
+  },
+  capsuleInner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: space.lg,
-    paddingBottom: space.sm,
-    zIndex: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
   },
-  leftGroup: {
+  leftBrandGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.sm + 2,
+    gap: 9,
   },
-  brandLogo: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.sm,
+  dropletIconBadge: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(0, 122, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: color.rim,
+    borderColor: 'rgba(0, 122, 255, 0.25)',
   },
-  liveBadge: {
+  brandTitleCol: {
+    justifyContent: 'center',
+  },
+  brandNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: color.glassFillInset,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: color.hairline,
     gap: 6,
   },
+  brandTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  iosBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(0, 122, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 122, 255, 0.30)',
+  },
+  iosBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: Colors.palette.appleBlue,
+    letterSpacing: 0.4,
+  },
+  liveSubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 1,
+  },
   pulseDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: color.gain,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 2,
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#34C759',
   },
-  liveText: {
-    fontSize: 11,
+  liveTimeText: {
+    fontSize: 10,
     fontWeight: '600',
-    color: color.gain,
-  },
-  timeText: {
-    fontSize: 11,
-    color: color.textMuted,
+    color: Colors.palette.appleMuted,
     fontVariant: ['tabular-nums'],
   },
-  actionGroup: {
+  rightActionGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.sm,
+    gap: 8,
   },
-  iconButton: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.pill,
-    backgroundColor: color.glassFillRaised,
+  currencySegmentControl: {
+    width: 76,
+  },
+  circularGlassButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: color.rim,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadow.e1,
   },
   refreshingButton: {
-    borderColor: color.accentRim,
+    borderColor: Colors.palette.appleBlue,
   },
-  activeIconButton: {
-    borderColor: color.accentRim,
-    backgroundColor: color.accentSoft,
-  },
-  currencyToggleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: color.glassFillRaised,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: color.rim,
-    padding: 3,
-    height: 38,
-    ...shadow.e1,
-  },
-  currencySegment: {
-    paddingHorizontal: 9,
-    height: '100%',
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  activeCurrencySegment: {
-    backgroundColor: color.accent,
-  },
-  currencySegmentText: {
-    fontSize: 11,
-    fontFamily: font.uiSemi,
-    fontWeight: '700',
-    color: color.textMuted,
-  },
-  activeCurrencySegmentText: {
-    color: '#FFFFFF',
+  activeEyeButton: {
+    borderColor: Colors.palette.appleBlue,
+    backgroundColor: 'rgba(0, 122, 255, 0.12)',
   },
 });

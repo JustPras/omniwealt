@@ -14,6 +14,8 @@ import * as DocumentPicker from 'expo-document-picker';
 import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
+import { LiquidButton } from '../../src/components/common/liquid-button';
+import { LiquidSegmentControl } from '../../src/components/common/liquid-segment-control';
 import { ScreenTransition } from '../../src/components/common/screen-transition';
 import { AmbientBackground } from '../../src/components/common/ambient-background';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
@@ -308,33 +310,16 @@ export default function SyncScreen() {
         </Pressable>
 
         {/* 2. INGESTION ENTRY POINTS TABS */}
-        <View style={styles.tabSelector}>
-          <Pressable
-            onPress={() => {
-              triggerHaptic('light');
-              setActiveTab('MANUAL');
-            }}
-            style={[styles.tabButton, activeTab === 'MANUAL' && styles.tabButtonActive]}
-          >
-            <Icon name="UploadCloud" size={14} color={activeTab === 'MANUAL' ? color.onAccent : color.textMuted} />
-            <Text style={[styles.tabButtonText, activeTab === 'MANUAL' && styles.tabButtonTextActive]}>
-              Unggah Berkas / Teks
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => {
-              triggerHaptic('light');
-              setActiveTab('EMAIL_WEBHOOK');
-            }}
-            style={[styles.tabButton, activeTab === 'EMAIL_WEBHOOK' && styles.tabButtonActive]}
-          >
-            <Icon name="BellRing" size={14} color={activeTab === 'EMAIL_WEBHOOK' ? color.onAccent : color.textMuted} />
-            <Text style={[styles.tabButtonText, activeTab === 'EMAIL_WEBHOOK' && styles.tabButtonTextActive]}>
-              Inbound Email Webhook
-            </Text>
-          </Pressable>
-        </View>
+        <LiquidSegmentControl<'MANUAL' | 'EMAIL_WEBHOOK'>
+          items={[
+            { key: 'MANUAL', label: 'Unggah Berkas / Teks' },
+            { key: 'EMAIL_WEBHOOK', label: 'Inbound Email Webhook' },
+          ]}
+          activeKey={activeTab}
+          onSelect={setActiveTab}
+          style={{ width: '100%', marginBottom: space.sm }}
+          height={38}
+        />
 
         {/* 3. UPLOAD & SELECT FILE SECTION */}
         <GlassCard level="base" style={styles.uploadCard}>
@@ -346,22 +331,16 @@ export default function SyncScreen() {
               </Text>
 
               {/* Document Picker Primary Button */}
-              <Pressable
-                onPress={handlePickDocument}
+              <LiquidButton
+                title={selectedFileName ? `Ganti berkas (${selectedFileName})` : 'Pilih berkas PDF atau gambar'}
+                icon="UploadCloud"
+                variant="azure"
+                size="md"
+                loading={isExtracting}
                 disabled={isExtracting}
-                style={styles.pickFileButton}
-              >
-                {isExtracting ? (
-                  <ActivityIndicator color={color.onAccent} size="small" />
-                ) : (
-                  <View style={styles.pickFileInner}>
-                    <Icon name="UploadCloud" size={16} color={color.onAccent} />
-                    <Text style={styles.pickFileText}>
-                      {selectedFileName ? `Ganti berkas (${selectedFileName})` : 'Pilih berkas PDF atau gambar'}
-                    </Text>
-                  </View>
-                )}
-              </Pressable>
+                onPress={handlePickDocument}
+                style={{ width: '100%', marginVertical: space.sm }}
+              />
 
               {/* In-Place Password Input if Encrypted PDF */}
               {isEncryptedPdf && (
@@ -424,20 +403,15 @@ export default function SyncScreen() {
                 value={pastedText}
                 onChangeText={setPastedText}
               />
-              <Pressable
-                onPress={handleExtractPastedText}
+              <LiquidButton
+                title="Proses ke Pipeline Staging"
+                variant="azure"
+                size="md"
+                loading={isExtracting}
                 disabled={isExtracting || !pastedText.trim()}
-                style={[
-                  styles.extractTextButton,
-                  (!pastedText.trim() || isExtracting) && styles.disabledButton,
-                ]}
-              >
-                {isExtracting ? (
-                  <ActivityIndicator color={color.text} size="small" />
-                ) : (
-                  <Text style={styles.extractTextButtonText}>Proses ke Pipeline Staging</Text>
-                )}
-              </Pressable>
+                onPress={handleExtractPastedText}
+                style={{ width: '100%', marginTop: space.sm }}
+              />
             </View>
           )}
         </GlassCard>
@@ -596,27 +570,23 @@ export default function SyncScreen() {
 
             {/* Action Buttons: Confirm & Commit vs Discard */}
             <View style={styles.stagingActionsRow}>
-              <Pressable
+              <LiquidButton
+                title="Hapus draft"
+                variant="obsidian"
+                size="md"
                 onPress={handleDiscardCurrentBatch}
-                style={styles.discardButton}
-              >
-                <Text style={styles.discardButtonText}>Hapus Draft</Text>
-              </Pressable>
+                style={{ flex: 1 }}
+              />
 
-              <Pressable
-                onPress={handleCommitCurrentBatch}
+              <LiquidButton
+                title="Confirm & commit"
+                variant="azure"
+                size="md"
+                loading={isExtracting}
                 disabled={isExtracting}
-                style={[styles.commitButton, isExtracting && { opacity: 0.75 }]}
-              >
-                {isExtracting ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
-                    <ActivityIndicator color={color.onAccent} size="small" />
-                    <Text style={styles.commitButtonText}>Menyimpan ke Saldo...</Text>
-                  </View>
-                ) : (
-                  <Text style={styles.commitButtonText}>Confirm & Commit</Text>
-                )}
-              </Pressable>
+                onPress={handleCommitCurrentBatch}
+                style={{ flex: 1.5 }}
+              />
             </View>
           </GlassCard>
         )}
@@ -640,9 +610,12 @@ export default function SyncScreen() {
                     <Text style={styles.presetTitle}>{sim.title}</Text>
                     <Text style={styles.presetDesc}>{sim.desc}</Text>
                   </View>
-                  <View style={styles.presetActionChip}>
-                    <Text style={styles.presetActionText}>Uji alur</Text>
-                  </View>
+                  <LiquidButton
+                    title="Uji alur"
+                    variant="clear"
+                    size="sm"
+                    onPress={() => handleRunPipelineIngestion(sim.rawText, `${sim.broker}_Simulasi.txt`)}
+                  />
                 </Pressable>
                 {!isLast && <View style={styles.rowHairline} />}
               </View>

@@ -12,6 +12,7 @@ import {
 import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
+import { LiquidButton } from '../../src/components/common/liquid-button';
 import { ScreenTransition } from '../../src/components/common/screen-transition';
 import { AmbientBackground } from '../../src/components/common/ambient-background';
 import { PrivacyValue } from '../../src/components/common/privacy-value';
@@ -321,18 +322,16 @@ export default function AccountsScreen() {
             </View>
           )}
 
-          <Pressable
+          <LiquidButton
+            title="Tambah"
+            icon="Plus"
+            variant="obsidian"
+            size="sm"
             onPress={() => {
-              triggerHaptic('light');
               setSelectedLiabilityForEdit(null);
               setLiabilityModalVisible(true);
             }}
-            style={styles.addLiabilityHeaderBtn}
-            hitSlop={6}
-          >
-            <Icon name="Plus" size={12} color="#F87171" />
-            <Text style={styles.addLiabilityHeaderBtnText}>Tambah</Text>
-          </Pressable>
+          />
         </View>
 
         <GlassCard level="base" noPadding style={styles.groupCard}>
@@ -430,16 +429,15 @@ export default function AccountsScreen() {
                       </View>
 
                       {item.outstandingAmount > 0 && (
-                        <Pressable
+                        <LiquidButton
+                          title="Bayar"
+                          variant="azure"
+                          size="sm"
                           onPress={() => {
-                            triggerHaptic('medium');
                             setSelectedLiabilityForPay(item);
                             setPayLiabilityModalVisible(true);
                           }}
-                          style={styles.payActionBtn}
-                        >
-                          <Text style={styles.payActionBtnText}>Bayar</Text>
-                        </Pressable>
+                        />
                       )}
                     </View>
                   </Pressable>
@@ -473,15 +471,14 @@ export default function AccountsScreen() {
               <PrivacyValue value={totalCash} style={styles.heroAmount} />
               <Text style={styles.heroSubtitle}>{accounts.length} rekening aktif terhubung</Text>
             </View>
-            <Pressable
+            <LiquidButton
+              title="+ Tambah rekening"
+              variant="azure"
+              size="sm"
               onPress={() => {
-                triggerHaptic('light');
                 setAccountModalVisible(true);
               }}
-              style={styles.addAccountButton}
-            >
-              <Text style={styles.addAccountButtonText}>+ Tambah rekening</Text>
-            </Pressable>
+            />
           </View>
         </GlassCard>
 
@@ -492,15 +489,16 @@ export default function AccountsScreen() {
             <Text style={styles.emptyDesc}>
               Tambahkan rekening bank, rekening dana nasabah (RDN), dompet digital, kartu kredit, atau dompet Web3 untuk memantau kekayaan bersih sejati.
             </Text>
-            <Pressable
+            <LiquidButton
+              title="Tambah rekening pertama"
+              icon="Plus"
+              variant="azure"
+              size="md"
               onPress={() => {
-                triggerHaptic('light');
                 setAccountModalVisible(true);
               }}
-              style={styles.addAccountButton}
-            >
-              <Text style={styles.addAccountButtonText}>Tambah rekening pertama</Text>
-            </Pressable>
+              style={{ marginTop: space.sm }}
+            />
           </GlassCard>
         ) : (
           <View style={styles.groupsWrapper}>
@@ -573,20 +571,15 @@ export default function AccountsScreen() {
           )}
 
           {/* Action Button: Simpan Mutasi */}
-          <Pressable
-            onPress={() => handleProcessMutation()}
+          <LiquidButton
+            title="Simpan mutasi"
+            variant="azure"
+            size="md"
+            loading={isProcessing}
             disabled={isProcessing || !parserText.trim()}
-            style={[
-              styles.saveMutationButton,
-              (!parserText.trim() || isProcessing) && styles.disabledButton,
-            ]}
-          >
-            {isProcessing ? (
-              <ActivityIndicator color={color.onAccent} size="small" />
-            ) : (
-              <Text style={styles.saveMutationText}>Simpan mutasi</Text>
-            )}
-          </Pressable>
+            onPress={() => handleProcessMutation()}
+            style={{ width: '100%', marginTop: space.sm }}
+          />
         </GlassCard>
 
         {/* 4. AUTO-SYNC NOTIFIKASI BANK & E-WALLET (PILAR 1) */}
@@ -624,27 +617,27 @@ export default function AccountsScreen() {
 
           {/* Quick Action Button Row */}
           <View style={styles.autoSyncActionRow}>
-            <Pressable
+            <LiquidButton
+              title="Kelola & Setup 1-Klik"
+              icon="Sliders"
+              variant="azure"
+              size="sm"
               onPress={() => {
-                triggerHaptic('selection');
                 setAutoSyncModalVisible(true);
               }}
-              style={styles.openModalBtn}
-            >
-              <Icon name="Sliders" size={13} color="#fff" />
-              <Text style={styles.openModalBtnText}>Kelola & Setup 1-Klik</Text>
-            </Pressable>
+              style={{ flex: 1 }}
+            />
 
-            <Pressable
+            <LiquidButton
+              title="Uji QRIS"
+              icon="Play"
+              variant="clear"
+              size="sm"
               onPress={() => {
-                triggerHaptic('medium');
                 handleSimulateAndroidListener();
               }}
-              style={styles.quickTestBtn}
-            >
-              <Icon name="Play" size={13} color="#38BDF8" />
-              <Text style={styles.quickTestBtnText}>Uji QRIS</Text>
-            </Pressable>
+              style={{ flex: 1 }}
+            />
           </View>
         </GlassCard>
 
@@ -682,16 +675,16 @@ export default function AccountsScreen() {
             Impor seluruh mutasi bulanan sekaligus dari file PDF rekening koran, lengkap dengan rekonsiliasi saldo awal vs akhir dan anti-duplikasi buku kas.
           </Text>
 
-          <Pressable
+          <LiquidButton
+            title="Buka Rekonsiliasi e-Statement"
+            icon="FileText"
+            variant="clear"
+            size="md"
             onPress={() => {
-              triggerHaptic('medium');
               setBankStatementModalVisible(true);
             }}
-            style={styles.openStatementBtn}
-          >
-            <Icon name="FileText" size={13} color="#fff" />
-            <Text style={styles.openStatementBtnText}>Buka Rekonsiliasi e-Statement</Text>
-          </Pressable>
+            style={{ width: '100%', marginTop: space.sm }}
+          />
         </GlassCard>
 
         {/* 6. RIWAYAT TRANSAKSI TERBARU (SINGLE CARD WITH ROWS SEPARATED BY HAIRLINE) */}

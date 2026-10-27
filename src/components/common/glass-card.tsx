@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme, radius as rad, shadow, motion } from '../../theme/tokens';
+import { useTheme, radius as rad, shadow, motion, Colors } from '../../theme/tokens';
 
 export type GlassLevel = 'base' | 'raised' | 'inset';
 
@@ -35,6 +35,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   radius,
 }) => {
   const theme = useTheme();
+  const isDark = theme.canvas === Colors.palette.appleInk;
   const isPressable = typeof onPress === 'function';
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -58,36 +59,41 @@ export const GlassCard: React.FC<GlassCardProps> = ({
     }).start();
   };
 
-  // Determine geometry & styling based on level
+  // Determine geometry & styling based on level per DESIGN.md Section 4.1
   const resolvedRadius =
     typeof radius === 'number'
       ? radius
       : radius && rad[radius] !== undefined
       ? rad[radius]
       : level === 'raised'
-      ? rad.xl
+      ? rad.xl // 24
       : level === 'inset'
       ? rad.md
-      : rad.lg;
-
-  const resolvedShadow =
-    level === 'raised' ? shadow.e2 : level === 'base' ? shadow.e1 : undefined;
+      : rad.xl; // 24 for default card container
 
   const isInset = level === 'inset';
   const isRaised = level === 'raised';
 
-  // Base fill per Apple Liquid Glass spec
-  const baseFill = isInset
-    ? theme.glass.inset
-    : isRaised
-    ? theme.glass.lens
-    : theme.glass.frost;
+  // Strict Apple Modern gradients per DESIGN.md Section 2 & 4.1
+  const cardGradientColors = isDark
+    ? Colors.darkGlass.cardGradient
+    : Colors.lightGlass.cardGradient;
 
   const borderColor = isInset
     ? theme.hairline
-    : isRaised
-    ? theme.rim.hi
-    : theme.rim.mid;
+    : isDark
+    ? Colors.darkGlass.borderGlass
+    : Colors.lightGlass.borderGlass;
+
+  const resolvedShadow = isInset
+    ? undefined
+    : {
+        shadowColor: Colors.palette.appleInk,
+        shadowOffset: { width: 0, height: isRaised ? 12 : 10 },
+        shadowOpacity: isDark ? 0.40 : 0.08,
+        shadowRadius: isRaised ? 24 : 20,
+        elevation: isRaised ? 7 : 5,
+      };
 
   const ContainerComponent = isPressable ? AnimatedPressable : View;
 
@@ -101,7 +107,6 @@ export const GlassCard: React.FC<GlassCardProps> = ({
         {
           borderRadius: resolvedRadius,
           borderColor,
-          backgroundColor: baseFill,
         },
         resolvedShadow,
         isPressable && {
@@ -110,7 +115,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
         style,
       ]}
     >
-      {/* Frosted Blur Surface (not rendered on inset level) */}
+      {/* Frosted Blur Surface (BlurView intensity=45 per DESIGN.md Section 4.1) */}
       {!isInset && (
         <>
           {Platform.OS === 'web' ? (
@@ -118,9 +123,12 @@ export const GlassCard: React.FC<GlassCardProps> = ({
               style={[
                 StyleSheet.absoluteFill,
                 {
-                  backgroundColor: baseFill,
-                  // @ts-ignore - Web-specific CSS backdrop-filter
+                  borderRadius: resolvedRadius,
+                  // @ts-ignore - Web-specific backdrop-filter per DESIGN.md Section 4.1
                   backdropFilter: 'blur(28px) saturate(150%)',
+                  backgroundColor: isDark
+                    ? 'rgba(29, 29, 31, 0.65)'
+                    : 'rgba(245, 245, 247, 0.60)',
                 },
               ]}
             />
@@ -129,34 +137,40 @@ export const GlassCard: React.FC<GlassCardProps> = ({
               style={[
                 StyleSheet.absoluteFill,
                 {
-                  backgroundColor: isRaised ? 'rgba(29,29,31,0.85)' : 'rgba(29,29,31,0.72)',
+                  backgroundColor: isDark
+                    ? 'rgba(29, 29, 31, 0.88)'
+                    : 'rgba(245, 245, 247, 0.86)',
                   borderRadius: resolvedRadius,
                 },
               ]}
             />
           ) : (
             <BlurView
-              intensity={isRaised ? 50 : 30}
-              tint="dark"
+              intensity={45}
+              tint={isDark ? 'dark' : 'light'}
               style={[StyleSheet.absoluteFill, { borderRadius: resolvedRadius }]}
             />
           )}
 
-          {/* Surface subtle specular reflection: light falls from top-left */}
+          {/* Diagonal Surface Fill Gradient per DESIGN.md Section 4.1 */}
           <LinearGradient
-            colors={[theme.rim.hi, 'transparent']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0.8, y: 0.8 }}
-            style={[StyleSheet.absoluteFill, { opacity: 0.12, borderRadius: resolvedRadius }]}
+            colors={cardGradientColors as unknown as string[]}
+            start={{ x: 0.1, y: 0 }}
+            end={{ x: 0.9, y: 1 }}
+            style={[StyleSheet.absoluteFill, { borderRadius: resolvedRadius }]}
           />
 
-          {/* Top specular rim reflection line */}
-          <View style={styles.topRimWrapper} pointerEvents="none">
+          {/* Top Meniscus Specular Highlight: top: 2, left: 10%, right: 10%, height: 14 per DESIGN.md Section 4.1 */}
+          <View style={styles.topMeniscusContainer} pointerEvents="none">
             <LinearGradient
-              colors={['transparent', theme.rim.hi, 'transparent']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.topRimGradient}
+              colors={
+                isDark
+                  ? ['rgba(255, 255, 255, 0.35)', 'rgba(255, 255, 255, 0.0)']
+                  : (Colors.lightGlass.specularTopHighlight as unknown as string[])
+              }
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.topMeniscusGradient}
             />
           </View>
         </>
@@ -184,17 +198,20 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
-  topRimWrapper: {
+  topMeniscusContainer: {
     position: 'absolute',
-    top: 0,
-    left: 14,
-    right: 14,
-    height: 1,
+    top: 2,
+    left: '10%',
+    right: '10%',
+    height: 14,
+    borderRadius: 999,
+    overflow: 'hidden',
     zIndex: 2,
   },
-  topRimGradient: {
+  topMeniscusGradient: {
     width: '100%',
-    height: 1,
+    height: '100%',
+    borderRadius: 999,
   },
   innerContent: {
     padding: 16,

@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
+import { LiquidButton } from '../../src/components/common/liquid-button';
 import { ScreenTransition } from '../../src/components/common/screen-transition';
 import { AmbientBackground } from '../../src/components/common/ambient-background';
 import { Sparkline, ScrubPoint } from '../../src/components/common/sparkline';
@@ -552,6 +553,50 @@ export default function OverviewScreen() {
           />
         </GlassCard>
 
+        {/* QUICK FLUID LIQUID ACTIONS */}
+        <View style={styles.quickActionBar}>
+          <LiquidButton
+            title="Catat"
+            icon="Plus"
+            variant="azure"
+            size="sm"
+            onPress={() => {
+              setMutationModalVisible(true);
+            }}
+            style={styles.quickActionLiquidBtn}
+          />
+          <LiquidButton
+            title="Masuk"
+            icon="ArrowDownLeft"
+            variant="clear"
+            size="sm"
+            onPress={() => {
+              setMutationModalVisible(true);
+            }}
+            style={styles.quickActionLiquidBtn}
+          />
+          <LiquidButton
+            title="Transfer"
+            icon="Repeat"
+            variant="clear"
+            size="sm"
+            onPress={() => {
+              router.push('/(tabs)/accounts');
+            }}
+            style={styles.quickActionLiquidBtn}
+          />
+          <LiquidButton
+            title="Impor"
+            icon="Sparkles"
+            variant="obsidian"
+            size="sm"
+            onPress={() => {
+              router.push('/(tabs)/sync');
+            }}
+            style={styles.quickActionLiquidBtn}
+          />
+        </View>
+
         {/* UPCOMING DUE DATE ALERT CARD */}
         {topDueAlert && (
           <Pressable
@@ -813,29 +858,26 @@ export default function OverviewScreen() {
 
             {/* Bottom Right: Quick Actions */}
             <GlassCard level="base" style={styles.bentoRightCard}>
-              <Pressable
+              <LiquidButton
+                title="Catat mutasi"
+                icon="Plus"
+                variant="azure"
+                size="sm"
                 onPress={() => {
-                  triggerHaptic('light');
                   setMutationModalVisible(true);
                 }}
-                style={styles.quickActionRow}
-              >
-                <Icon name="Plus" size={14} color={color.accent} />
-                <Text style={styles.quickActionText}>Catat mutasi</Text>
-              </Pressable>
-
-              <View style={styles.bentoHairline} />
-
-              <Pressable
+                style={{ width: '100%', marginBottom: space.xs }}
+              />
+              <LiquidButton
+                title="Impor statement"
+                icon="UploadCloud"
+                variant="clear"
+                size="sm"
                 onPress={() => {
-                  triggerHaptic('light');
                   router.push('/(tabs)/sync');
                 }}
-                style={styles.quickActionRow}
-              >
-                <Icon name="UploadCloud" size={14} color={color.textMuted} />
-                <Text style={styles.quickActionText}>Impor statement</Text>
-              </Pressable>
+                style={{ width: '100%' }}
+              />
             </GlassCard>
           </View>
         </View>
@@ -861,15 +903,15 @@ export default function OverviewScreen() {
               Hubungkan rekening bank, reksa dana, saham IDX, atau kripto untuk melihat pergerakan harga live.
             </Text>
             <View style={styles.emptyActionRow}>
-              <Pressable
+              <LiquidButton
+                title="Tambah rekening"
+                icon="Plus"
+                variant="azure"
+                size="md"
                 onPress={() => {
-                  triggerHaptic('light');
                   router.push('/(tabs)/accounts');
                 }}
-                style={styles.primaryActionButton}
-              >
-                <Text style={styles.primaryActionButtonText}>Tambah rekening</Text>
-              </Pressable>
+              />
             </View>
           </GlassCard>
         ) : (
@@ -1010,7 +1052,18 @@ const styles = StyleSheet.create({
   heroValueText: {
     fontWeight: '800',
     color: color.text,
-    letterSpacing: -0.5,
+    letterSpacing: -0.8,
+    fontVariant: ['tabular-nums'],
+  },
+  quickActionBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: space.xs + 2,
+    marginTop: -space.xs,
+  },
+  quickActionLiquidBtn: {
+    flex: 1,
   },
   heroSparkline: {
     marginTop: space.xs,

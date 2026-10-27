@@ -269,15 +269,15 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
     extrapolate: 'clamp',
   });
 
-  // Viscous fluid mass conservation: stretch horizontally, compress vertically
+  // Viscous fluid mass conservation per DESIGN.md Section 1 & 5.2: stretch 1.14, squash 0.90
   const scaleX = flowSurge.interpolate({
     inputRange: [0, 1],
-    outputRange: [1.0, 1.32],
+    outputRange: [1.0, 1.14],
   });
 
   const scaleY = flowSurge.interpolate({
     inputRange: [0, 1],
-    outputRange: [1.0, 0.85],
+    outputRange: [1.0, 0.90],
   });
 
   // Flowing wave shimmer across the water stream
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
   tabBarContainer: {
     position: 'absolute',
     height: 64,
-    borderRadius: radius.xl,
+    borderRadius: radius.pill, // 9999 floating dock per DESIGN.md Section 6.6
     borderWidth: 1,
     ...shadow.e2,
     overflow: 'hidden',

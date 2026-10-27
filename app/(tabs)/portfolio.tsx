@@ -13,6 +13,7 @@ import { useFocusEffect } from 'expo-router';
 import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
+import { LiquidButton } from '../../src/components/common/liquid-button';
 import { ScreenTransition } from '../../src/components/common/screen-transition';
 import { AmbientBackground } from '../../src/components/common/ambient-background';
 import { Sparkline } from '../../src/components/common/sparkline';
@@ -174,36 +175,35 @@ export default function PortfolioScreen() {
               <PrivacyValue value={totalInvestments} style={styles.heroAmount} />
             </View>
             <View style={styles.heroActions}>
-              <Pressable
+              <LiquidButton
+                title="Saham"
+                icon="Plus"
+                variant="azure"
+                size="sm"
                 onPress={() => {
-                  triggerHaptic('light');
                   setSelectedStock(null);
                   setStockModalVisible(true);
                 }}
-                style={styles.actionBtn}
-              >
-                <Text style={styles.actionBtnText}>+ Saham</Text>
-              </Pressable>
-              <Pressable
+              />
+              <LiquidButton
+                title="Kripto"
+                icon="Plus"
+                variant="clear"
+                size="sm"
                 onPress={() => {
-                  triggerHaptic('light');
                   setSelectedCrypto(null);
                   setCryptoModalVisible(true);
                 }}
-                style={styles.actionBtn}
-              >
-                <Text style={styles.actionBtnText}>+ Kripto</Text>
-              </Pressable>
-              <Pressable
+              />
+              <LiquidButton
+                title="Web3"
+                icon="Link2"
+                variant="obsidian"
+                size="sm"
                 onPress={() => {
-                  triggerHaptic('light');
                   setWalletModalVisible(true);
                 }}
-                style={[styles.actionBtn, styles.walletActionBtn]}
-              >
-                <Icon name="Link2" size={12} color="#DDD6FE" />
-                <Text style={[styles.actionBtnText, { color: '#DDD6FE' }]}>+ Web3</Text>
-              </Pressable>
+              />
             </View>
           </View>
 

@@ -66,7 +66,7 @@ const DEMO_SEED = {
     { id: 'acc-bca-01', name: 'BCA Tahapan', type: 'BANK', accountNumber: '8220194821', balance: 18500000, color: '#3B82F6', icon: 'landmark', updatedAt: new Date().toISOString() },
     { id: 'acc-mandiri-02', name: "Mandiri Livin'", type: 'BANK', accountNumber: '1370019283711', balance: 6250000, color: '#0284C7', icon: 'credit-card', updatedAt: new Date().toISOString() },
     { id: 'acc-rdn-03', name: 'RDN Stockbit BCA', type: 'RDN', accountNumber: '0081298410', balance: 4800000, color: '#10B981', icon: 'trending-up', updatedAt: new Date().toISOString() },
-    { id: 'acc-gopay-04', name: 'GoPay Utama', type: 'E-WALLET', accountNumber: '08129988112', balance: 850000, color: '#06B6D4', icon: 'smartphone', updatedAt: new Date().toISOString() },
+    { id: 'acc-gopay-04', name: 'GoPay Utama', type: 'E-WALLET', accountNumber: '0812-0000-0001', balance: 850000, color: '#06B6D4', icon: 'smartphone', updatedAt: new Date().toISOString() },
   ],
   stocks: [
     { id: 'stock-bbca', ticker: 'BBCA.JK', name: 'Bank Central Asia Tbk.', lots: 15, avgBuyPrice: 9150, currentPrice: 9950, change24h: 0.0179, currency: 'IDR', rdnAccountId: 'acc-rdn-03', updatedAt: new Date().toISOString() },

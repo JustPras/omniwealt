@@ -47,7 +47,7 @@ export const DEMO_ACCOUNTS: Account[] = [
     id: 'acc-gopay-04',
     name: 'GoPay Utama',
     type: 'E-WALLET',
-    accountNumber: '08129988112',
+    accountNumber: '0812-0000-0001',
     balance: 850000,
     color: '#06B6D4',
     icon: 'smartphone',

@@ -138,9 +138,9 @@ export const HeaderBar: React.FC = () => {
         style={styles.capsuleCard}
         contentStyle={styles.capsuleInner}
       >
-        {/* Kiri: Brand Logo Concept B Nexus + teks OmniWealth */}
+        {/* Kiri: Brand Logo Concept B Nexus (Seamless Transparent Adaptive Mark) + teks OmniWealth */}
         <View style={styles.leftBrandGroup}>
-          <LogoIcon size={30} variant="app-icon" style={styles.brandLogoBadge} />
+          <LogoIcon size={26} variant="adaptive" style={styles.brandLogoBadge} />
           <View style={styles.brandTitleCol}>
             <View style={styles.brandNameRow}>
               <Text style={[styles.brandTitle, { color: textColor }]}>OmniWealth</Text>
@@ -300,9 +300,9 @@ const styles = StyleSheet.create({
     gap: 9,
   },
   brandLogoBadge: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dropletIconBadge: {
     width: 30,

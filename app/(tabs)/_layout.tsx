@@ -14,15 +14,16 @@ import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, IconName } from '../../src/components/common/icon';
 import { triggerHaptic } from '../../src/utils/haptics';
-import { useTheme, radius, shadow, motion, Theme, themes } from '../../src/theme/tokens';
+import { useTheme, radius, shadow, motion, Theme, themes, isDarkTheme } from '../../src/theme/tokens';
 
 interface AnimatedTabIconProps {
   name: IconName;
   focused: boolean;
+  isDark: boolean;
   size?: number;
 }
 
-const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = React.memo(({ name, focused, size }) => {
+const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = React.memo(({ name, focused, isDark, size }) => {
   const theme = useTheme();
   const anim = useRef(new Animated.Value(focused ? 1 : 0)).current;
 
@@ -45,6 +46,16 @@ const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = React.memo(({ name, focu
     outputRange: [0.5, -1.5],
   });
 
+  // Dynamic Icon Contrast:
+  // Daytime (Light): Deep Obsidian Ink (#0F172A)
+  // Nighttime (Dark): Pure Glowing White (#FFFFFF)
+  // Focused: White (#FFFFFF) inside the dark inset pod
+  const iconColor = focused
+    ? '#FFFFFF'
+    : isDark
+    ? '#FFFFFF'
+    : '#0F172A';
+
   return (
     <Animated.View
       style={[
@@ -57,7 +68,7 @@ const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = React.memo(({ name, focu
       <Icon
         name={name}
         size={size || 18}
-        color={focused ? theme.tint : theme.textMuted}
+        color={iconColor}
       />
     </Animated.View>
   );
@@ -78,10 +89,11 @@ interface TabBarButtonProps {
   onLongPress: () => void;
   label: string;
   theme: Theme;
+  isDark: boolean;
 }
 
 const TabBarButton: React.FC<TabBarButtonProps> = React.memo(
-  ({ route, isFocused, onPress, onLongPress, label, theme }) => {
+  ({ route, isFocused, onPress, onLongPress, label, theme, isDark }) => {
     const pressScale = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = useCallback(() => {
@@ -103,6 +115,12 @@ const TabBarButton: React.FC<TabBarButtonProps> = React.memo(
     }, [pressScale]);
 
     const iconName: IconName = TAB_ICONS[route.name] || 'LayoutDashboard';
+
+    const labelColor = isFocused
+      ? '#FFFFFF'
+      : isDark
+      ? '#FFFFFF'
+      : '#0F172A';
 
     return (
       <Pressable
@@ -127,13 +145,13 @@ const TabBarButton: React.FC<TabBarButtonProps> = React.memo(
             },
           ]}
         >
-          <AnimatedTabIcon name={iconName} focused={isFocused} size={18} />
+          <AnimatedTabIcon name={iconName} focused={isFocused} isDark={isDark} size={18} />
           <Animated.Text
             style={[
               styles.tabBarLabel,
               {
-                color: isFocused ? theme.tint : theme.textMuted,
-                fontWeight: isFocused ? '700' : '500',
+                color: labelColor,
+                fontWeight: isFocused ? '800' : '700',
               },
             ]}
           >
@@ -152,9 +170,9 @@ const TabBarBackground = React.memo(({ theme, isDark }: { theme: Theme; isDark: 
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: theme.glass.lens,
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.20)',
             // @ts-ignore
-            backdropFilter: 'blur(28px) saturate(150%)',
+            backdropFilter: 'blur(3px) saturate(190%) contrast(105%)',
           },
         ]}
       />
@@ -166,14 +184,14 @@ const TabBarBackground = React.memo(({ theme, isDark }: { theme: Theme; isDark: 
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: isDark ? 'rgba(29, 29, 31, 0.94)' : 'rgba(245, 245, 247, 0.94)',
-            borderRadius: radius.xl,
+            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.85)',
+            borderRadius: radius.pill,
           },
         ]}
       />
     );
   }
-  return <BlurView intensity={60} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />;
+  return <BlurView intensity={3} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />;
 });
 
 // Liquid Glass Continuous Tab Bar Component with Smooth Flowing Water Animation
@@ -186,7 +204,7 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
   const theme = useTheme();
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 375;
-  const isDark = theme.canvas === themes.dark.canvas;
+  const isDark = isDarkTheme(theme);
 
   const [rowWidth, setRowWidth] = useState(0);
 
@@ -303,8 +321,8 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
           bottom: Math.max(insets.bottom + 6, 14),
           left: isSmallScreen ? 10 : 14,
           right: isSmallScreen ? 10 : 14,
-          backgroundColor: theme.glass.lens,
-          borderColor: theme.rim.mid,
+          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.20)',
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.58)' : 'rgba(255, 255, 255, 0.85)',
         },
       ]}
     >
@@ -338,40 +356,12 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
               styles.liquidInnerContainer,
               {
                 backgroundColor: isDark
-                  ? 'rgba(0, 122, 255, 0.20)'
-                  : 'rgba(0, 122, 255, 0.15)',
-                borderColor: isDark
-                  ? 'rgba(255, 255, 255, 0.34)'
-                  : 'rgba(0, 122, 255, 0.40)',
+                  ? 'rgba(35, 45, 60, 0.90)'
+                  : 'rgba(15, 23, 42, 0.94)',
+                borderColor: 'rgba(255, 255, 255, 0.40)',
               },
             ]}
           >
-            {/* Internal Radiant Water Tint Nucleus */}
-            <View
-              style={[
-                styles.liquidNucleus,
-                {
-                  backgroundColor: isDark
-                    ? 'rgba(0, 140, 255, 0.22)'
-                    : 'rgba(0, 122, 255, 0.16)',
-                },
-              ]}
-            />
-
-            {/* Flowing Water Wave Shimmer Ribbon */}
-            <Animated.View
-              style={[
-                styles.waterWaveShimmer,
-                {
-                  opacity: waveOpacity,
-                  transform: [
-                    { translateX: waveTranslateX },
-                    { rotate: '25deg' },
-                  ],
-                },
-              ]}
-            />
-
             {/* Specular Water Meniscus Arc on Top Rim */}
             <View style={styles.specularGlossGlint} />
           </View>
@@ -429,6 +419,7 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
               onLongPress={onLongPress}
               label={label}
               theme={theme}
+              isDark={isDark}
             />
           );
         })}
@@ -441,7 +432,7 @@ export default function TabsLayout() {
   const theme = useTheme();
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.canvas }}>
+    <View style={{ flex: 1, backgroundColor: 'transparent' }}>
       <Tabs
         tabBar={(props) => <LiquidGlassTabBar {...props} />}
         screenOptions={{
@@ -510,7 +501,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     height: 64,
     borderRadius: radius.pill, // 9999 floating dock per DESIGN.md Section 6.6
-    borderWidth: 1,
+    borderWidth: 1.5,
     ...shadow.e2,
     overflow: 'hidden',
   },
@@ -555,10 +546,10 @@ const styles = StyleSheet.create({
   },
   specularGlossGlint: {
     position: 'absolute',
-    top: 2,
-    left: '14%',
-    right: '14%',
-    height: 2,
+    top: 0,
+    left: '8%',
+    right: '8%',
+    height: 2.5,
     borderRadius: radius.pill,
     backgroundColor: 'rgba(255, 255, 255, 0.85)',
   },

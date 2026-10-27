@@ -1,7 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, useWindowDimensions, Animated, Easing } from 'react-native';
+import { View, StyleSheet, useWindowDimensions, Animated, Easing, Image, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme, Colors } from '../../theme/tokens';
+import { useTheme, isDarkTheme } from '../../theme/tokens';
+
+const wallpaperNight = require('../../../assets/wallpapers/wallpaper-night.jpg');
+const wallpaperDay = require('../../../assets/wallpapers/wallpaper-day.jpg');
 
 interface AmbientBackgroundProps {
   scrollY?: Animated.Value;
@@ -13,7 +16,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
 }) => {
   const { width, height } = useWindowDimensions();
   const theme = useTheme();
-  const isDark = theme.canvas === Colors.palette.appleInk;
+  const isDark = isDarkTheme(theme);
 
   // Slow ambient floating animation for orbs per DESIGN.md Section 4.2
   const floatAnim = useRef(new Animated.Value(0)).current;
@@ -44,7 +47,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
     return scrollY
       ? scrollY.interpolate({
           inputRange: [-200, 0, 400],
-          outputRange: [40, 0, -80],
+          outputRange: [30, 0, -60],
           extrapolate: 'clamp',
         })
       : null;
@@ -54,7 +57,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
     return scrollY
       ? scrollY.interpolate({
           inputRange: [-200, 0, 400],
-          outputRange: [-30, 0, 60],
+          outputRange: [-20, 0, 40],
           extrapolate: 'clamp',
         })
       : null;
@@ -62,17 +65,12 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
 
   const floatY1 = floatAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -18],
+    outputRange: [0, -14],
   });
 
   const floatY2 = floatAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 22],
-  });
-
-  const floatY3 = floatAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -14],
+    outputRange: [0, 16],
   });
 
   return (
@@ -80,16 +78,29 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
       style={[
         StyleSheet.absoluteFill,
         styles.container,
-        { backgroundColor: isDark ? Colors.palette.appleInk : Colors.palette.appleBg },
       ]}
       pointerEvents="none"
     >
-      {/* Orb 1 (Top-Left): rgba(0, 122, 255, 0.18) ukuran 260x260 per DESIGN.md Section 4.2 */}
+      {/* 1. Dynamic Wallpaper (Night vs Day Japanese Anime Scenery) */}
+      <Image
+        source={isDark ? wallpaperNight : wallpaperDay}
+        resizeMode="cover"
+        style={[
+          StyleSheet.absoluteFill,
+          styles.wallpaper,
+          Platform.OS === 'web' && ({
+            imageRendering: '-webkit-optimize-contrast',
+            filter: 'contrast(1.05) brightness(1.02)',
+          } as any),
+        ]}
+      />
+
+      {/* 2. Orb 1 (Top-Left Accent Glow) */}
       <Animated.View
         style={[
           styles.orb,
           {
-            top: -30,
+            top: -40,
             left: -40,
             width: 260,
             height: 260,
@@ -103,7 +114,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
       >
         <LinearGradient
           colors={[
-            isDark ? 'rgba(0, 122, 255, 0.28)' : 'rgba(0, 122, 255, 0.18)',
+            isDark ? 'rgba(0, 122, 255, 0.20)' : 'rgba(0, 122, 255, 0.10)',
             'transparent',
           ]}
           style={styles.gradientFill}
@@ -112,7 +123,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
         />
       </Animated.View>
 
-      {/* Orb 2 (Mid-Right): rgba(170, 170, 170, 0.25) ukuran 280x280 per DESIGN.md Section 4.2 */}
+      {/* 3. Orb 2 (Mid-Right Soft Shimmer) */}
       <Animated.View
         style={[
           styles.orb,
@@ -131,37 +142,12 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
       >
         <LinearGradient
           colors={[
-            isDark ? 'rgba(170, 170, 170, 0.12)' : 'rgba(170, 170, 170, 0.25)',
+            isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.18)',
             'transparent',
           ]}
           style={styles.gradientFill}
           start={{ x: 0.8, y: 0.2 }}
           end={{ x: 0.1, y: 0.85 }}
-        />
-      </Animated.View>
-
-      {/* Orb 3 (Bottom-Left): rgba(0, 122, 255, 0.14) ukuran 240x240 per DESIGN.md Section 4.2 */}
-      <Animated.View
-        style={[
-          styles.orb,
-          {
-            bottom: height * 0.08,
-            left: -50,
-            width: 240,
-            height: 240,
-            borderRadius: 120,
-            transform: [{ translateY: floatY3 }],
-          },
-        ]}
-      >
-        <LinearGradient
-          colors={[
-            isDark ? 'rgba(0, 122, 255, 0.22)' : 'rgba(0, 122, 255, 0.14)',
-            'transparent',
-          ]}
-          style={styles.gradientFill}
-          start={{ x: 0.3, y: 0.7 }}
-          end={{ x: 0.9, y: 0.1 }}
         />
       </Animated.View>
     </View>
@@ -172,6 +158,10 @@ const styles = StyleSheet.create({
   container: {
     overflow: 'hidden',
     zIndex: 0,
+  },
+  wallpaper: {
+    width: '100%',
+    height: '100%',
   },
   orb: {
     position: 'absolute',

@@ -2,21 +2,22 @@
 export const Colors = {
   palette: {
     appleBg: '#F5F5F7',
-    appleInk: '#1D1D1F',
-    appleMuted: '#AAAAAA',
+    appleInk: '#0F172A', // Deep dark ink
+    appleMuted: '#475569', // Slate 600
     appleBlue: '#007AFF',
   },
   lightGlass: {
-    background: '#F5F5F7',
+    background: 'transparent',
+    // 3% glass core fill with 85% specular rim (Mode Terang / Siang)
     cardGradient: [
-      'rgba(255, 255, 255, 0.84)',
-      'rgba(245, 245, 247, 0.50)',
-      'rgba(255, 255, 255, 0.76)',
+      'rgba(255, 255, 255, 0.45)',
+      'rgba(255, 255, 255, 0.12)',
+      'rgba(255, 255, 255, 0.25)',
     ] as const,
     dropletClearGradient: [
-      'rgba(255, 255, 255, 0.90)',
-      'rgba(245, 245, 247, 0.46)',
-      'rgba(255, 255, 255, 0.78)',
+      'rgba(255, 255, 255, 0.85)',
+      'rgba(255, 255, 255, 0.40)',
+      'rgba(255, 255, 255, 0.70)',
     ] as const,
     dropletAzureGradient: [
       'rgba(72, 162, 255, 0.95)',
@@ -24,27 +25,28 @@ export const Colors = {
       'rgba(0, 102, 224, 0.94)',
     ] as const,
     dropletObsidianGradient: [
-      'rgba(58, 58, 62, 0.92)',
-      'rgba(29, 29, 31, 0.88)',
-      'rgba(18, 18, 20, 0.95)',
+      'rgba(15, 23, 42, 0.95)',
+      'rgba(2, 6, 23, 0.98)',
+      'rgba(15, 23, 42, 0.95)',
     ] as const,
-    specularTopHighlight: ['rgba(255, 255, 255, 0.92)', 'rgba(255, 255, 255, 0.0)'] as const,
-    borderGlass: 'rgba(255, 255, 255, 0.92)',
-    trackBg: 'rgba(228, 228, 234, 0.72)',
-    shadowInk: 'rgba(29, 29, 31, 0.08)',
+    specularTopHighlight: ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.0)'] as const,
+    borderGlass: 'rgba(255, 255, 255, 0.85)',
+    trackBg: 'rgba(255, 255, 255, 0.65)',
+    shadowInk: 'rgba(0, 0, 0, 0.12)',
     shadowAzure: 'rgba(0, 122, 255, 0.35)',
   },
   darkGlass: {
-    background: '#1D1D1F',
+    background: 'transparent',
+    // 3% glass core fill with 70% specular rim (Mode Gelap / Malam)
     cardGradient: [
-      'rgba(46, 46, 50, 0.78)',
-      'rgba(29, 29, 31, 0.62)',
-      'rgba(42, 42, 46, 0.72)',
+      'rgba(255, 255, 255, 0.09)',
+      'rgba(255, 255, 255, 0.015)',
+      'rgba(255, 255, 255, 0.054)',
     ] as const,
     dropletClearGradient: [
-      'rgba(50, 50, 56, 0.85)',
-      'rgba(29, 29, 31, 0.60)',
-      'rgba(45, 45, 50, 0.75)',
+      'rgba(255, 255, 255, 0.15)',
+      'rgba(255, 255, 255, 0.04)',
+      'rgba(255, 255, 255, 0.10)',
     ] as const,
     dropletAzureGradient: [
       'rgba(50, 140, 255, 0.95)',
@@ -52,14 +54,14 @@ export const Colors = {
       'rgba(0, 95, 210, 0.95)',
     ] as const,
     dropletObsidianGradient: [
-      'rgba(35, 35, 38, 0.95)',
-      'rgba(20, 20, 22, 0.92)',
-      'rgba(12, 12, 14, 0.98)',
+      'rgba(35, 45, 60, 0.95)',
+      'rgba(10, 15, 22, 0.98)',
+      'rgba(15, 23, 42, 0.95)',
     ] as const,
-    specularTopHighlight: ['rgba(255, 255, 255, 0.45)', 'rgba(255, 255, 255, 0.0)'] as const,
-    borderGlass: 'rgba(255, 255, 255, 0.16)',
-    trackBg: 'rgba(255, 255, 255, 0.08)',
-    shadowInk: 'rgba(0, 0, 0, 0.45)',
+    specularTopHighlight: ['rgba(255, 255, 255, 0.70)', 'rgba(255, 255, 255, 0.0)'] as const,
+    borderGlass: 'rgba(255, 255, 255, 0.58)',
+    trackBg: 'rgba(0, 0, 0, 0.45)',
+    shadowInk: 'rgba(0, 0, 0, 0.55)',
     shadowAzure: 'rgba(0, 122, 255, 0.50)',
   },
 };

@@ -21,8 +21,8 @@ function RootContent() {
     ...(isDark ? DarkTheme : DefaultTheme),
     colors: {
       ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
-      background: theme.canvas,
-      card: theme.canvas,
+      background: 'transparent',
+      card: 'transparent',
       text: theme.text,
       border: theme.hairline,
     },
@@ -86,7 +86,7 @@ function RootContent() {
 
   return (
     <ThemeProvider value={navigationTheme}>
-      <View style={[styles.container, { backgroundColor: theme.canvas }]}>
+      <View style={[styles.container, { backgroundColor: 'transparent' }]}>
         <StatusBar
           style={isDark ? 'light' : 'dark'}
           translucent

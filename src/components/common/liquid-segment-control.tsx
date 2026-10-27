@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { triggerHaptic } from '../../utils/haptics';
-import { radius, shadow, motion, useTheme, Colors } from '../../theme/tokens';
+import { radius, shadow, motion, useTheme, Colors, isDarkTheme } from '../../theme/tokens';
 
 export interface LiquidSegmentItem<T extends string = string> {
   key: T;
@@ -108,7 +108,7 @@ export function LiquidSegmentControl<T extends string = string>({
   inactiveTextColor,
 }: LiquidSegmentControlProps<T>) {
   const theme = useTheme();
-  const isDark = theme.canvas === Colors.palette.appleInk;
+  const isDark = isDarkTheme(theme);
   const [rowWidth, setRowWidth] = useState(0);
 
   const activeIndex = Math.max(

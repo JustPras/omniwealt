@@ -15,13 +15,13 @@ import { LiquidSegmentControl } from '../common/liquid-segment-control';
 import { useWealth } from '../../store/wealth-context';
 import { formatTime } from '../../utils/format';
 import { triggerHaptic } from '../../utils/haptics';
-import { Colors, useTheme, useThemeController, radius, space, shadow } from '../../theme/tokens';
+import { Colors, useTheme, useThemeController, isDarkTheme, radius, space, shadow } from '../../theme/tokens';
 
 export const HeaderBar: React.FC = () => {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { toggleTheme } = useThemeController();
-  const isDark = theme.canvas === Colors.palette.appleInk;
+  const isDark = isDarkTheme(theme);
 
   const {
     privacyMode,
@@ -125,7 +125,7 @@ export const HeaderBar: React.FC = () => {
     }).start();
   };
 
-  const textColor = isDark ? Colors.palette.appleBg : Colors.palette.appleInk;
+  const textColor = theme.text;
 
   return (
     <View style={[styles.outerWrapper, { paddingTop: Math.max(insets.top + 4, 12) }]}>
@@ -157,7 +157,7 @@ export const HeaderBar: React.FC = () => {
                   },
                 ]}
               />
-              <Text style={styles.liveTimeText}>{formatTime(lastUpdated.toISOString())}</Text>
+              <Text style={[styles.liveTimeText, { color: theme.textMuted }]}>{formatTime(lastUpdated.toISOString())}</Text>
             </View>
           </View>
         </View>
@@ -196,14 +196,14 @@ export const HeaderBar: React.FC = () => {
                 {
                   transform: [{ scale: themeScale }],
                   backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.65)',
-                  borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(255, 255, 255, 0.85)',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(15, 23, 42, 0.15)',
                 },
               ]}
             >
               <Icon
                 name={isDark ? 'Sun' : 'Moon'}
                 size={14}
-                color={isDark ? '#F59E0B' : Colors.palette.appleInk}
+                color={isDark ? '#F59E0B' : '#0F172A'}
               />
             </Animated.View>
           </Pressable>
@@ -228,7 +228,7 @@ export const HeaderBar: React.FC = () => {
                 {
                   transform: [{ scale: refreshScale }],
                   backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.65)',
-                  borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(255, 255, 255, 0.85)',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(15, 23, 42, 0.15)',
                 },
               ]}
             >
@@ -236,7 +236,7 @@ export const HeaderBar: React.FC = () => {
                 <Icon
                   name="RefreshCw"
                   size={14}
-                  color={isRefreshing ? Colors.palette.appleBlue : Colors.palette.appleMuted}
+                  color={isRefreshing ? Colors.palette.appleBlue : (isDark ? 'rgba(255, 255, 255, 0.85)' : '#334155')}
                 />
               </Animated.View>
             </Animated.View>
@@ -261,14 +261,14 @@ export const HeaderBar: React.FC = () => {
                 {
                   transform: [{ scale: eyeScale }],
                   backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.65)',
-                  borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(255, 255, 255, 0.85)',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(15, 23, 42, 0.15)',
                 },
               ]}
             >
               {privacyMode ? (
                 <Icon name="EyeOff" size={14} color={Colors.palette.appleBlue} />
               ) : (
-                <Icon name="Eye" size={14} color={Colors.palette.appleMuted} />
+                <Icon name="Eye" size={14} color={isDark ? 'rgba(255, 255, 255, 0.85)' : '#334155'} />
               )}
             </Animated.View>
           </Pressable>

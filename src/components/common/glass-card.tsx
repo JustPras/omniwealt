@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme, radius as rad, shadow, motion, Colors } from '../../theme/tokens';
+import { useTheme, radius as rad, shadow, motion, Colors, isDarkTheme } from '../../theme/tokens';
 
 export type GlassLevel = 'base' | 'raised' | 'inset';
 
@@ -35,7 +35,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   radius,
 }) => {
   const theme = useTheme();
-  const isDark = theme.canvas === Colors.palette.appleInk;
+  const isDark = isDarkTheme(theme);
   const isPressable = typeof onPress === 'function';
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -115,7 +115,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
         style,
       ]}
     >
-      {/* Frosted Blur Surface (BlurView intensity=45 per DESIGN.md Section 4.1) */}
+      {/* Frosted Blur Surface (True Liquid Glass 3px Lens Blur) */}
       {!isInset && (
         <>
           {Platform.OS === 'web' ? (
@@ -124,11 +124,11 @@ export const GlassCard: React.FC<GlassCardProps> = ({
                 StyleSheet.absoluteFill,
                 {
                   borderRadius: resolvedRadius,
-                  // @ts-ignore - Web-specific backdrop-filter per DESIGN.md Section 4.1
-                  backdropFilter: 'blur(28px) saturate(150%)',
+                  // @ts-ignore - Web-specific backdrop-filter per Liquid Glass
+                  backdropFilter: 'blur(3px) saturate(190%) contrast(105%)',
                   backgroundColor: isDark
-                    ? 'rgba(29, 29, 31, 0.65)'
-                    : 'rgba(245, 245, 247, 0.60)',
+                    ? 'rgba(255, 255, 255, 0.015)'
+                    : 'rgba(255, 255, 255, 0.15)',
                 },
               ]}
             />
@@ -138,21 +138,21 @@ export const GlassCard: React.FC<GlassCardProps> = ({
                 StyleSheet.absoluteFill,
                 {
                   backgroundColor: isDark
-                    ? 'rgba(29, 29, 31, 0.88)'
-                    : 'rgba(245, 245, 247, 0.86)',
+                    ? 'rgba(15, 23, 42, 0.65)'
+                    : 'rgba(255, 255, 255, 0.70)',
                   borderRadius: resolvedRadius,
                 },
               ]}
             />
           ) : (
             <BlurView
-              intensity={45}
+              intensity={3}
               tint={isDark ? 'dark' : 'light'}
               style={[StyleSheet.absoluteFill, { borderRadius: resolvedRadius }]}
             />
           )}
 
-          {/* Diagonal Surface Fill Gradient per DESIGN.md Section 4.1 */}
+          {/* Diagonal Surface Fill Gradient (3% Core Transparency) */}
           <LinearGradient
             colors={cardGradientColors as unknown as string[]}
             start={{ x: 0.1, y: 0 }}
@@ -160,12 +160,12 @@ export const GlassCard: React.FC<GlassCardProps> = ({
             style={[StyleSheet.absoluteFill, { borderRadius: resolvedRadius }]}
           />
 
-          {/* Top Meniscus Specular Highlight: top: 2, left: 10%, right: 10%, height: 14 per DESIGN.md Section 4.1 */}
+          {/* Top Meniscus Specular Highlight: Specular Gloss 70% in dark, 95% in light */}
           <View style={styles.topMeniscusContainer} pointerEvents="none">
             <LinearGradient
               colors={
                 isDark
-                  ? ['rgba(255, 255, 255, 0.35)', 'rgba(255, 255, 255, 0.0)']
+                  ? ['rgba(255, 255, 255, 0.70)', 'rgba(255, 255, 255, 0.0)']
                   : (Colors.lightGlass.specularTopHighlight as unknown as string[])
               }
               start={{ x: 0.5, y: 0 }}
@@ -194,7 +194,7 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const styles = StyleSheet.create({
   outerContainer: {
-    borderWidth: 1,
+    borderWidth: 1.2,
     overflow: 'hidden',
     position: 'relative',
   },

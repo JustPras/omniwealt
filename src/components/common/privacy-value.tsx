@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { Text, TextStyle, StyleProp, StyleSheet, Animated } from 'react-native';
 import { useWealth } from '../../store/wealth-context';
 import { formatCurrency } from '../../utils/format';
-import { color } from '../../theme/tokens';
+import { color, useTheme } from '../../theme/tokens';
 
 interface PrivacyValueProps {
   value: number | string;
@@ -23,6 +23,7 @@ export const PrivacyValue: React.FC<PrivacyValueProps> = ({
   style,
   maskedLength = 8,
 }) => {
+  const theme = useTheme();
   const { privacyMode, currency, usdRate } = useWealth();
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -48,7 +49,7 @@ export const PrivacyValue: React.FC<PrivacyValueProps> = ({
     return (
       <Animated.Text
         selectable={false}
-        style={[styles.tabularText, { opacity: fadeAnim }, style]}
+        style={[styles.tabularText, { color: theme.text, opacity: fadeAnim }, style]}
       >
         {isCurrency ? `${currencyPrefix} ${dots}` : dots}
       </Animated.Text>
@@ -65,7 +66,7 @@ export const PrivacyValue: React.FC<PrivacyValueProps> = ({
   return (
     <Animated.Text
       selectable
-      style={[styles.tabularText, { opacity: fadeAnim }, style]}
+      style={[styles.tabularText, { color: theme.text, opacity: fadeAnim }, style]}
     >
       {prefix}
       {display}

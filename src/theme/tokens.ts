@@ -7,68 +7,86 @@ export { Colors };
 
 export const themes = {
   light: {
-    canvas: Colors.palette.appleBg, // #F5F5F7
-    text: Colors.palette.appleInk, // #1D1D1F
-    textMuted: Colors.palette.appleMuted, // #AAAAAA
-    textFaint: '#BBBBBF',
+    id: 'light',
+    canvas: 'transparent',
+    text: '#0F172A', // Deep dark obsidian ink (High-contrast for daytime)
+    textMuted: '#334155', // Slate 700
+    textFaint: '#64748B', // Slate 500
+    textSecondary: '#334155',
     tint: Colors.palette.appleBlue, // #007AFF
     tintText: '#0066CC',
     onTint: '#FFFFFF',
     glass: {
-      frost: 'rgba(255, 255, 255, 0.72)',
-      lens: 'rgba(255, 255, 255, 0.52)',
-      inset: 'rgba(228, 228, 234, 0.65)',
+      frost: 'rgba(255, 255, 255, 0.40)',
+      lens: 'rgba(255, 255, 255, 0.20)',
+      inset: 'rgba(255, 255, 255, 0.65)',
       tint: 'rgba(0, 122, 255, 0.88)',
     },
     rim: {
       hi: 'rgba(255, 255, 255, 0.95)',
-      mid: 'rgba(255, 255, 255, 0.45)',
-      lo: 'rgba(0, 122, 255, 0.35)',
+      mid: 'rgba(255, 255, 255, 0.85)',
+      lo: 'rgba(255, 255, 255, 0.60)',
     },
-    hairline: 'rgba(29, 29, 31, 0.08)',
-    gain: '#007AFF',
-    loss: '#FF3B30',
+    hairline: 'rgba(15, 23, 42, 0.15)',
+    gain: '#16A34A',
+    loss: '#DC2626',
     asset: {
-      cash: Colors.palette.appleMuted,
-      stock: Colors.palette.appleInk,
+      cash: '#334155',
+      stock: '#0F172A',
       crypto: Colors.palette.appleBlue,
     },
+    dockIcon: '#0F172A',
+    liquidGlass: {
+      blur: 3,
+      specularGloss: 0.85,
+      rim: 0.85,
+      tint: 0.03,
+    },
     lights: [
-      { color: Colors.palette.appleBlue, alpha: 0.18, at: 'topLeft' },
-      { color: Colors.palette.appleMuted, alpha: 0.22, at: 'bottomRight' },
+      { color: Colors.palette.appleBlue, alpha: 0.10, at: 'topLeft' },
+      { color: '#FFFFFF', alpha: 0.15, at: 'bottomRight' },
     ],
     elev: { e1: 0.08, e2: 0.14 },
   },
   dark: {
-    canvas: Colors.palette.appleInk, // #1D1D1F
-    text: Colors.palette.appleBg, // #F5F5F7
-    textMuted: Colors.palette.appleMuted, // #AAAAAA
-    textFaint: '#6E6E73',
+    id: 'dark',
+    canvas: 'transparent',
+    text: '#FFFFFF', // Pure crisp white (Glowing for nighttime)
+    textMuted: 'rgba(255, 255, 255, 0.75)',
+    textFaint: 'rgba(255, 255, 255, 0.50)',
+    textSecondary: 'rgba(255, 255, 255, 0.85)',
     tint: Colors.palette.appleBlue, // #007AFF
     tintText: '#0A84FF',
     onTint: '#FFFFFF',
     glass: {
-      frost: 'rgba(46, 46, 50, 0.75)',
-      lens: 'rgba(29, 29, 31, 0.70)',
-      inset: 'rgba(255, 255, 255, 0.06)',
+      frost: 'rgba(255, 255, 255, 0.05)',
+      lens: 'rgba(255, 255, 255, 0.03)',
+      inset: 'rgba(0, 0, 0, 0.45)',
       tint: 'rgba(0, 122, 255, 0.82)',
     },
     rim: {
       hi: 'rgba(255, 255, 255, 0.70)',
-      mid: 'rgba(255, 255, 255, 0.16)',
-      lo: 'rgba(0, 122, 255, 0.60)',
+      mid: 'rgba(255, 255, 255, 0.58)',
+      lo: 'rgba(255, 255, 255, 0.25)',
     },
-    hairline: 'rgba(255, 255, 255, 0.10)',
+    hairline: 'rgba(255, 255, 255, 0.12)',
     gain: '#30D158',
     loss: '#FF453A',
     asset: {
-      cash: Colors.palette.appleMuted,
-      stock: Colors.palette.appleBg,
+      cash: 'rgba(255, 255, 255, 0.75)',
+      stock: '#FFFFFF',
       crypto: '#FF9F0A',
     },
+    dockIcon: '#FFFFFF',
+    liquidGlass: {
+      blur: 3,
+      specularGloss: 0.70,
+      rim: 0.58,
+      tint: 0.03,
+    },
     lights: [
-      { color: Colors.palette.appleBlue, alpha: 0.30, at: 'bottomRight' },
-      { color: Colors.palette.appleBg, alpha: 0.08, at: 'topLeft' },
+      { color: Colors.palette.appleBlue, alpha: 0.20, at: 'bottomRight' },
+      { color: '#FFFFFF', alpha: 0.05, at: 'topLeft' },
     ],
     elev: { e1: 0.28, e2: 0.42 },
   },
@@ -130,6 +148,10 @@ export const AppThemeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     { value: { themeMode, theme, isDark, toggleTheme, setThemeMode } },
     children
   );
+};
+
+export const isDarkTheme = (theme: Theme): boolean => {
+  return (theme as any).id === 'dark';
 };
 
 export const useTheme = (): Theme => {

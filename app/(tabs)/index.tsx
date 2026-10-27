@@ -24,7 +24,7 @@ import { LiabilityService } from '../../src/services/liability-service';
 import { useWealth } from '../../src/store/wealth-context';
 import { formatPercent, formatChangePercent, formatIDR } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
-import { color, space, radius, shadow, motion, useTheme, themes, font } from '../../src/theme/tokens';
+import { color, space, radius, shadow, motion, useTheme, themes, font, isDarkTheme } from '../../src/theme/tokens';
 
 type Timeframe = '1H' | '1M' | '1B' | '1T' | 'Semua';
 type AllocationType = 'ALL' | 'CASH' | 'STOCKS' | 'CRYPTO';
@@ -62,6 +62,7 @@ const TimeframeButton: React.FC<{
   isActive: boolean;
   onPress: () => void;
 }> = React.memo(({ tf, isActive, onPress }) => {
+  const theme = useTheme();
   const pressScale = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = useCallback(() => {
@@ -96,7 +97,8 @@ const TimeframeButton: React.FC<{
         <Text
           style={[
             styles.timeframeText,
-            isActive && styles.activeTimeframeText,
+            { color: theme.textMuted },
+            isActive && [styles.activeTimeframeText, { color: theme.tint }],
           ]}
         >
           {tf}
@@ -114,7 +116,7 @@ interface LiquidTimeframeSelectorProps {
 const LiquidTimeframeSelector: React.FC<LiquidTimeframeSelectorProps> = React.memo(
   ({ activeTimeframe, onSelectTimeframe }) => {
     const theme = useTheme();
-    const isDark = theme.canvas === themes.dark.canvas;
+    const isDark = isDarkTheme(theme);
     const [rowWidth, setRowWidth] = useState(0);
 
     const tfIndex = TIMEFRAMES.indexOf(activeTimeframe);

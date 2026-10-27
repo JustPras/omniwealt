@@ -155,9 +155,9 @@ export default function AccountsScreen() {
     return (
       <View style={styles.groupContainer} key={title}>
         <View style={styles.groupHeaderRow}>
-          <Icon name={iconName} size={15} color={color.textMuted} />
-          <Text style={styles.groupTitleText}>{title}</Text>
-          <Text style={styles.groupCountText}>({groupAccounts.length})</Text>
+          <Icon name={iconName} size={15} color={theme.textMuted} />
+          <Text style={[styles.groupTitleText, { color: theme.text }]}>{title}</Text>
+          <Text style={[styles.groupCountText, { color: theme.textMuted }]}>({groupAccounts.length})</Text>
         </View>
 
         <GlassCard level="base" noPadding style={styles.groupCard}>

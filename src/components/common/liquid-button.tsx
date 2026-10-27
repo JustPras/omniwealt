@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors, useTheme } from '../../theme/tokens';
+import { Colors, useTheme, isDarkTheme } from '../../theme/tokens';
 import { Icon, IconName } from './icon';
 import { triggerHaptic } from '../../utils/haptics';
 
@@ -55,7 +55,7 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
   children,
 }) => {
   const theme = useTheme();
-  const isDark = theme.canvas === Colors.palette.appleInk;
+  const isDark = isDarkTheme(theme);
 
   // Fluid scale & squash animation per DESIGN.md Section 5.1
   const scaleX = useRef(new Animated.Value(1)).current;
@@ -145,10 +145,10 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
     variant === 'azure'
       ? '#FFFFFF'
       : variant === 'obsidian'
-      ? Colors.palette.appleBg
+      ? '#FFFFFF'
       : isDark
-      ? Colors.palette.appleBg
-      : Colors.palette.appleInk;
+      ? '#FFFFFF'
+      : '#0F172A';
 
   const iconColor =
     variant === 'azure'

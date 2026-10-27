@@ -25,7 +25,7 @@ import { triggerHaptic } from '../../src/utils/haptics';
 import { AIParserService } from '../../src/services/ai-parser';
 import { PDFExtractorService } from '../../src/services/pdf-extractor';
 import { BankStatementModal } from '../../src/components/modals/bank-statement-modal';
-import { color, space, radius, shadow, font } from '../../src/theme/tokens';
+import { color, space, radius, shadow, font, useTheme } from '../../src/theme/tokens';
 import { IngestionPayload } from '../../src/types/rdn-pipeline';
 
 // Generic Broker Simulation Presets (static outside component)
@@ -64,6 +64,7 @@ BBRI BUY 10 lot 4750
 export default function SyncScreen() {
   const { width } = useWindowDimensions();
   const isSmall = width < 375;
+  const theme = useTheme();
   const {
     accounts,
     processRDNIngestion,
@@ -231,7 +232,7 @@ export default function SyncScreen() {
   };
 
   return (
-    <ScreenTransition style={styles.screenContainer}>
+    <ScreenTransition style={[styles.screenContainer, { backgroundColor: theme.canvas }]}>
       <AmbientBackground activeAssetClass="STOCK" />
       <HeaderBar />
 
@@ -246,8 +247,8 @@ export default function SyncScreen() {
         {/* 1. HERO EXPLANATION CARD */}
         <GlassCard level="base" style={styles.heroCard}>
           <Text style={styles.heroLabel}>Pipeline Statement RDN Asinkron</Text>
-          <Text style={styles.heroTitle}>Sinkronisasi Rekening Dana Nasabah</Text>
-          <Text style={styles.heroDesc}>
+          <Text style={[styles.heroTitle, { color: theme.text }]}>Sinkronisasi Rekening Dana Nasabah</Text>
+          <Text style={[styles.heroDesc, { color: theme.textMuted }]}>
             Pipeline 6-tahap dengan validasi matematis saldo, proteksi anti-duplikasi SHA-256, deteksi transfer internal bank-ke-RDN, dan buku besar atomik.
           </Text>
 
@@ -325,7 +326,7 @@ export default function SyncScreen() {
         <GlassCard level="base" style={styles.uploadCard}>
           {activeTab === 'MANUAL' ? (
             <>
-              <Text style={styles.sectionHeadline}>Unggah Berkas atau Salin Teks</Text>
+              <Text style={[styles.sectionHeadline, { color: theme.text }]}>Unggah Berkas atau Salin Teks</Text>
               <Text style={styles.uploadDesc}>
                 Mendukung dokumen resmi Stockbit, Ajaib, IPOT, Mandiri Sekuritas, BCA RDN, dan Bank Jago.
               </Text>
@@ -359,7 +360,7 @@ export default function SyncScreen() {
             </>
           ) : (
             <>
-              <Text style={styles.sectionHeadline}>Inbound Email Webhook Forwarding</Text>
+              <Text style={[styles.sectionHeadline, { color: theme.text }]}>Inbound Email Webhook Forwarding</Text>
               <Text style={styles.uploadDesc}>
                 Simulasi payload email statement yang diteruskan secara otomatis dari sekuritas ke Omniwealth.
               </Text>
@@ -593,7 +594,7 @@ export default function SyncScreen() {
 
         {/* 6. SIMULASI PRESETS */}
         <View style={styles.presetsHeader}>
-          <Text style={styles.sectionHeadline}>Uji Alur Pipeline Dokumen</Text>
+          <Text style={[styles.sectionHeadline, { color: theme.text }]}>Uji Alur Pipeline Dokumen</Text>
           <Text style={styles.presetsSubtext}>Jalankan pipeline 6-tahap menggunakan berkas simulasi resmi</Text>
         </View>
 

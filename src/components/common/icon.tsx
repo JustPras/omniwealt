@@ -7,6 +7,9 @@ import React from 'react';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 export type IconName =
+  | 'Droplet'
+  | 'Sun'
+  | 'Moon'
   | 'TrendingUp'
   | 'ArrowUpRight'
   | 'ArrowDownRight'
@@ -72,6 +75,9 @@ const MCI_ICONS: Partial<Record<IconName, MCIName>> = {
 
 // Icons that use Ionicons
 const IONICONS_MAP: Partial<Record<IconName, IoniconsName>> = {
+  Droplet: 'water',
+  Sun: 'sunny',
+  Moon: 'moon',
   TrendingUp: 'trending-up',
   Wallet: 'wallet',
   Plus: 'add',

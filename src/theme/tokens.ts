@@ -1,4 +1,6 @@
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useColorScheme, Platform, TextStyle } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from './colors';
 
 export { Colors };
@@ -73,10 +75,73 @@ export const themes = {
 } as const;
 
 export type Theme = (typeof themes)['light'] | (typeof themes)['dark'];
+export type ThemeMode = 'dark' | 'light' | 'system';
+
+export interface ThemeContextType {
+  themeMode: ThemeMode;
+  theme: Theme;
+  isDark: boolean;
+  toggleTheme: () => void;
+  setThemeMode: (mode: ThemeMode) => void;
+}
+
+const THEME_STORAGE_KEY = '@omniwealth_theme_mode';
+
+const ThemeContext = createContext<ThemeContextType>({
+  themeMode: 'dark',
+  theme: themes.dark,
+  isDark: true,
+  toggleTheme: () => {},
+  setThemeMode: () => {},
+});
+
+export const AppThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const systemScheme = useColorScheme();
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('dark');
+
+  useEffect(() => {
+    AsyncStorage.getItem(THEME_STORAGE_KEY)
+      .then((saved) => {
+        if (saved === 'dark' || saved === 'light' || saved === 'system') {
+          setThemeModeState(saved as ThemeMode);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const setThemeMode = useCallback((mode: ThemeMode) => {
+    setThemeModeState(mode);
+    AsyncStorage.setItem(THEME_STORAGE_KEY, mode).catch(() => {});
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setThemeModeState((prev) => {
+      const next: ThemeMode = prev === 'light' ? 'dark' : 'light';
+      AsyncStorage.setItem(THEME_STORAGE_KEY, next).catch(() => {});
+      return next;
+    });
+  }, []);
+
+  const isDark = themeMode === 'system' ? systemScheme !== 'light' : themeMode === 'dark';
+  const theme = isDark ? themes.dark : themes.light;
+
+  return React.createElement(
+    ThemeContext.Provider,
+    { value: { themeMode, theme, isDark, toggleTheme, setThemeMode } },
+    children
+  );
+};
 
 export const useTheme = (): Theme => {
-  const scheme = useColorScheme();
-  return scheme === 'light' ? themes.light : themes.dark;
+  const ctx = useContext(ThemeContext);
+  if (ctx && ctx.theme) {
+    return ctx.theme;
+  }
+  return themes.dark;
+};
+
+export const useThemeController = (): ThemeContextType => {
+  return useContext(ThemeContext);
 };
 
 // Default active theme based on dark/light

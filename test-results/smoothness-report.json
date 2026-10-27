@@ -2,22 +2,22 @@
   "navigation": [
     {
       "tab": "Portofolio",
-      "transitionMs": 1729,
+      "transitionMs": 1842,
       "verified": true
     },
     {
       "tab": "Akun & Liabilitas",
-      "transitionMs": 1150,
+      "transitionMs": 1386,
       "verified": true
     },
     {
       "tab": "Sinkronisasi Otomatis",
-      "transitionMs": 926,
+      "transitionMs": 4490,
       "verified": true
     },
     {
       "tab": "Ringkasan Utama",
-      "transitionMs": 716,
+      "transitionMs": 1315,
       "verified": true
     }
   ],
@@ -51,34 +51,34 @@
   "scrolling": [
     {
       "screen": "Dashboard (Ringkasan)",
-      "avgFps": 57,
-      "droppedFrames": 1,
-      "totalFrames": 84,
-      "p95DeltaMs": 18,
-      "isSmooth": true
+      "avgFps": 48,
+      "droppedFrames": 19,
+      "totalFrames": 108,
+      "p95DeltaMs": 33,
+      "isSmooth": false
     },
     {
       "screen": "Portofolio",
-      "avgFps": 53,
-      "droppedFrames": 5,
-      "totalFrames": 80,
+      "avgFps": 47,
+      "droppedFrames": 22,
+      "totalFrames": 114,
       "p95DeltaMs": 33,
       "isSmooth": false
     },
     {
       "screen": "Akun & Liabilitas",
-      "avgFps": 56,
-      "droppedFrames": 2,
-      "totalFrames": 78,
-      "p95DeltaMs": 17,
-      "isSmooth": true
+      "avgFps": 43,
+      "droppedFrames": 33,
+      "totalFrames": 112,
+      "p95DeltaMs": 34,
+      "isSmooth": false
     },
     {
       "screen": "Sinkron & MacroDroid",
-      "avgFps": 55,
-      "droppedFrames": 4,
-      "totalFrames": 109,
-      "p95DeltaMs": 18,
+      "avgFps": 45,
+      "droppedFrames": 30,
+      "totalFrames": 120,
+      "p95DeltaMs": 34,
       "isSmooth": false
     }
   ],

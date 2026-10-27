@@ -181,10 +181,16 @@ async function runTests() {
 
     // Helper to click tab using Puppeteer touch/mouse click
     async function clickTab(tabLabel) {
-      const tabEl = await page.waitForSelector(`[role="tab"][aria-label="${tabLabel}"]`, { timeout: 3000 });
-      if (tabEl) {
-        await tabEl.click();
-        return true;
+      try {
+        const tabEl = await page.waitForSelector(`[role="tab"][aria-label="${tabLabel}"]`, { timeout: 1500 });
+        if (tabEl) {
+          await tabEl.click();
+          return true;
+        }
+      } catch (e) {
+        // Fallback to CDP native text click
+        const res = await nativeClickText(tabLabel, true);
+        if (res.found) return true;
       }
       return false;
     }

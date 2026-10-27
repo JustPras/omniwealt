@@ -29,7 +29,7 @@ import { useWealth } from '../../src/store/wealth-context';
 import { formatIDR, formatDate } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
 import { BankMutationResult, AccountType, Liability } from '../../src/types';
-import { color, space, radius, shadow } from '../../src/theme/tokens';
+import { color, space, radius, shadow, useTheme } from '../../src/theme/tokens';
 
 type TxFilter = 'ALL' | 'INCOME' | 'EXPENSE' | 'TRANSFER';
 
@@ -57,6 +57,7 @@ const PRESETS = [
 export default function AccountsScreen() {
   const { width } = useWindowDimensions();
   const isSmall = width < 375;
+  const theme = useTheme();
 
   const {
     accounts,
@@ -166,14 +167,14 @@ export default function AccountsScreen() {
               <View key={acc.id}>
                 <View style={styles.accountRow}>
                   <View style={styles.accountLeft}>
-                    <Text style={styles.accountName}>{acc.name}</Text>
-                    <Text style={styles.accountMeta}>
+                    <Text style={[styles.accountName, { color: theme.text }]}>{acc.name}</Text>
+                    <Text style={[styles.accountMeta, { color: theme.textMuted }]}>
                       {acc.accountNumber || 'Aktif'}
                     </Text>
                   </View>
 
                   <View style={styles.accountRight}>
-                    <PrivacyValue value={acc.balance} style={styles.accountBalanceText} />
+                    <PrivacyValue value={acc.balance} style={[styles.accountBalanceText, { color: theme.text }]} />
                     <View style={styles.quickActionPillRow}>
                       <Pressable
                         onPress={() => openMutationModal(acc.id, 'INCOME')}
@@ -452,7 +453,7 @@ export default function AccountsScreen() {
   };
 
   return (
-    <ScreenTransition style={styles.screenContainer}>
+    <ScreenTransition style={[styles.screenContainer, { backgroundColor: theme.canvas }]}>
       <AmbientBackground activeAssetClass="CASH" />
       <HeaderBar />
 
@@ -467,9 +468,9 @@ export default function AccountsScreen() {
         <GlassCard level="base" style={styles.heroCard}>
           <View style={styles.heroHeader}>
             <View>
-              <Text style={styles.heroLabel}>Total likuiditas kas & RDN</Text>
-              <PrivacyValue value={totalCash} style={styles.heroAmount} />
-              <Text style={styles.heroSubtitle}>{accounts.length} rekening aktif terhubung</Text>
+              <Text style={[styles.heroLabel, { color: theme.textMuted }]}>Total likuiditas kas & RDN</Text>
+              <PrivacyValue value={totalCash} style={[styles.heroAmount, { color: theme.text }]} />
+              <Text style={[styles.heroSubtitle, { color: theme.textMuted }]}>{accounts.length} rekening aktif terhubung</Text>
             </View>
             <LiquidButton
               title="+ Tambah rekening"
@@ -513,7 +514,7 @@ export default function AccountsScreen() {
         {/* 3. KOTAK TEMPEL MUTASI & AI PARSER */}
         <GlassCard level="base" style={styles.parserCard}>
           <View style={styles.parserHeader}>
-            <Text style={styles.sectionHeadline}>Tempel mutasi</Text>
+            <Text style={[styles.sectionHeadline, { color: theme.text }]}>Tempel mutasi</Text>
             <View style={styles.aiTag}>
               <Text style={styles.aiTagText}>AI Parser</Text>
             </View>
@@ -689,7 +690,7 @@ export default function AccountsScreen() {
 
         {/* 6. RIWAYAT TRANSAKSI TERBARU (SINGLE CARD WITH ROWS SEPARATED BY HAIRLINE) */}
         <View style={styles.historyHeaderRow}>
-          <Text style={styles.sectionHeadline}>Riwayat mutasi</Text>
+          <Text style={[styles.sectionHeadline, { color: theme.text }]}>Riwayat mutasi</Text>
 
           {/* Mini Tx Filter */}
           <LiquidSegmentControl<TxFilter>

@@ -4,28 +4,29 @@ import { Stack } from 'expo-router';
 import * as Linking from 'expo-linking';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { DarkTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { WealthProvider, useWealth } from '../src/store/wealth-context';
 import { AmbientBackground } from '../src/components/common/ambient-background';
 import { LuxuryLoader } from '../src/components/common/luxury-loader';
 import { NotificationToast } from '../src/components/common/notification-toast';
-import { color, motion } from '../src/theme/tokens';
-
-// Ensure React Navigation theme is strictly dark obsidian
-const CustomDarkTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: color.obsidian,
-    card: color.obsidian,
-    text: color.text,
-    border: color.hairline,
-  },
-};
+import { color, motion, AppThemeProvider, useThemeController } from '../src/theme/tokens';
 
 function RootContent() {
   const { isHydrated, processIncomingNotification } = useWealth();
+  const { theme, isDark } = useThemeController();
   const [showSplash, setShowSplash] = useState(true);
+
+  // Dynamic Navigation Theme matching active dark/light palette
+  const navigationTheme = {
+    ...(isDark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
+      background: theme.canvas,
+      card: theme.canvas,
+      text: theme.text,
+      border: theme.hairline,
+    },
+  };
 
   // Cinematic exit transition values
   const splashFadeAnim = useRef(new Animated.Value(1)).current;
@@ -84,9 +85,13 @@ function RootContent() {
   }, [isHydrated, splashFadeAnim, splashScaleAnim]);
 
   return (
-    <ThemeProvider value={CustomDarkTheme}>
-      <View style={styles.container}>
-        <StatusBar style="light" translucent backgroundColor={color.obsidian} />
+    <ThemeProvider value={navigationTheme}>
+      <View style={[styles.container, { backgroundColor: theme.canvas }]}>
+        <StatusBar
+          style={isDark ? 'light' : 'dark'}
+          translucent
+          backgroundColor="transparent"
+        />
         <AmbientBackground />
 
         {/* Root Content */}
@@ -94,7 +99,7 @@ function RootContent() {
           <Stack
             screenOptions={{
               headerShown: false,
-              contentStyle: { backgroundColor: color.obsidian },
+              contentStyle: { backgroundColor: theme.canvas },
               animation: 'fade',
             }}
           >
@@ -115,6 +120,7 @@ function RootContent() {
               {
                 opacity: splashFadeAnim,
                 transform: [{ scale: splashScaleAnim }],
+                backgroundColor: theme.canvas,
               },
             ]}
             pointerEvents={isHydrated ? 'none' : 'auto'}
@@ -133,11 +139,13 @@ function RootContent() {
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider style={styles.safeArea}>
-      <WealthProvider>
-        <RootContent />
-      </WealthProvider>
-    </SafeAreaProvider>
+    <AppThemeProvider>
+      <SafeAreaProvider style={styles.safeArea}>
+        <WealthProvider>
+          <RootContent />
+        </WealthProvider>
+      </SafeAreaProvider>
+    </AppThemeProvider>
   );
 }
 

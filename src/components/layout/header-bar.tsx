@@ -15,11 +15,12 @@ import { LiquidSegmentControl } from '../common/liquid-segment-control';
 import { useWealth } from '../../store/wealth-context';
 import { formatTime } from '../../utils/format';
 import { triggerHaptic } from '../../utils/haptics';
-import { Colors, useTheme, radius, space, shadow } from '../../theme/tokens';
+import { Colors, useTheme, useThemeController, radius, space, shadow } from '../../theme/tokens';
 
 export const HeaderBar: React.FC = () => {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { toggleTheme } = useThemeController();
   const isDark = theme.canvas === Colors.palette.appleInk;
 
   const {
@@ -42,6 +43,7 @@ export const HeaderBar: React.FC = () => {
   // Press feedback scales for the header action buttons
   const refreshScale = useRef(new Animated.Value(1)).current;
   const eyeScale = useRef(new Animated.Value(1)).current;
+  const themeScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     const pulseLoop = Animated.loop(
@@ -135,7 +137,7 @@ export const HeaderBar: React.FC = () => {
         style={styles.capsuleCard}
         contentStyle={styles.capsuleInner}
       >
-        {/* Kiri: Ikon tetesan air biru #007AFF + teks Omniwealt (#1D1D1F) + badge iOS per DESIGN.md Section 6.1 */}
+        {/* Kiri: Ikon tetesan air biru #007AFF + teks Omniwealt */}
         <View style={styles.leftBrandGroup}>
           <View style={styles.dropletIconBadge}>
             <Icon name="Droplet" size={16} color={Colors.palette.appleBlue} />
@@ -143,9 +145,6 @@ export const HeaderBar: React.FC = () => {
           <View style={styles.brandTitleCol}>
             <View style={styles.brandNameRow}>
               <Text style={[styles.brandTitle, { color: textColor }]}>Omniwealt</Text>
-              <View style={styles.iosBadge}>
-                <Text style={styles.iosBadgeText}>iOS</Text>
-              </View>
             </View>
             {/* Live Indicator Sub-text */}
             <View style={styles.liveSubRow}>
@@ -163,7 +162,7 @@ export const HeaderBar: React.FC = () => {
           </View>
         </View>
 
-        {/* Kanan: LiquidSegmentControl (IDR/USD) + tombol bulat kaca bening Privacy Mode per DESIGN.md Section 6.1 */}
+        {/* Kanan: LiquidSegmentControl (IDR/USD) + Tema Terang/Gelap + Refresh + Privacy Mode */}
         <View style={styles.rightActionGroup}>
           {/* Liquid Currency Switcher (IDR / USD) */}
           <LiquidSegmentControl
@@ -178,6 +177,36 @@ export const HeaderBar: React.FC = () => {
             compact
             style={styles.currencySegmentControl}
           />
+
+          {/* Theme Mode Toggle Button (Light ☀️ / Dark 🌙) */}
+          <Pressable
+            onPress={() => {
+              triggerHaptic('medium');
+              toggleTheme();
+            }}
+            onPressIn={() => handleButtonPressIn(themeScale)}
+            onPressOut={() => handleButtonPressOut(themeScale)}
+            hitSlop={8}
+            accessibilityLabel={isDark ? 'Beralih ke tema terang' : 'Beralih ke tema gelap'}
+            accessibilityRole="button"
+          >
+            <Animated.View
+              style={[
+                styles.circularGlassButton,
+                {
+                  transform: [{ scale: themeScale }],
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.65)',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(255, 255, 255, 0.85)',
+                },
+              ]}
+            >
+              <Icon
+                name={isDark ? 'Sun' : 'Moon'}
+                size={14}
+                color={isDark ? '#F59E0B' : Colors.palette.appleInk}
+              />
+            </Animated.View>
+          </Pressable>
 
           {/* Refresh Market Prices Button */}
           <Pressable
@@ -293,20 +322,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: -0.3,
-  },
-  iosBadge: {
-    paddingHorizontal: 5,
-    paddingVertical: 1.5,
-    borderRadius: radius.pill,
-    backgroundColor: 'rgba(0, 122, 255, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 122, 255, 0.30)',
-  },
-  iosBadgeText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: Colors.palette.appleBlue,
-    letterSpacing: 0.4,
   },
   liveSubRow: {
     flexDirection: 'row',

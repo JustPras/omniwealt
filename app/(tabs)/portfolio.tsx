@@ -27,7 +27,7 @@ import { useWealth } from '../../src/store/wealth-context';
 import { formatPercent, formatChangePercent, formatIDR } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
 import { StockAsset, CryptoAsset } from '../../src/types';
-import { color, space, radius, shadow, font } from '../../src/theme/tokens';
+import { color, space, radius, shadow, font, useTheme } from '../../src/theme/tokens';
 
 type AssetFilter = 'ALL' | 'STOCKS' | 'CRYPTO';
 type SortMode = 'VALUE' | 'PNL' | 'NAME';
@@ -35,6 +35,7 @@ type SortMode = 'VALUE' | 'PNL' | 'NAME';
 export default function PortfolioScreen() {
   const { width } = useWindowDimensions();
   const isSmall = width < 375;
+  const theme = useTheme();
 
   const {
     stocks,
@@ -148,7 +149,7 @@ export default function PortfolioScreen() {
   };
 
   return (
-    <ScreenTransition style={styles.screenContainer}>
+    <ScreenTransition style={[styles.screenContainer, { backgroundColor: theme.canvas }]}>
       <AmbientBackground activeAssetClass={activeFilter === 'CRYPTO' ? 'CRYPTO' : 'STOCK'} />
       <HeaderBar />
 
@@ -171,8 +172,8 @@ export default function PortfolioScreen() {
         <GlassCard level="base" style={styles.heroCard}>
           <View style={styles.heroHeaderRow}>
             <View>
-              <Text style={styles.heroLabel}>Nilai investasi</Text>
-              <PrivacyValue value={totalInvestments} style={styles.heroAmount} />
+              <Text style={[styles.heroLabel, { color: theme.textMuted }]}>Nilai investasi</Text>
+              <PrivacyValue value={totalInvestments} style={[styles.heroAmount, { color: theme.text }]} />
             </View>
             <View style={styles.heroActions}>
               <LiquidButton
@@ -283,7 +284,7 @@ export default function PortfolioScreen() {
         {(activeFilter === 'ALL' || activeFilter === 'STOCKS') && (
           <View style={styles.sectionContainer}>
             <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionHeadline}>Saham Indonesia (IDX)</Text>
+              <Text style={[styles.sectionHeadline, { color: theme.text }]}>Saham Indonesia (IDX)</Text>
               <PrivacyValue value={totalStocks} style={styles.sectionTotal} />
             </View>
 
@@ -418,7 +419,7 @@ export default function PortfolioScreen() {
             <View style={styles.sectionTitleRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Icon name="Wallet" size={16} color="#A78BFA" />
-                <Text style={styles.sectionHeadline}>Dompet Web3 Terhubung</Text>
+                <Text style={[styles.sectionHeadline, { color: theme.text }]}>Dompet Web3 Terhubung</Text>
               </View>
               <Pressable
                 onPress={() => {
@@ -544,7 +545,7 @@ export default function PortfolioScreen() {
         {(activeFilter === 'ALL' || activeFilter === 'CRYPTO') && (
           <View style={styles.sectionContainer}>
             <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionHeadline}>Aset kripto</Text>
+              <Text style={[styles.sectionHeadline, { color: theme.text }]}>Aset kripto</Text>
               <PrivacyValue value={totalCryptos} style={styles.sectionTotal} />
             </View>
 

@@ -315,6 +315,7 @@ const LiquidTimeframeSelector: React.FC<LiquidTimeframeSelectorProps> = React.me
 export default function OverviewScreen() {
   const { width } = useWindowDimensions();
   const isSmall = width < 375;
+  const theme = useTheme();
 
   const {
     totalNetWorth,
@@ -446,7 +447,7 @@ export default function OverviewScreen() {
   const isPnLProfit = totalUnrealizedPnL >= 0;
 
   return (
-    <ScreenTransition style={styles.screenContainer}>
+    <ScreenTransition style={[styles.screenContainer, { backgroundColor: theme.canvas }]}>
       {/* Background with subtle ambient lighting that shifts on allocation tap */}
       <AmbientBackground
         scrollY={scrollY}
@@ -479,7 +480,7 @@ export default function OverviewScreen() {
         <GlassCard level="base" style={styles.heroCard}>
           <View style={styles.heroHeader}>
             <View style={styles.heroLabelRow}>
-              <Text style={styles.heroLabel}>Kekayaan bersih</Text>
+              <Text style={[styles.heroLabel, { color: theme.textMuted }]}>Kekayaan bersih</Text>
               {isScrubbing ? (
                 <View style={styles.scrubIndicatorPill}>
                   <Text style={styles.scrubIndicatorText}>{displayDeltaLabel}</Text>
@@ -511,7 +512,7 @@ export default function OverviewScreen() {
               value={displayNetWorth}
               style={[
                 styles.heroValueText,
-                { fontSize: isSmall ? 28 : width >= 414 ? 38 : 34 },
+                { color: theme.text, fontSize: isSmall ? 28 : width >= 414 ? 38 : 34 },
               ]}
             />
           </View>
@@ -659,7 +660,7 @@ export default function OverviewScreen() {
         {/* 2. INTERACTIVE ASSET ALLOCATION CARD */}
         <GlassCard level="base" style={styles.allocationCard}>
           <View style={styles.allocationHeader}>
-            <Text style={styles.sectionHeadline}>Alokasi aset</Text>
+            <Text style={[styles.sectionHeadline, { color: theme.text }]}>Alokasi aset</Text>
             {selectedAllocation !== 'ALL' && (
               <Pressable
                 onPress={() => {
@@ -806,12 +807,12 @@ export default function OverviewScreen() {
             }}
           >
             <View style={styles.cardHeaderRow}>
-              <Text style={styles.cardHeaderTitle}>Investasi aktif</Text>
+              <Text style={[styles.cardHeaderTitle, { color: theme.text }]}>Investasi aktif</Text>
               <Icon name="ArrowUpRight" size={15} color={color.accent} />
             </View>
 
             <View style={styles.bentoValueBlock}>
-              <PrivacyValue value={totalInvestments} style={styles.bentoLargeValue} />
+              <PrivacyValue value={totalInvestments} style={[styles.bentoLargeValue, { color: theme.text }]} />
             </View>
 
             <View style={styles.bentoHairline} />
@@ -849,11 +850,11 @@ export default function OverviewScreen() {
               }}
             >
               <View style={styles.cardHeaderRow}>
-                <Text style={styles.cardHeaderTitle}>Kas & RDN</Text>
+                <Text style={[styles.cardHeaderTitle, { color: theme.text }]}>Kas & RDN</Text>
                 <Icon name="ArrowUpRight" size={14} color={color.accent} />
               </View>
-              <PrivacyValue value={totalCash} style={styles.bentoMidValue} />
-              <Text style={styles.bentoSubtext}>Saldo likuid</Text>
+              <PrivacyValue value={totalCash} style={[styles.bentoMidValue, { color: theme.text }]} />
+              <Text style={[styles.bentoSubtext, { color: theme.textMuted }]}>Saldo likuid</Text>
             </GlassCard>
 
             {/* Bottom Right: Quick Actions */}
@@ -884,7 +885,7 @@ export default function OverviewScreen() {
 
         {/* 4. PERGERAKAN TERBESAR (SINGLE CARD WITH ROWS SEPARATED BY HAIRLINE) */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionHeadline}>Pergerakan terbesar</Text>
+          <Text style={[styles.sectionHeadline, { color: theme.text }]}>Pergerakan terbesar</Text>
           <Pressable
             onPress={() => {
               triggerHaptic('selection');
@@ -940,8 +941,8 @@ export default function OverviewScreen() {
                         ]}
                       />
                       <View>
-                        <Text style={styles.moverSymbol}>{mover.symbol}</Text>
-                        <Text style={styles.moverName} numberOfLines={1}>
+                        <Text style={[styles.moverSymbol, { color: theme.text }]}>{mover.symbol}</Text>
+                        <Text style={[styles.moverName, { color: theme.textMuted }]} numberOfLines={1}>
                           {mover.name}
                         </Text>
                       </View>
@@ -951,7 +952,7 @@ export default function OverviewScreen() {
                     <View style={styles.moverRight}>
                       <PrivacyValue
                         value={mover.currentPrice}
-                        style={styles.moverPrice}
+                        style={[styles.moverPrice, { color: theme.text }]}
                       />
                       <Text
                         style={[

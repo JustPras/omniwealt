@@ -109,6 +109,10 @@ const TabBarButton: React.FC<TabBarButtonProps> = React.memo(
         accessibilityRole="tab"
         accessibilityState={{ selected: isFocused }}
         accessibilityLabel={label}
+        {...({
+          role: 'tab',
+          'aria-label': label,
+        } as any)}
         onPress={onPress}
         onLongPress={onLongPress}
         onPressIn={handlePressIn}

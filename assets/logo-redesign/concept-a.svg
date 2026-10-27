@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title-app-1">
+  <title id="title-app-1">OmniWealth - Concept 1: Wealth Compass O</title>
+  <!-- Outer 'O' Ring (Omni: 360-Degree Financial Control) with true hole -->
+  <path fill="#0F172A" fill-rule="evenodd" d="
+    M 128 20
+    C 187.6 20 236 68.4 236 128
+    C 236 187.6 187.6 236 128 236
+    C 68.4 236 20 187.6 20 128
+    C 20 68.4 68.4 20 128 20 Z
+    M 128 56
+    C 88.2 56 56 88.2 56 128
+    C 56 167.8 88.2 200 128 200
+    C 167.8 200 200 167.8 200 128
+    C 200 88.2 167.8 56 128 56 Z
+  "/>
+  <!-- Upper-Right Active Growth Arrow (45° Upward Capital Trajectory) -->
+  <path fill="#007AFF" d="
+    M 128 128
+    L 115 115
+    L 176 80
+    L 141 141
+    Z
+  "/>
+  <!-- Lower-Left Base Anchor Needle (45° Foundation) in Slate -->
+  <path fill="#334155" d="
+    M 128 128
+    L 141 141
+    L 80 176
+    L 115 115
+    Z
+  "/>
+  <!-- Center Core Ring with true hole (evenodd) -->
+  <path fill="#0F172A" fill-rule="evenodd" d="
+    M 128 120
+    C 132.4 120 136 123.6 136 128
+    C 136 132.4 132.4 136 128 136
+    C 123.6 136 120 132.4 120 128
+    C 120 123.6 123.6 120 128 120 Z
+    M 128 125
+    C 126.3 125 125 126.3 125 128
+    C 125 129.7 126.3 131 128 131
+    C 129.7 131 131 129.7 131 128
+    C 131 126.3 129.7 125 128 125 Z
+  "/>
+</svg>

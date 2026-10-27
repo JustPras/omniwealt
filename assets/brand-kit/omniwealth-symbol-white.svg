@@ -1,0 +1,46 @@
+<svg fill="#ffffff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title-app-2"><title>OmniWealth Logo</title>
+  <title id="title-app-2">OmniWealth - Concept 2: Asset Convergence Nexus</title>
+  <!-- Pillar 1: Liquid Cash & Banking Arc (Left) -->
+  <path fill="#ffffff" d="
+    M 116 22
+    C 58 28 22 72 22 128
+    C 22 158 35 186 56 206
+    L 76 182
+    C 62 167 52 148 52 128
+    C 52 86 78 52 116 48
+    Z
+  "/>
+  <!-- Pillar 2: Capital Markets & IDX Equities Arc (Right) -->
+  <path fill="#ffffff" d="
+    M 140 22
+    C 198 28 234 72 234 128
+    C 234 158 221 186 200 206
+    L 180 182
+    C 194 167 204 148 204 128
+    C 204 86 178 52 140 48
+    Z
+  "/>
+  <!-- Pillar 3: Web3 & Growth Catalyst Arc (Bottom Base) -->
+  <path fill="#ffffff" d="
+    M 72 216
+    C 88 228 107 236 128 236
+    C 149 236 168 228 184 216
+    L 168 194
+    C 156 202 143 208 128 208
+    C 113 208 100 202 88 194
+    Z
+  "/>
+  <!-- Central Asset Nexus Ring with real hole (evenodd) -->
+  <path fill="#ffffff" fill-rule="evenodd" d="
+    M 128 98
+    C 144.6 98 158 111.4 158 128
+    C 158 144.6 144.6 158 128 158
+    C 111.4 158 98 144.6 98 128
+    C 98 111.4 111.4 98 128 98 Z
+    M 128 114
+    C 120.3 114 114 120.3 114 128
+    C 114 135.7 120.3 142 128 142
+    C 135.7 142 142 135.7 142 128
+    C 142 120.3 135.7 114 128 114 Z
+  "/>
+</svg>

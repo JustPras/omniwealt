@@ -1,33 +1,51 @@
 import React from 'react';
 import { Image, ImageStyle, StyleProp, View, ViewStyle } from 'react-native';
 
-interface LogoIconProps {
+export type LogoVariant = 'app-icon' | 'mark' | 'white' | 'black';
+
+export interface LogoIconProps {
   size?: number;
+  variant?: LogoVariant;
   style?: StyleProp<ViewStyle>;
   imageStyle?: StyleProp<ImageStyle>;
 }
 
+const SOURCES: Record<LogoVariant, any> = {
+  'app-icon': require('../../../assets/icon.png'),
+  'mark': require('../../../assets/logo-mark.png'),
+  'white': require('../../../assets/logo-mark-white.png'),
+  'black': require('../../../assets/logo-mark-black.png'),
+};
+
 /**
- * OmniWealth brand icon — uses the app icon asset.
- * Safe for React Native (no SVG native dependency needed).
+ * OmniWealth Asset Convergence Nexus Logo
+ * Renders the new production-grade brand icon.
  */
-export const LogoIcon: React.FC<LogoIconProps> = ({ size = 48, style, imageStyle }) => {
+export const LogoIcon: React.FC<LogoIconProps> = ({
+  size = 48,
+  variant = 'app-icon',
+  style,
+  imageStyle,
+}) => {
+  const isAppIcon = variant === 'app-icon';
+  const source = SOURCES[variant] || SOURCES['app-icon'];
+
   return (
     <View
       style={[
         {
           width: size,
           height: size,
-          borderRadius: size * 0.22,
-          overflow: 'hidden',
+          borderRadius: isAppIcon ? size * 0.22 : 0,
+          overflow: isAppIcon ? 'hidden' : 'visible',
         },
         style,
       ]}
     >
       <Image
-        source={require('../../../assets/icon.png')}
+        source={source}
         style={[{ width: size, height: size }, imageStyle]}
-        resizeMode="cover"
+        resizeMode="contain"
       />
     </View>
   );

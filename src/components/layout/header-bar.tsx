@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../common/icon';
+import { LogoIcon } from '../common/logo';
 import { GlassCard } from '../common/glass-card';
 import { LiquidSegmentControl } from '../common/liquid-segment-control';
 import { useWealth } from '../../store/wealth-context';
@@ -137,14 +138,12 @@ export const HeaderBar: React.FC = () => {
         style={styles.capsuleCard}
         contentStyle={styles.capsuleInner}
       >
-        {/* Kiri: Ikon tetesan air biru #007AFF + teks Omniwealt */}
+        {/* Kiri: Brand Logo Concept B Nexus + teks OmniWealth */}
         <View style={styles.leftBrandGroup}>
-          <View style={styles.dropletIconBadge}>
-            <Icon name="Droplet" size={16} color={Colors.palette.appleBlue} />
-          </View>
+          <LogoIcon size={30} variant="app-icon" style={styles.brandLogoBadge} />
           <View style={styles.brandTitleCol}>
             <View style={styles.brandNameRow}>
-              <Text style={[styles.brandTitle, { color: textColor }]}>Omniwealt</Text>
+              <Text style={[styles.brandTitle, { color: textColor }]}>OmniWealth</Text>
             </View>
             {/* Live Indicator Sub-text */}
             <View style={styles.liveSubRow}>
@@ -299,6 +298,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 9,
+  },
+  brandLogoBadge: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   dropletIconBadge: {
     width: 30,

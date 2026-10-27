@@ -1,0 +1,452 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1600" height="984" viewBox="0 0 1600 984"><rect width="1600" height="984" fill="#f7f7f4"/><text x="60" y="78" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="40" font-weight="700" fill="#161616">OmniWealth - Eksplorasi Logo Fluida &amp; Organik (Bebas Kaku)</text><text x="60" y="116" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="20" fill="#6b6b6b">Concepts for review — pick a direction (or tell me what you like in each).</text><rect x="60" y="150" width="474.667" height="774" rx="18" fill="#fff" stroke="#161616" stroke-width="2"/><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-f1" viewBox="0 0 256 256" x="90" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <title id="c0-title-f1">OmniWealth - Concept 1: Fluid Droplet Ripple</title>
+  <!-- Outer Sweeping Liquid Wave (Swirling Fluid Stream O) -->
+  <path fill="#0F172A" fill-rule="evenodd" d="
+    M 128 20
+    C 192 20 236 68 236 130
+    C 236 194 186 236 124 236
+    C 62 236 20 190 20 128
+    C 20 74 58 32 108 22
+    C 118 20 126 28 124 38
+    C 122 47 114 54 105 56
+    C 72 64 48 93 48 128
+    C 48 172 82 208 124 208
+    C 168 208 208 174 208 130
+    C 208 86 174 48 128 48
+    C 117 48 109 40 110 29
+    C 111 20 119 20 128 20 Z
+  "/>
+  <!-- Inner Living Water Droplet nestled naturally inside the fluid stream -->
+  <path fill="#007AFF" d="
+    M 134 82
+    C 152 108 172 134 172 156
+    C 172 179.2 153.2 198 130 198
+    C 106.8 198 88 179.2 88 156
+    C 88 134 114 108 134 82 Z
+  "/>
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="lockup-a" viewBox="0 0 1140 256" x="90" y="514" width="414.667" height="120" preserveAspectRatio="xMidYMid meet">
+  <title id="l0-lockup-a">OmniWealth Horizontal Lockup</title>
+  <g transform="translate(24, 0)">
+    <title id="l0-title-f1">OmniWealth - Concept 1: Fluid Droplet Ripple</title>
+  <!-- Outer Sweeping Liquid Wave (Swirling Fluid Stream O) -->
+  <path fill="#0F172A" fill-rule="evenodd" d="
+    M 128 20
+    C 192 20 236 68 236 130
+    C 236 194 186 236 124 236
+    C 62 236 20 190 20 128
+    C 20 74 58 32 108 22
+    C 118 20 126 28 124 38
+    C 122 47 114 54 105 56
+    C 72 64 48 93 48 128
+    C 48 172 82 208 124 208
+    C 168 208 208 174 208 130
+    C 208 86 174 48 128 48
+    C 117 48 109 40 110 29
+    C 111 20 119 20 128 20 Z
+  "/>
+  <!-- Inner Living Water Droplet nestled naturally inside the fluid stream -->
+  <path fill="#007AFF" d="
+    M 134 82
+    C 152 108 172 134 172 156
+    C 172 179.2 153.2 198 130 198
+    C 106.8 198 88 179.2 88 156
+    C 88 134 114 108 134 82 Z
+  "/>
+  </g>
+  <g id="l0-wordmark">
+    
+  <path fill="#0F172A" fill-rule="evenodd" d="M 370 76 C 401 76 425 100 425 131 C 425 162 401 186 370 186 C 339 186 315 162 315 131 C 315 100 339 76 370 76 Z M 370 95 C 350 95 334 111 334 131 C 334 151 350 167 370 167 C 390 167 406 151 406 131 C 406 111 390 95 370 95 Z"/>
+  <path fill="#0F172A" d="M 440 102 H 457 V 114 C 462 105 471 100 482 100 C 493 100 501 106 505 116 C 511 106 521 100 533 100 C 549 100 557 110 557 127 V 184 H 540 V 131 C 540 120 535 115 526 115 C 517 115 511 121 511 133 V 184 H 494 V 131 C 494 120 489 115 480 115 C 471 115 465 121 465 133 V 184 H 448 V 102 Z"/>
+  <path fill="#0F172A" d="M 574 102 H 591 V 115 C 596 105 606 100 618 100 C 635 100 644 110 644 127 V 184 H 627 V 131 C 627 120 622 115 612 115 C 603 115 597 121 597 133 V 184 H 574 V 102 Z"/>
+  <path fill="#0F172A" d="M 661 102 H 678 V 184 H 661 V 102 Z M 660 83 C 660 77 665 72 670 72 C 675 72 680 77 680 83 C 680 89 675 94 670 94 C 665 94 660 89 660 83 Z"/>
+  <path fill="#007AFF" d="M 698 76 H 718 L 733 148 L 748 76 H 767 L 782 148 L 797 76 H 817 L 793 184 H 772 L 757 118 L 742 184 H 721 Z"/>
+  <path fill="#0F172A" fill-rule="evenodd" d="M 830 143 H 877 C 876 128 867 115 854 115 C 841 115 832 126 830 143 Z M 854 100 C 874 100 894 114 894 140 V 147 H 830 C 832 163 842 171 855 171 C 865 171 873 166 877 159 L 892 166 C 884 179 871 186 854 186 C 831 186 813 168 813 143 C 813 118 831 100 854 100 Z"/>
+  <path fill="#0F172A" fill-rule="evenodd" d="M 946 122 V 184 H 931 V 172 C 926 181 916 186 905 186 C 890 186 877 175 877 158 C 877 141 891 131 911 131 H 930 V 127 C 930 118 923 113 912 113 C 903 113 896 117 893 123 L 879 116 C 885 106 897 100 913 100 C 934 100 946 109 946 122 Z M 930 143 H 913 C 902 143 895 149 895 158 C 895 167 902 173 911 173 C 922 173 930 165 930 155 Z"/>
+  <path fill="#0F172A" d="M 961 74 H 978 V 184 H 961 Z"/>
+  <path fill="#0F172A" d="M 1002 85 V 102 H 1017 V 116 H 1002 V 162 C 1002 169 1005 172 1012 172 H 1017 V 185 C 1013 186 1007 186 1001 186 C 989 186 985 179 985 166 V 116 H 974 V 102 H 985 V 85 Z"/>
+  <path fill="#0F172A" d="M 1032 74 H 1049 V 115 C 1054 105 1064 100 1076 100 C 1093 100 1102 110 1102 127 V 184 H 1085 V 131 C 1085 120 1080 115 1070 115 C 1061 115 1055 121 1055 133 V 184 H 1032 Z"/>
+
+  </g>
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-f1" viewBox="0 0 256 256" x="90" y="660" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <title id="s064-title-f1">OmniWealth - Concept 1: Fluid Droplet Ripple</title>
+  <!-- Outer Sweeping Liquid Wave (Swirling Fluid Stream O) -->
+  <path fill="#0F172A" fill-rule="evenodd" d="
+    M 128 20
+    C 192 20 236 68 236 130
+    C 236 194 186 236 124 236
+    C 62 236 20 190 20 128
+    C 20 74 58 32 108 22
+    C 118 20 126 28 124 38
+    C 122 47 114 54 105 56
+    C 72 64 48 93 48 128
+    C 48 172 82 208 124 208
+    C 168 208 208 174 208 130
+    C 208 86 174 48 128 48
+    C 117 48 109 40 110 29
+    C 111 20 119 20 128 20 Z
+  "/>
+  <!-- Inner Living Water Droplet nestled naturally inside the fluid stream -->
+  <path fill="#007AFF" d="
+    M 134 82
+    C 152 108 172 134 172 156
+    C 172 179.2 153.2 198 130 198
+    C 106.8 198 88 179.2 88 156
+    C 88 134 114 108 134 82 Z
+  "/>
+</svg></g><text x="122" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-f1" viewBox="0 0 256 256" x="180" y="692" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <title id="s032-title-f1">OmniWealth - Concept 1: Fluid Droplet Ripple</title>
+  <!-- Outer Sweeping Liquid Wave (Swirling Fluid Stream O) -->
+  <path fill="#0F172A" fill-rule="evenodd" d="
+    M 128 20
+    C 192 20 236 68 236 130
+    C 236 194 186 236 124 236
+    C 62 236 20 190 20 128
+    C 20 74 58 32 108 22
+    C 118 20 126 28 124 38
+    C 122 47 114 54 105 56
+    C 72 64 48 93 48 128
+    C 48 172 82 208 124 208
+    C 168 208 208 174 208 130
+    C 208 86 174 48 128 48
+    C 117 48 109 40 110 29
+    C 111 20 119 20 128 20 Z
+  "/>
+  <!-- Inner Living Water Droplet nestled naturally inside the fluid stream -->
+  <path fill="#007AFF" d="
+    M 134 82
+    C 152 108 172 134 172 156
+    C 172 179.2 153.2 198 130 198
+    C 106.8 198 88 179.2 88 156
+    C 88 134 114 108 134 82 Z
+  "/>
+</svg></g><text x="196" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-f1" viewBox="0 0 256 256" x="238" y="708" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <title id="s016-title-f1">OmniWealth - Concept 1: Fluid Droplet Ripple</title>
+  <!-- Outer Sweeping Liquid Wave (Swirling Fluid Stream O) -->
+  <path fill="#0F172A" fill-rule="evenodd" d="
+    M 128 20
+    C 192 20 236 68 236 130
+    C 236 194 186 236 124 236
+    C 62 236 20 190 20 128
+    C 20 74 58 32 108 22
+    C 118 20 126 28 124 38
+    C 122 47 114 54 105 56
+    C 72 64 48 93 48 128
+    C 48 172 82 208 124 208
+    C 168 208 208 174 208 130
+    C 208 86 174 48 128 48
+    C 117 48 109 40 110 29
+    C 111 20 119 20 128 20 Z
+  "/>
+  <!-- Inner Living Water Droplet nestled naturally inside the fluid stream -->
+  <path fill="#007AFF" d="
+    M 134 82
+    C 152 108 172 134 172 156
+    C 172 179.2 153.2 198 130 198
+    C 106.8 198 88 179.2 88 156
+    C 88 134 114 108 134 82 Z
+  "/>
+</svg></g><text x="246" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="90.0" y="780" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">A · Fluid Ripple Droplet</text><text x="90.0" y="808" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#161616" letter-spacing="1.5">RECOMMENDED</text><text x="90.0" y="842" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">Pusaran tetesan embun cair alami: mengalir</text><text x="90.0" y="868" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">dinamis, luwes, tanpa garis kaku.</text><rect x="562.667" y="150" width="474.667" height="774" rx="18" fill="#fff" stroke="#e4e4e0" stroke-width="1"/><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-f2" viewBox="0 0 256 256" x="592.667" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <title id="c1-title-f2">OmniWealth - Concept 2: Continuous Liquid Ribbon</title>
+  <!-- Primary Sweeping Fluid Arm (Deep Obsidian Ink) -->
+  <path fill="#0F172A" d="
+    M 128 24
+    C 185 24 232 71 232 128
+    C 232 185 185 232 128 232
+    C 88 232 53 210 35 178
+    C 29 168 34 156 45 153
+    C 55 150 66 156 73 166
+    C 86 186 106 198 128 198
+    C 166.7 198 198 166.7 198 128
+    C 198 89.3 166.7 58 128 58
+    C 102 58 79 73 67 95
+    C 61 106 48 109 38 103
+    C 28 97 26 84 34 73
+    C 54 38 89 24 128 24 Z
+  "/>
+  <!-- Secondary Dynamic Wave Stream (Azure Blue Accent) flowing into the loop -->
+  <path fill="#007AFF" d="
+    M 42 124
+    C 54 84 94 62 136 68
+    C 147 70 154 80 151 90
+    C 148 100 137 106 127 104
+    C 98 100 72 116 68 142
+    C 66 153 56 160 46 157
+    C 36 154 30 144 33 134
+    C 35 130 38 127 42 124 Z
+  "/>
+  <!-- Liquid Droplet Nucleus floating at center-right -->
+  <circle cx="132" cy="132" r="24" fill="#007AFF"/>
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="lockup-b" viewBox="0 0 1140 256" x="592.667" y="514" width="414.667" height="120" preserveAspectRatio="xMidYMid meet">
+  <title id="l1-lockup-b">OmniWealth Horizontal Lockup</title>
+  <g transform="translate(24, 0)">
+    <title id="l1-title-f2">OmniWealth - Concept 2: Continuous Liquid Ribbon</title>
+  <!-- Primary Sweeping Fluid Arm (Deep Obsidian Ink) -->
+  <path fill="#0F172A" d="
+    M 128 24
+    C 185 24 232 71 232 128
+    C 232 185 185 232 128 232
+    C 88 232 53 210 35 178
+    C 29 168 34 156 45 153
+    C 55 150 66 156 73 166
+    C 86 186 106 198 128 198
+    C 166.7 198 198 166.7 198 128
+    C 198 89.3 166.7 58 128 58
+    C 102 58 79 73 67 95
+    C 61 106 48 109 38 103
+    C 28 97 26 84 34 73
+    C 54 38 89 24 128 24 Z
+  "/>
+  <!-- Secondary Dynamic Wave Stream (Azure Blue Accent) flowing into the loop -->
+  <path fill="#007AFF" d="
+    M 42 124
+    C 54 84 94 62 136 68
+    C 147 70 154 80 151 90
+    C 148 100 137 106 127 104
+    C 98 100 72 116 68 142
+    C 66 153 56 160 46 157
+    C 36 154 30 144 33 134
+    C 35 130 38 127 42 124 Z
+  "/>
+  <!-- Liquid Droplet Nucleus floating at center-right -->
+  <circle cx="132" cy="132" r="24" fill="#007AFF"/>
+  </g>
+  <g id="l1-wordmark">
+    
+  <path fill="#0F172A" fill-rule="evenodd" d="M 370 76 C 401 76 425 100 425 131 C 425 162 401 186 370 186 C 339 186 315 162 315 131 C 315 100 339 76 370 76 Z M 370 95 C 350 95 334 111 334 131 C 334 151 350 167 370 167 C 390 167 406 151 406 131 C 406 111 390 95 370 95 Z"/>
+  <path fill="#0F172A" d="M 440 102 H 457 V 114 C 462 105 471 100 482 100 C 493 100 501 106 505 116 C 511 106 521 100 533 100 C 549 100 557 110 557 127 V 184 H 540 V 131 C 540 120 535 115 526 115 C 517 115 511 121 511 133 V 184 H 494 V 131 C 494 120 489 115 480 115 C 471 115 465 121 465 133 V 184 H 448 V 102 Z"/>
+  <path fill="#0F172A" d="M 574 102 H 591 V 115 C 596 105 606 100 618 100 C 635 100 644 110 644 127 V 184 H 627 V 131 C 627 120 622 115 612 115 C 603 115 597 121 597 133 V 184 H 574 V 102 Z"/>
+  <path fill="#0F172A" d="M 661 102 H 678 V 184 H 661 V 102 Z M 660 83 C 660 77 665 72 670 72 C 675 72 680 77 680 83 C 680 89 675 94 670 94 C 665 94 660 89 660 83 Z"/>
+  <path fill="#007AFF" d="M 698 76 H 718 L 733 148 L 748 76 H 767 L 782 148 L 797 76 H 817 L 793 184 H 772 L 757 118 L 742 184 H 721 Z"/>
+  <path fill="#0F172A" fill-rule="evenodd" d="M 830 143 H 877 C 876 128 867 115 854 115 C 841 115 832 126 830 143 Z M 854 100 C 874 100 894 114 894 140 V 147 H 830 C 832 163 842 171 855 171 C 865 171 873 166 877 159 L 892 166 C 884 179 871 186 854 186 C 831 186 813 168 813 143 C 813 118 831 100 854 100 Z"/>
+  <path fill="#0F172A" fill-rule="evenodd" d="M 946 122 V 184 H 931 V 172 C 926 181 916 186 905 186 C 890 186 877 175 877 158 C 877 141 891 131 911 131 H 930 V 127 C 930 118 923 113 912 113 C 903 113 896 117 893 123 L 879 116 C 885 106 897 100 913 100 C 934 100 946 109 946 122 Z M 930 143 H 913 C 902 143 895 149 895 158 C 895 167 902 173 911 173 C 922 173 930 165 930 155 Z"/>
+  <path fill="#0F172A" d="M 961 74 H 978 V 184 H 961 Z"/>
+  <path fill="#0F172A" d="M 1002 85 V 102 H 1017 V 116 H 1002 V 162 C 1002 169 1005 172 1012 172 H 1017 V 185 C 1013 186 1007 186 1001 186 C 989 186 985 179 985 166 V 116 H 974 V 102 H 985 V 85 Z"/>
+  <path fill="#0F172A" d="M 1032 74 H 1049 V 115 C 1054 105 1064 100 1076 100 C 1093 100 1102 110 1102 127 V 184 H 1085 V 131 C 1085 120 1080 115 1070 115 C 1061 115 1055 121 1055 133 V 184 H 1032 Z"/>
+
+  </g>
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-f2" viewBox="0 0 256 256" x="592.667" y="660" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <title id="s164-title-f2">OmniWealth - Concept 2: Continuous Liquid Ribbon</title>
+  <!-- Primary Sweeping Fluid Arm (Deep Obsidian Ink) -->
+  <path fill="#0F172A" d="
+    M 128 24
+    C 185 24 232 71 232 128
+    C 232 185 185 232 128 232
+    C 88 232 53 210 35 178
+    C 29 168 34 156 45 153
+    C 55 150 66 156 73 166
+    C 86 186 106 198 128 198
+    C 166.7 198 198 166.7 198 128
+    C 198 89.3 166.7 58 128 58
+    C 102 58 79 73 67 95
+    C 61 106 48 109 38 103
+    C 28 97 26 84 34 73
+    C 54 38 89 24 128 24 Z
+  "/>
+  <!-- Secondary Dynamic Wave Stream (Azure Blue Accent) flowing into the loop -->
+  <path fill="#007AFF" d="
+    M 42 124
+    C 54 84 94 62 136 68
+    C 147 70 154 80 151 90
+    C 148 100 137 106 127 104
+    C 98 100 72 116 68 142
+    C 66 153 56 160 46 157
+    C 36 154 30 144 33 134
+    C 35 130 38 127 42 124 Z
+  "/>
+  <!-- Liquid Droplet Nucleus floating at center-right -->
+  <circle cx="132" cy="132" r="24" fill="#007AFF"/>
+</svg></g><text x="624.667" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-f2" viewBox="0 0 256 256" x="682.667" y="692" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <title id="s132-title-f2">OmniWealth - Concept 2: Continuous Liquid Ribbon</title>
+  <!-- Primary Sweeping Fluid Arm (Deep Obsidian Ink) -->
+  <path fill="#0F172A" d="
+    M 128 24
+    C 185 24 232 71 232 128
+    C 232 185 185 232 128 232
+    C 88 232 53 210 35 178
+    C 29 168 34 156 45 153
+    C 55 150 66 156 73 166
+    C 86 186 106 198 128 198
+    C 166.7 198 198 166.7 198 128
+    C 198 89.3 166.7 58 128 58
+    C 102 58 79 73 67 95
+    C 61 106 48 109 38 103
+    C 28 97 26 84 34 73
+    C 54 38 89 24 128 24 Z
+  "/>
+  <!-- Secondary Dynamic Wave Stream (Azure Blue Accent) flowing into the loop -->
+  <path fill="#007AFF" d="
+    M 42 124
+    C 54 84 94 62 136 68
+    C 147 70 154 80 151 90
+    C 148 100 137 106 127 104
+    C 98 100 72 116 68 142
+    C 66 153 56 160 46 157
+    C 36 154 30 144 33 134
+    C 35 130 38 127 42 124 Z
+  "/>
+  <!-- Liquid Droplet Nucleus floating at center-right -->
+  <circle cx="132" cy="132" r="24" fill="#007AFF"/>
+</svg></g><text x="698.667" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-f2" viewBox="0 0 256 256" x="740.667" y="708" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <title id="s116-title-f2">OmniWealth - Concept 2: Continuous Liquid Ribbon</title>
+  <!-- Primary Sweeping Fluid Arm (Deep Obsidian Ink) -->
+  <path fill="#0F172A" d="
+    M 128 24
+    C 185 24 232 71 232 128
+    C 232 185 185 232 128 232
+    C 88 232 53 210 35 178
+    C 29 168 34 156 45 153
+    C 55 150 66 156 73 166
+    C 86 186 106 198 128 198
+    C 166.7 198 198 166.7 198 128
+    C 198 89.3 166.7 58 128 58
+    C 102 58 79 73 67 95
+    C 61 106 48 109 38 103
+    C 28 97 26 84 34 73
+    C 54 38 89 24 128 24 Z
+  "/>
+  <!-- Secondary Dynamic Wave Stream (Azure Blue Accent) flowing into the loop -->
+  <path fill="#007AFF" d="
+    M 42 124
+    C 54 84 94 62 136 68
+    C 147 70 154 80 151 90
+    C 148 100 137 106 127 104
+    C 98 100 72 116 68 142
+    C 66 153 56 160 46 157
+    C 36 154 30 144 33 134
+    C 35 130 38 127 42 124 Z
+  "/>
+  <!-- Liquid Droplet Nucleus floating at center-right -->
+  <circle cx="132" cy="132" r="24" fill="#007AFF"/>
+</svg></g><text x="748.667" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="592.6666666666667" y="780" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">B · Liquid Wave Ribbon</text><text x="592.6666666666667" y="814" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">Pita fluida melengkung lentur: melambangkan</text><text x="592.6666666666667" y="840" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">arus kas &amp; momentum kekayaan yang hidup.</text><rect x="1065.33" y="150" width="474.667" height="774" rx="18" fill="#fff" stroke="#e4e4e0" stroke-width="1"/><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-f3" viewBox="0 0 256 256" x="1095.33" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <title id="c2-title-f3">OmniWealth - Concept 3: Tactile Liquid Pebble</title>
+  <!-- Organic Smooth Pebble Silhouette (Super-smooth continuous curvature) -->
+  <path fill="#0F172A" fill-rule="evenodd" d="
+    M 128 20
+    C 195 20 236 61 236 128
+    C 236 195 195 236 128 236
+    C 61 236 20 195 20 128
+    C 20 61 61 20 128 20 Z
+    M 128 66
+    C 86 66 58 96 58 134
+    C 58 170 88 194 128 194
+    C 168 194 198 170 198 134
+    C 198 96 170 66 128 66 Z
+  "/>
+  <!-- Smooth Organic Water Teardrop Core (Soft Curved Droplet) -->
+  <path fill="#007AFF" d="
+    M 128 88
+    C 142 108 162 130 162 148
+    C 162 166.8 146.8 182 128 182
+    C 109.2 182 94 166.8 94 148
+    C 94 130 114 108 128 88 Z
+  "/>
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="lockup-c" viewBox="0 0 1140 256" x="1095.33" y="514" width="414.667" height="120" preserveAspectRatio="xMidYMid meet">
+  <title id="l2-lockup-c">OmniWealth Horizontal Lockup</title>
+  <g transform="translate(24, 0)">
+    <title id="l2-title-f3">OmniWealth - Concept 3: Tactile Liquid Pebble</title>
+  <!-- Organic Smooth Pebble Silhouette (Super-smooth continuous curvature) -->
+  <path fill="#0F172A" fill-rule="evenodd" d="
+    M 128 20
+    C 195 20 236 61 236 128
+    C 236 195 195 236 128 236
+    C 61 236 20 195 20 128
+    C 20 61 61 20 128 20 Z
+    M 128 66
+    C 86 66 58 96 58 134
+    C 58 170 88 194 128 194
+    C 168 194 198 170 198 134
+    C 198 96 170 66 128 66 Z
+  "/>
+  <!-- Smooth Organic Water Teardrop Core (Soft Curved Droplet) -->
+  <path fill="#007AFF" d="
+    M 128 88
+    C 142 108 162 130 162 148
+    C 162 166.8 146.8 182 128 182
+    C 109.2 182 94 166.8 94 148
+    C 94 130 114 108 128 88 Z
+  "/>
+  </g>
+  <g id="l2-wordmark">
+    
+  <path fill="#0F172A" fill-rule="evenodd" d="M 370 76 C 401 76 425 100 425 131 C 425 162 401 186 370 186 C 339 186 315 162 315 131 C 315 100 339 76 370 76 Z M 370 95 C 350 95 334 111 334 131 C 334 151 350 167 370 167 C 390 167 406 151 406 131 C 406 111 390 95 370 95 Z"/>
+  <path fill="#0F172A" d="M 440 102 H 457 V 114 C 462 105 471 100 482 100 C 493 100 501 106 505 116 C 511 106 521 100 533 100 C 549 100 557 110 557 127 V 184 H 540 V 131 C 540 120 535 115 526 115 C 517 115 511 121 511 133 V 184 H 494 V 131 C 494 120 489 115 480 115 C 471 115 465 121 465 133 V 184 H 448 V 102 Z"/>
+  <path fill="#0F172A" d="M 574 102 H 591 V 115 C 596 105 606 100 618 100 C 635 100 644 110 644 127 V 184 H 627 V 131 C 627 120 622 115 612 115 C 603 115 597 121 597 133 V 184 H 574 V 102 Z"/>
+  <path fill="#0F172A" d="M 661 102 H 678 V 184 H 661 V 102 Z M 660 83 C 660 77 665 72 670 72 C 675 72 680 77 680 83 C 680 89 675 94 670 94 C 665 94 660 89 660 83 Z"/>
+  <path fill="#007AFF" d="M 698 76 H 718 L 733 148 L 748 76 H 767 L 782 148 L 797 76 H 817 L 793 184 H 772 L 757 118 L 742 184 H 721 Z"/>
+  <path fill="#0F172A" fill-rule="evenodd" d="M 830 143 H 877 C 876 128 867 115 854 115 C 841 115 832 126 830 143 Z M 854 100 C 874 100 894 114 894 140 V 147 H 830 C 832 163 842 171 855 171 C 865 171 873 166 877 159 L 892 166 C 884 179 871 186 854 186 C 831 186 813 168 813 143 C 813 118 831 100 854 100 Z"/>
+  <path fill="#0F172A" fill-rule="evenodd" d="M 946 122 V 184 H 931 V 172 C 926 181 916 186 905 186 C 890 186 877 175 877 158 C 877 141 891 131 911 131 H 930 V 127 C 930 118 923 113 912 113 C 903 113 896 117 893 123 L 879 116 C 885 106 897 100 913 100 C 934 100 946 109 946 122 Z M 930 143 H 913 C 902 143 895 149 895 158 C 895 167 902 173 911 173 C 922 173 930 165 930 155 Z"/>
+  <path fill="#0F172A" d="M 961 74 H 978 V 184 H 961 Z"/>
+  <path fill="#0F172A" d="M 1002 85 V 102 H 1017 V 116 H 1002 V 162 C 1002 169 1005 172 1012 172 H 1017 V 185 C 1013 186 1007 186 1001 186 C 989 186 985 179 985 166 V 116 H 974 V 102 H 985 V 85 Z"/>
+  <path fill="#0F172A" d="M 1032 74 H 1049 V 115 C 1054 105 1064 100 1076 100 C 1093 100 1102 110 1102 127 V 184 H 1085 V 131 C 1085 120 1080 115 1070 115 C 1061 115 1055 121 1055 133 V 184 H 1032 Z"/>
+
+  </g>
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-f3" viewBox="0 0 256 256" x="1095.33" y="660" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <title id="s264-title-f3">OmniWealth - Concept 3: Tactile Liquid Pebble</title>
+  <!-- Organic Smooth Pebble Silhouette (Super-smooth continuous curvature) -->
+  <path fill="#0F172A" fill-rule="evenodd" d="
+    M 128 20
+    C 195 20 236 61 236 128
+    C 236 195 195 236 128 236
+    C 61 236 20 195 20 128
+    C 20 61 61 20 128 20 Z
+    M 128 66
+    C 86 66 58 96 58 134
+    C 58 170 88 194 128 194
+    C 168 194 198 170 198 134
+    C 198 96 170 66 128 66 Z
+  "/>
+  <!-- Smooth Organic Water Teardrop Core (Soft Curved Droplet) -->
+  <path fill="#007AFF" d="
+    M 128 88
+    C 142 108 162 130 162 148
+    C 162 166.8 146.8 182 128 182
+    C 109.2 182 94 166.8 94 148
+    C 94 130 114 108 128 88 Z
+  "/>
+</svg></g><text x="1127.33" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-f3" viewBox="0 0 256 256" x="1185.33" y="692" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <title id="s232-title-f3">OmniWealth - Concept 3: Tactile Liquid Pebble</title>
+  <!-- Organic Smooth Pebble Silhouette (Super-smooth continuous curvature) -->
+  <path fill="#0F172A" fill-rule="evenodd" d="
+    M 128 20
+    C 195 20 236 61 236 128
+    C 236 195 195 236 128 236
+    C 61 236 20 195 20 128
+    C 20 61 61 20 128 20 Z
+    M 128 66
+    C 86 66 58 96 58 134
+    C 58 170 88 194 128 194
+    C 168 194 198 170 198 134
+    C 198 96 170 66 128 66 Z
+  "/>
+  <!-- Smooth Organic Water Teardrop Core (Soft Curved Droplet) -->
+  <path fill="#007AFF" d="
+    M 128 88
+    C 142 108 162 130 162 148
+    C 162 166.8 146.8 182 128 182
+    C 109.2 182 94 166.8 94 148
+    C 94 130 114 108 128 88 Z
+  "/>
+</svg></g><text x="1201.33" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-f3" viewBox="0 0 256 256" x="1243.33" y="708" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <title id="s216-title-f3">OmniWealth - Concept 3: Tactile Liquid Pebble</title>
+  <!-- Organic Smooth Pebble Silhouette (Super-smooth continuous curvature) -->
+  <path fill="#0F172A" fill-rule="evenodd" d="
+    M 128 20
+    C 195 20 236 61 236 128
+    C 236 195 195 236 128 236
+    C 61 236 20 195 20 128
+    C 20 61 61 20 128 20 Z
+    M 128 66
+    C 86 66 58 96 58 134
+    C 58 170 88 194 128 194
+    C 168 194 198 170 198 134
+    C 198 96 170 66 128 66 Z
+  "/>
+  <!-- Smooth Organic Water Teardrop Core (Soft Curved Droplet) -->
+  <path fill="#007AFF" d="
+    M 128 88
+    C 142 108 162 130 162 148
+    C 162 166.8 146.8 182 128 182
+    C 109.2 182 94 166.8 94 148
+    C 94 130 114 108 128 88 Z
+  "/>
+</svg></g><text x="1251.33" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="1095.3333333333335" y="780" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">C · Tactile Crystal Pebble</text><text x="1095.3333333333335" y="814" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">Batu kaca air lembut (Apple-grade pebble):</text><text x="1095.3333333333335" y="840" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">kontur organik yang sangat ramah &amp; mewah.</text></svg>

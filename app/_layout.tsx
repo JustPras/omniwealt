@@ -9,10 +9,11 @@ import { WealthProvider, useWealth } from '../src/store/wealth-context';
 import { AmbientBackground } from '../src/components/common/ambient-background';
 import { LuxuryLoader } from '../src/components/common/luxury-loader';
 import { NotificationToast } from '../src/components/common/notification-toast';
+import { NotificationSyncService } from '../src/services/notification-sync-service';
 import { color, motion, AppThemeProvider, useThemeController } from '../src/theme/tokens';
 
 function RootContent() {
-  const { isHydrated, processIncomingNotification } = useWealth();
+  const { isHydrated, processIncomingNotification, notificationConfig } = useWealth();
   const { theme, isDark } = useThemeController();
   const [showSplash, setShowSplash] = useState(true);
 
@@ -33,6 +34,7 @@ function RootContent() {
   const splashScaleAnim = useRef(new Animated.Value(1)).current;
 
   // Deep Link Inbound Listener for Android Notification Auto-Capture (MacroDroid / Tasker)
+  // Protected with local security handshake token validation against unauthorized injection
   useEffect(() => {
     const handleUrl = (event: { url: string }) => {
       try {
@@ -41,11 +43,20 @@ function RootContent() {
           parsed.scheme === 'omniwealth' &&
           (parsed.hostname === 'notification' || parsed.path === 'notification')
         ) {
+          // Security Validation (Feature enabled, Token handshake match, Payload format)
+          const validation = NotificationSyncService.validateDeepLink(
+            parsed.queryParams,
+            notificationConfig
+          );
+
+          if (!validation.isValid) {
+            console.warn('[Security] Unauthorized deep link rejected:', validation.reason);
+            return;
+          }
+
           const text = parsed.queryParams?.text as string;
           const app = parsed.queryParams?.app as string;
-          if (text) {
-            processIncomingNotification(text, app);
-          }
+          processIncomingNotification(text, app);
         }
       } catch (e) {
         console.warn('Failed to parse incoming deep link url:', e);
@@ -58,7 +69,7 @@ function RootContent() {
 
     const subscription = Linking.addEventListener('url', handleUrl);
     return () => subscription.remove();
-  }, [processIncomingNotification]);
+  }, [processIncomingNotification, notificationConfig]);
 
   // Smooth splash exit transition when logo formation reaches 100%
   const handleSplashFinish = useCallback(() => {

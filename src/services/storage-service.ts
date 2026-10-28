@@ -50,12 +50,22 @@ const STORAGE_KEYS = {
   NOTIFICATION_LOGS: '@omniwealth_notif_logs_v3',
 };
 
+export function generateSyncToken(): string {
+  const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+  let token = 'omni_';
+  for (let i = 0; i < 8; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
+}
+
 const DEFAULT_NOTIFICATION_CONFIG: AutoSyncNotificationConfig = {
   enabled: true,
   autoCommit: true,
   monitoredApps: ['bca', 'mandiri', 'bri', 'bni', 'jago', 'gopay', 'ovo', 'dana', 'shopeepay'],
   clipboardDetection: false,
   internalTransferMatching: true,
+  syncSecretToken: 'omni_sec_8f2a99',
 };
 
 const DEFAULT_MARKET_CACHE: MarketCacheData = {
@@ -401,13 +411,19 @@ export const StorageService = {
     try {
       const data = await AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATION_CONFIG);
       if (data) {
-        return { ...DEFAULT_NOTIFICATION_CONFIG, ...JSON.parse(data) };
+        const parsed = JSON.parse(data);
+        if (!parsed.syncSecretToken) {
+          parsed.syncSecretToken = generateSyncToken();
+          await AsyncStorage.setItem(STORAGE_KEYS.NOTIFICATION_CONFIG, JSON.stringify(parsed));
+        }
+        return { ...DEFAULT_NOTIFICATION_CONFIG, ...parsed };
       }
+      const initial = { ...DEFAULT_NOTIFICATION_CONFIG, syncSecretToken: generateSyncToken() };
       await AsyncStorage.setItem(
         STORAGE_KEYS.NOTIFICATION_CONFIG,
-        JSON.stringify(DEFAULT_NOTIFICATION_CONFIG)
+        JSON.stringify(initial)
       );
-      return DEFAULT_NOTIFICATION_CONFIG;
+      return initial;
     } catch {
       return DEFAULT_NOTIFICATION_CONFIG;
     }

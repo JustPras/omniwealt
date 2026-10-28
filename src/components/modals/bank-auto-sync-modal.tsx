@@ -23,6 +23,7 @@ import {
 import { formatCurrency, formatDate } from '../../utils/format';
 import { triggerHaptic } from '../../utils/haptics';
 import { color, space, radius, shadow, font } from '../../theme/tokens';
+import { generateSyncToken } from '../../services/storage-service';
 
 type ModalTab = 'STATUS' | 'SETUP' | 'SIMULASI' | 'LOGS';
 
@@ -50,7 +51,13 @@ export const BankAutoSyncModal: React.FC<BankAutoSyncModalProps> = ({
   const [isSimulating, setIsSimulating] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
 
-  const guide = NotificationSyncService.getMacroDroidGuide();
+  const guide = NotificationSyncService.getMacroDroidGuide(notificationConfig.syncSecretToken);
+
+  const handleRegenerateToken = () => {
+    triggerHaptic('selection');
+    const newToken = generateSyncToken();
+    updateNotificationConfig({ syncSecretToken: newToken });
+  };
 
   const handleToggleApp = (appId: string) => {
     triggerHaptic('selection');
@@ -311,6 +318,24 @@ export const BankAutoSyncModal: React.FC<BankAutoSyncModalProps> = ({
                         <Text style={styles.stepText}>{st}</Text>
                       </View>
                     ))}
+                  </View>
+
+                  {/* Security Handshake Card */}
+                  <View style={styles.securityBox}>
+                    <View style={styles.securityHeader}>
+                      <Icon name="ShieldCheck" size={16} color="#10B981" />
+                      <Text style={styles.securityTitle}>Kunci Rahasia Sinkronisasi (Handshake Token):</Text>
+                    </View>
+                    <View style={styles.tokenRow}>
+                      <Text style={styles.tokenText}>{notificationConfig.syncSecretToken || 'omni_sec_default'}</Text>
+                      <Pressable onPress={handleRegenerateToken} style={styles.regenBtn}>
+                        <Icon name="RefreshCw" size={12} color="#38BDF8" />
+                        <Text style={styles.regenBtnText}>Ganti Kunci</Text>
+                      </Pressable>
+                    </View>
+                    <Text style={styles.securityDesc}>
+                      Hanya deep link dengan token rahasia ini yang diizinkan masuk ke buku kas untuk mencegah injeksi transaksi dari aplikasi lain.
+                    </Text>
                   </View>
 
                   {/* Deep Link Template Box */}
@@ -697,6 +722,65 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: radius.md,
     padding: space.sm,
+  },
+  securityBox: {
+    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+    borderRadius: radius.md,
+    padding: space.sm,
+    marginBottom: space.sm,
+  },
+  securityHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  securityTitle: {
+    fontSize: 12,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: '#34D399',
+  },
+  tokenRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+    borderRadius: radius.sm,
+    paddingHorizontal: space.sm,
+    paddingVertical: 6,
+    marginBottom: 6,
+  },
+  tokenText: {
+    fontFamily: font.num,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#A7F3D0',
+    letterSpacing: 0.5,
+  },
+  regenBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+  },
+  regenBtnText: {
+    fontSize: 10,
+    fontFamily: font.uiBold,
+    color: '#38BDF8',
+  },
+  securityDesc: {
+    fontSize: 10.5,
+    fontFamily: font.ui,
+    color: color.textMuted,
+    lineHeight: 15,
   },
   codeText: {
     fontFamily: font.num,

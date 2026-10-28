@@ -193,6 +193,7 @@ export interface AutoSyncNotificationConfig {
   monitoredApps: string[];
   clipboardDetection: boolean;
   internalTransferMatching?: boolean;
+  syncSecretToken?: string; // Local security handshake token for MacroDroid/Tasker
 }
 
 export interface InternalTransferMatchPlan {

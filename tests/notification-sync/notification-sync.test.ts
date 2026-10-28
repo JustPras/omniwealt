@@ -108,3 +108,34 @@ test('9. Ekstraksi Notifikasi Top Up RDN Stockbit Jago (Transfer)', () => {
   assert.strictEqual(result.bankName, 'RDN Stockbit Jago', 'Bank harus RDN Stockbit Jago');
   assert.strictEqual(result.category, 'Investment Top-Up', 'Kategori harus Investment Top-Up');
 });
+
+test('10. Validasi Keamanan Deep Link Secret Token & Proteksi Unauthorized Injection', () => {
+  const config = {
+    enabled: true,
+    autoCommit: true,
+    monitoredApps: ['bca'],
+    clipboardDetection: false,
+    syncSecretToken: 'omni_sec_test123',
+  };
+
+  // Skenario A: Valid Handshake Token
+  const validUrl = { token: 'omni_sec_test123', text: 'M-Transfer BERHASIL Rp 50.000', app: 'bca' };
+  const resValid = NotificationSyncService.validateDeepLink(validUrl, config);
+  assert.strictEqual(resValid.isValid, true, 'Valid token harus diterima');
+
+  // Skenario B: Token Salah (Attacker / Rogue App)
+  const invalidUrl = { token: 'fake_token', text: 'M-Transfer BERHASIL Rp 100.000.000', app: 'bca' };
+  const resInvalid = NotificationSyncService.validateDeepLink(invalidUrl, config);
+  assert.strictEqual(resInvalid.isValid, false, 'Invalid token harus ditolak');
+  assert.ok(resInvalid.reason?.includes('Kunci rahasia'), 'Alasan penolakan harus jelas');
+
+  // Skenario C: Token Tidak Disertakan (Unauthenticated Caller)
+  const missingTokenUrl = { text: 'M-Transfer BERHASIL Rp 100.000.000', app: 'bca' };
+  const resMissing = NotificationSyncService.validateDeepLink(missingTokenUrl, config);
+  assert.strictEqual(resMissing.isValid, false, 'Missing token harus ditolak');
+
+  // Skenario D: Fitur Dinonaktifkan oleh Pengguna
+  const disabledConfig = { ...config, enabled: false };
+  const resDisabled = NotificationSyncService.validateDeepLink(validUrl, disabledConfig);
+  assert.strictEqual(resDisabled.isValid, false, 'Ketika fitur dimatikan, semua deep link harus ditolak');
+});

@@ -355,25 +355,54 @@ class NotificationSyncServiceImpl {
    * Deep Link Generator for MacroDroid / Tasker
    * Format: omniwealth://notification?text={url_encoded_text}&app={app_id}
    */
-  getDeepLinkUrl(sampleText = '{notification_text}', appId = '{package_name}'): string {
-    return `omniwealth://notification?text=${encodeURIComponent(sampleText)}&app=${encodeURIComponent(appId)}`;
+  getDeepLinkUrl(sampleText = '{notification_text}', appId = '{package_name}', secretToken?: string): string {
+    const tokenPart = secretToken ? `token=${encodeURIComponent(secretToken)}&` : '';
+    return `omniwealth://notification?${tokenPart}text=${encodeURIComponent(sampleText)}&app=${encodeURIComponent(appId)}`;
   }
 
   /**
-   * Helper instructions for users setting up MacroDroid
+   * Helper instructions for users setting up MacroDroid with local security handshake
    */
-  getMacroDroidGuide() {
+  getMacroDroidGuide(secretToken?: string) {
+    const tokenParam = secretToken ? `token=${secretToken}&` : '';
+    const template = `omniwealth://notification?${tokenParam}text=[notif_text]&app=[package_name]`;
     return {
       title: 'Setup Auto-Sync Android via MacroDroid (Gratis & Tanpa Root)',
-      deepLinkTemplate: 'omniwealth://notification?text=[notif_text]&app=[package_name]',
+      deepLinkTemplate: template,
       steps: [
         'Unduh aplikasi "MacroDroid" gratis dari Google Play Store.',
         'Buka MacroDroid > Buat Macro Baru (Add Macro).',
         'Pilih TRIGGER: "Notification" > "Notification Received" > Centang aplikasi m-Banking Anda (BCA, Mandiri, GoPay, OVO, ShopeePay, DANA).',
-        'Pilih ACTION: "Connectivity" > "Open Website / HTTP" > Masukkan URL:\nomniwealth://notification?text=[notif_text]&app=[package_name]',
+        `Pilih ACTION: "Connectivity" > "Open Website / HTTP" > Masukkan URL:\n${template}`,
         'Simpan Macro dengan nama "OmniWealth Auto-Sync". Selesai!',
       ],
     };
+  }
+
+  /**
+   * Validates inbound deep link URLs to prevent unauthorized transaction spoofing / CSRF
+   */
+  validateDeepLink(
+    queryParams: Record<string, any> | undefined | null,
+    config: AutoSyncNotificationConfig
+  ): { isValid: boolean; reason?: string } {
+    if (!config || !config.enabled) {
+      return { isValid: false, reason: 'Sync notifikasi dinonaktifkan oleh pengguna' };
+    }
+
+    if (config.syncSecretToken) {
+      const incomingToken = queryParams?.token as string | undefined;
+      if (!incomingToken || incomingToken !== config.syncSecretToken) {
+        return { isValid: false, reason: 'Kunci rahasia sinkronisasi (token) tidak cocok atau hilang' };
+      }
+    }
+
+    const text = queryParams?.text as string | undefined;
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+      return { isValid: false, reason: 'Isi teks notifikasi kosong' };
+    }
+
+    return { isValid: true };
   }
 }
 

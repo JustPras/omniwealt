@@ -154,7 +154,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
 
           {/* Diagonal Surface Fill Gradient (3% Core Transparency) */}
           <LinearGradient
-            colors={cardGradientColors as unknown as string[]}
+            colors={cardGradientColors as unknown as [string, string, ...string[]]}
             start={{ x: 0.1, y: 0 }}
             end={{ x: 0.9, y: 1 }}
             style={[StyleSheet.absoluteFill, { borderRadius: resolvedRadius }]}
@@ -166,7 +166,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
               colors={
                 isDark
                   ? ['rgba(255, 255, 255, 0.70)', 'rgba(255, 255, 255, 0.0)']
-                  : (Colors.lightGlass.specularTopHighlight as unknown as string[])
+                  : (Colors.lightGlass.specularTopHighlight as unknown as [string, string, ...string[]])
               }
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
 import { Stack } from 'expo-router';
 import * as Linking from 'expo-linking';
@@ -60,29 +60,25 @@ function RootContent() {
     return () => subscription.remove();
   }, [processIncomingNotification]);
 
-  useEffect(() => {
-    if (isHydrated) {
-      Animated.sequence([
-        Animated.delay(180),
-        Animated.parallel([
-          Animated.timing(splashFadeAnim, {
-            toValue: 0,
-            duration: motion.count,
-            easing: Easing.inOut(Easing.cubic),
-            useNativeDriver: true,
-          }),
-          Animated.timing(splashScaleAnim, {
-            toValue: 1.06,
-            duration: motion.count,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }),
-        ]),
-      ]).start(() => {
-        setShowSplash(false);
-      });
-    }
-  }, [isHydrated, splashFadeAnim, splashScaleAnim]);
+  // Smooth splash exit transition when logo formation reaches 100%
+  const handleSplashFinish = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(splashFadeAnim, {
+        toValue: 0,
+        duration: 400,
+        easing: Easing.inOut(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(splashScaleAnim, {
+        toValue: 1.06,
+        duration: 400,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowSplash(false);
+    });
+  }, [splashFadeAnim, splashScaleAnim]);
 
   return (
     <ThemeProvider value={navigationTheme}>
@@ -127,8 +123,9 @@ function RootContent() {
           >
             <LuxuryLoader
               fullscreen
-              title="OmniWealth"
-              subtitle="Menyiapkan portofolio..."
+              title="OMNIWEALTH"
+              isHydrated={isHydrated}
+              onFinish={handleSplashFinish}
             />
           </Animated.View>
         )}
@@ -163,6 +160,6 @@ const styles = StyleSheet.create({
   },
   splashOverlay: {
     zIndex: 9999,
-    backgroundColor: color.obsidian,
+    backgroundColor: 'transparent',
   },
 });

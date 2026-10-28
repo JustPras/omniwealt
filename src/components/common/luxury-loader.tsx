@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,153 +7,245 @@ import {
   Easing,
   ViewStyle,
   StyleProp,
-  Image,
 } from 'react-native';
-import { color, motion, space } from '../../theme/tokens';
+import Svg, { Path, Circle, Mask, G, Defs } from 'react-native-svg';
+import { space } from '../../theme/tokens';
 
-interface LuxuryLoaderProps {
+export interface LuxuryLoaderProps {
   title?: string;
   subtitle?: string;
   fullscreen?: boolean;
+  isHydrated?: boolean;
+  onFinish?: () => void;
   style?: StyleProp<ViewStyle>;
 }
 
 export const LuxuryLoader: React.FC<LuxuryLoaderProps> = ({
-  title = 'OmniWealth',
-  subtitle = 'Menyiapkan portofolio...',
+  title = 'OMNIWEALTH',
+  subtitle,
   fullscreen = false,
+  isHydrated = true,
+  onFinish,
   style,
 }) => {
-  const introOpacity = useRef(new Animated.Value(0)).current;
-  const floatAnim = useRef(new Animated.Value(0)).current;
-  const pulseAnim = useRef(new Animated.Value(0.4)).current;
+  const [progressVal, setProgressVal] = useState(0);
+  const [statusMsg, setStatusMsg] = useState(
+    subtitle || 'Memverifikasi Kunci Biometrik...'
+  );
+
+  // Master progress animated value: 0.0 to 1.0
   const progressAnim = useRef(new Animated.Value(0)).current;
+  const auraAnim = useRef(new Animated.Value(0)).current;
+  const isFinishedRef = useRef(false);
 
   useEffect(() => {
-    // Entrance
-    Animated.timing(introOpacity, {
-      toValue: 1,
-      duration: motion.base,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
-    }).start();
+    // Dynamic progress state listener for fluid SVG circular draw-on
+    const listenerId = progressAnim.addListener(({ value }) => {
+      setProgressVal(value);
 
-    // Subtle gentle float
-    const floatLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(floatAnim, {
-          toValue: -4,
-          duration: 1600,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(floatAnim, {
-          toValue: 2,
-          duration: 1600,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ])
-    );
+      if (subtitle) {
+        setStatusMsg(subtitle);
+        return;
+      }
+      if (value < 0.25) {
+        setStatusMsg('Memverifikasi Kunci Biometrik...');
+      } else if (value < 0.60) {
+        setStatusMsg('Sinkronisasi Kas RDN & Broker Saham...');
+      } else if (value < 0.95) {
+        setStatusMsg('Menghitung True Net Worth Real-Time...');
+      } else {
+        setStatusMsg('Menyiapkan Portofolio...');
+      }
+    });
 
-    // Warm champagne glow breathing (no rainbow, no rotation loops)
-    const pulseLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 0.8,
-          duration: 1400,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 0.35,
-          duration: 1400,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ])
-    );
+    // Staggered Milestones (0% to 100%)
+    const animSequence = Animated.sequence([
+      Animated.timing(progressAnim, {
+        toValue: 0.20,
+        duration: 350,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }),
+      Animated.delay(100),
+      Animated.timing(progressAnim, {
+        toValue: 0.60,
+        duration: 550,
+        easing: Easing.inOut(Easing.cubic),
+        useNativeDriver: false,
+      }),
+      Animated.delay(100),
+      Animated.timing(progressAnim, {
+        toValue: 0.88,
+        duration: 500,
+        easing: Easing.inOut(Easing.cubic),
+        useNativeDriver: false,
+      }),
+      Animated.delay(80),
+      Animated.timing(progressAnim, {
+        toValue: 1.0,
+        duration: 480,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }),
+    ]);
 
-    // Single progress line ping-pong
-    const progressLoop = Animated.loop(
+    // Breathing aura loop
+    Animated.loop(
       Animated.sequence([
-        Animated.timing(progressAnim, {
+        Animated.timing(auraAnim, {
           toValue: 1,
-          duration: 1200,
-          easing: Easing.inOut(Easing.cubic),
+          duration: 1600,
+          easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
-        Animated.timing(progressAnim, {
-          toValue: 0,
-          duration: 1200,
-          easing: Easing.inOut(Easing.cubic),
+        Animated.timing(auraAnim, {
+          toValue: 0.4,
+          duration: 1600,
+          easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
       ])
-    );
+    ).start();
 
-    floatLoop.start();
-    pulseLoop.start();
-    progressLoop.start();
+    animSequence.start(() => {
+      if (!isFinishedRef.current) {
+        isFinishedRef.current = true;
+        setTimeout(() => {
+          if (onFinish) {
+            onFinish();
+          }
+        }, 300);
+      }
+    });
 
     return () => {
-      floatLoop.stop();
-      pulseLoop.stop();
-      progressLoop.stop();
+      progressAnim.removeListener(listenerId);
     };
-  }, [introOpacity, floatAnim, pulseAnim, progressAnim]);
+  }, [progressAnim, auraAnim, onFinish, subtitle]);
 
-  const progressTranslate = progressAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-60, 60],
-  });
+  // =========================================================================
+  // FLUID CIRCULAR DRAW-ON MATH (Zero stiffness, 100% natural arc curve)
+  // =========================================================================
+
+  // 1. Center Donut: sweeps circularly 360 deg (0.0 to 0.35)
+  const pDonut = Math.min(1, progressVal / 0.35);
+  const easedDonut = 1 - Math.pow(1 - pDonut, 3);
+  const donutDashOffset = 1 - easedDonut;
+
+  // 2. Outer Ring: sweeps symmetrically from bottom base up to top slit (0.25 to 0.95)
+  const pOuter = Math.max(0, Math.min(1, (progressVal - 0.25) / 0.70));
+  const easedOuter =
+    pOuter < 0.5
+      ? 4 * pOuter * pOuter * pOuter
+      : 1 - Math.pow(-2 * pOuter + 2, 3) / 2;
+  const outerDashOffset = 1 - easedOuter;
+
+  // 3. Aura opacity follows progress
+  const auraAlpha = Math.min(0.75, progressVal * 0.8);
 
   return (
     <View style={[styles.container, fullscreen && styles.fullscreen, style]}>
-      <Animated.View
-        style={[
-          styles.contentWrapper,
-          {
-            opacity: introOpacity,
-            transform: [{ translateY: floatAnim }],
-          },
-        ]}
-      >
-        {/* Soft champagne glow behind the icon */}
+      <View style={styles.contentWrapper}>
+        {/* Soft Apple Blue Ambient Halo Aura */}
         <Animated.View
           style={[
             styles.haloGlow,
             {
-              opacity: pulseAnim,
+              opacity: auraAnim,
             },
           ]}
         />
 
-        {/* Clean Logo Image */}
-        <View style={styles.logoFrame}>
-          <Image
-            source={require('../../../assets/icon.png')}
-            style={styles.logoImage}
-            resizeMode="cover"
-          />
+        {/* Master Logo Motion Stage (Fluid Circular Arc Draw-On) */}
+        <View style={styles.logoStage}>
+          <Svg viewBox="0 0 1024 1024" style={styles.svg}>
+            <Defs>
+              {/* Circular Mask 1: Center Donut (Circular 360 Sweep) */}
+              <Mask id="rnDonutMask">
+                <Circle
+                  cx="511.5"
+                  cy="511.5"
+                  r="53.5"
+                  fill="none"
+                  stroke="#FFFFFF"
+                  strokeWidth="50"
+                  strokeDasharray="336.15, 336.15"
+                  strokeDashoffset={336.15 * donutDashOffset}
+                  rotation={-90}
+                  origin="511.5, 511.5"
+                  strokeLinecap="round"
+                />
+              </Mask>
+
+              {/* Circular Mask 2: Outer Ring Left Arc (Bottom 6 o'clock up to Top 12 o'clock) */}
+              <Mask id="rnOuterMaskLeft">
+                <Path
+                  d="M 512 732.25 A 220.25 220.25 0 0 1 512 291.75"
+                  fill="none"
+                  stroke="#FFFFFF"
+                  strokeWidth="90"
+                  strokeDasharray="691.94, 691.94"
+                  strokeDashoffset={691.94 * outerDashOffset}
+                  strokeLinecap="round"
+                />
+              </Mask>
+
+              {/* Circular Mask 3: Outer Ring Right Arc (Bottom 6 o'clock up to Top 12 o'clock) */}
+              <Mask id="rnOuterMaskRight">
+                <Path
+                  d="M 512 732.25 A 220.25 220.25 0 0 0 512 291.75"
+                  fill="none"
+                  stroke="#FFFFFF"
+                  strokeWidth="90"
+                  strokeDasharray="691.94, 691.94"
+                  strokeDashoffset={691.94 * outerDashOffset}
+                  strokeLinecap="round"
+                />
+              </Mask>
+            </Defs>
+
+            {/* ACTOR 1: Core Blue Donut revealed smoothly by circular mask */}
+            <G mask="url(#rnDonutMask)">
+              <Path
+                d="M 511.5 439.5 A 72 72 0 1 0 511.5 583.5 A 72 72 0 1 0 511.5 439.5 Z M 511.5 476.5 A 35 35 0 1 1 511.5 546.5 A 35 35 0 1 1 511.5 476.5 Z"
+                fill="#007AFF"
+                fillRule="evenodd"
+              />
+            </G>
+
+            {/* ACTOR 2 & 3: Left Half (Bottom Blue Left + White Left Arc) */}
+            <G mask="url(#rnOuterMaskLeft)">
+              <Path
+                d="M 647.2 728.6 A 256 256 0 0 1 375.8 728.6 L 413.7 667.9 A 184.5 184.5 0 0 0 609.3 667.9 Z"
+                fill="#007AFF"
+              />
+              <Path
+                d="M 482 257.2 L 482 329.4 A 184.5 184.5 0 0 0 384.5 645.3 L 335.3 697.2 A 256 256 0 0 1 482 257.2 Z"
+                fill="#FFFFFF"
+              />
+            </G>
+
+            {/* ACTOR 2 & 4: Right Half (Bottom Blue Right + White Right Arc) */}
+            <G mask="url(#rnOuterMaskRight)">
+              <Path
+                d="M 647.2 728.6 A 256 256 0 0 1 375.8 728.6 L 413.7 667.9 A 184.5 184.5 0 0 0 609.3 667.9 Z"
+                fill="#007AFF"
+              />
+              <Path
+                d="M 541 329.4 L 541 257.2 A 256 256 0 0 1 687.7 697.2 L 638.5 645.3 A 184.5 184.5 0 0 0 541 329.4 Z"
+                fill="#FFFFFF"
+              />
+            </G>
+          </Svg>
         </View>
 
-        {/* Sentence case title & subtitle */}
-        <Text style={styles.titleText}>{title}</Text>
-        <Text style={styles.subtitleText}>{subtitle}</Text>
+        {/* Brand Typography */}
+        <Text style={styles.brandTitle}>{title}</Text>
+        <Text style={styles.brandSub}>TRUE NET WORTH INTELLIGENCE</Text>
 
-        {/* Clean minimalist progress track */}
-        <View style={styles.progressTrack}>
-          <Animated.View
-            style={[
-              styles.progressBar,
-              {
-                transform: [{ translateX: progressTranslate }],
-              },
-            ]}
-          />
-        </View>
-      </Animated.View>
+        {/* Milestone Status Subtitle */}
+        <Text style={styles.statusText}>{statusMsg}</Text>
+      </View>
     </View>
   );
 };
@@ -166,7 +258,7 @@ const styles = StyleSheet.create({
   },
   fullscreen: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: color.obsidian,
+    backgroundColor: 'transparent',
     zIndex: 999,
   },
   contentWrapper: {
@@ -176,53 +268,50 @@ const styles = StyleSheet.create({
   },
   haloGlow: {
     position: 'absolute',
-    top: -15,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: color.accentSoft,
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 4,
+    top: 10,
+    width: 170,
+    height: 170,
+    borderRadius: 85,
+    backgroundColor: 'rgba(0, 122, 255, 0.35)',
+    shadowColor: '#007AFF',
+    shadowOpacity: 0.8,
+    shadowRadius: 40,
+    elevation: 8,
   },
-  logoFrame: {
-    width: 68,
-    height: 68,
-    borderRadius: 18,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: color.rimStrong,
-    backgroundColor: color.glassFillRaised,
-    marginBottom: space.md,
+  logoStage: {
+    width: 160,
+    height: 160,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: space.lg,
   },
-  logoImage: {
+  svg: {
     width: '100%',
     height: '100%',
   },
-  titleText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: color.text,
-    letterSpacing: 0.2,
-    marginBottom: space.xs,
+  brandTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 2.2,
+    marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.6)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
-  subtitleText: {
-    fontSize: 13,
-    color: color.textMuted,
+  brandSub: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.6)',
+    letterSpacing: 1.2,
     marginBottom: space.lg,
   },
-  progressTrack: {
-    width: 120,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: color.hairline,
-    overflow: 'hidden',
-  },
-  progressBar: {
-    width: 40,
-    height: '100%',
-    backgroundColor: color.accent,
-    borderRadius: 1,
+  statusText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.78)',
+    textAlign: 'center',
+    letterSpacing: 0.2,
   },
 });

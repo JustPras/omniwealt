@@ -13,7 +13,7 @@
 ---
 
 <p align="center">
-  <img src="./assets/adaptive-icon.png" width="128" height="128" style="border-radius: 28px; box-shadow: 0 12px 36px rgba(0,0,0,0.4);" alt="OmniWealth App Icon" />
+  <img src="./assets/logo-transparent.png" width="136" height="136" alt="OmniWealth Logo" />
 </p>
 
 <p align="center">

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Actor 1: Top-Left White Arc -->
+  <path id="whiteLeftArc"
+    d="M 482 257.2 L 482 329.4 A 184.5 184.5 0 0 0 384.5 645.3 L 335.3 697.2 A 256 256 0 0 1 482 257.2 Z"
+    fill="#FFFFFF" />
+
+  <!-- Actor 2: Top-Right White Arc -->
+  <path id="whiteRightArc"
+    d="M 541 329.4 L 541 257.2 A 256 256 0 0 1 687.7 697.2 L 638.5 645.3 A 184.5 184.5 0 0 0 541 329.4 Z"
+    fill="#FFFFFF" />
+
+  <!-- Actor 3: Bottom Blue Arc -->
+  <path id="blueBottomArc"
+    d="M 647.2 728.6 A 256 256 0 0 1 375.8 728.6 L 413.7 667.9 A 184.5 184.5 0 0 0 609.3 667.9 Z"
+    fill="#007AFF" />
+
+  <!-- Actor 4: Center Blue Donut -->
+  <path id="centerDonut"
+    d="M 511.5 439.5 A 72 72 0 1 0 511.5 583.5 A 72 72 0 1 0 511.5 439.5 Z M 511.5 476.5 A 35 35 0 1 1 511.5 546.5 A 35 35 0 1 1 511.5 476.5 Z"
+    fill="#007AFF" fill-rule="evenodd" />
+</svg>

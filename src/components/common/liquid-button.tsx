@@ -136,10 +136,10 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
 
   const gradientColors =
     variant === 'azure'
-      ? (activeGradients.dropletAzureGradient as unknown as string[])
+      ? (activeGradients.dropletAzureGradient as unknown as [string, string, ...string[]])
       : variant === 'obsidian'
-      ? (activeGradients.dropletObsidianGradient as unknown as string[])
-      : (activeGradients.dropletClearGradient as unknown as string[]);
+      ? (activeGradients.dropletObsidianGradient as unknown as [string, string, ...string[]])
+      : (activeGradients.dropletClearGradient as unknown as [string, string, ...string[]]);
 
   const defaultTextColor =
     variant === 'azure'

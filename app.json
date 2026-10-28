@@ -26,6 +26,7 @@
         "backgroundColor": "#1D1D1F"
       },
       "package": "com.omniwealth.nativeapp",
+      "allowBackup": false,
       "permissions": [
         "READ_EXTERNAL_STORAGE",
         "VIBRATE"

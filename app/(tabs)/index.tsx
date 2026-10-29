@@ -954,6 +954,56 @@ export default function OverviewScreen() {
             })}
           </GlassCard>
         )}
+
+        {/* ALTERNATIVE HOLDINGS ROW: PHYSICAL GOLD & BULLION */}
+        <View style={styles.physicalGoldCard}>
+          <View style={styles.goldCardLeft}>
+            <View style={styles.goldIconCircle}>
+              <Icon name="Sparkles" size={20} color={Colors.palette.champagneGold} />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                <Text style={styles.goldCardTitle}>PHYSICAL GOLD &amp; BULLION</Text>
+                <View style={styles.goldWeightBadge}>
+                  <Text style={styles.goldWeightText}>250g Antam</Text>
+                </View>
+              </View>
+              <Text style={styles.goldCardSub} numberOfLines={1}>
+                Safe Deposit Box #204 • Bank Mandiri Thamrin
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.goldCardRight}>
+            <Text style={styles.goldCardAmount}>Rp 342.500.000</Text>
+            <Text style={styles.goldCardRoi}>+14.2% YTD</Text>
+          </View>
+        </View>
+
+        {/* PRIMARY WEALTH ACTIONS PILL ARRAY */}
+        <View style={styles.primaryActionsGrid}>
+          <Pressable
+            onPress={() => {
+              triggerHaptic('medium');
+              setMutationModalVisible(true);
+            }}
+            style={styles.primaryActionBtnGold}
+          >
+            <Icon name="PlusCircle" size={18} color="#0A0A09" />
+            <Text style={styles.primaryActionTextGold}>+ Log Asset</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              triggerHaptic('medium');
+              router.push('/(tabs)/sync');
+            }}
+            style={styles.primaryActionBtnTitanium}
+          >
+            <Icon name="FileText" size={18} color={Colors.palette.champagneGold} />
+            <Text style={styles.primaryActionTextTitanium}>Import e-Statement</Text>
+          </Pressable>
+        </View>
       </Animated.ScrollView>
 
       {/* Cash Mutation Quick Modal */}
@@ -969,6 +1019,103 @@ const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
     backgroundColor: Colors.palette.canvas,
+  },
+  physicalGoldCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1C1C1A',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.2)',
+  },
+  goldCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  goldIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  goldCardTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: Colors.palette.champagneGold,
+  },
+  goldWeightBadge: {
+    backgroundColor: '#2A2A28',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  goldWeightText: {
+    fontSize: 9,
+    color: Colors.palette.naturalTitanium,
+  },
+  goldCardSub: {
+    fontSize: 11,
+    color: Colors.palette.darkPewter,
+    marginTop: 2,
+  },
+  goldCardRight: {
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  goldCardAmount: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
+  },
+  goldCardRoi: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.palette.sovereignJade,
+  },
+  primaryActionsGrid: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingTop: 4,
+    marginBottom: 8,
+  },
+  primaryActionBtnGold: {
+    flex: 1,
+    height: 48,
+    borderRadius: 9999,
+    backgroundColor: Colors.palette.champagneGold,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  primaryActionTextGold: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0A0A09',
+  },
+  primaryActionBtnTitanium: {
+    flex: 1,
+    height: 48,
+    borderRadius: 9999,
+    backgroundColor: '#20201D',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  primaryActionTextTitanium: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
   },
   scrollContent: {
     paddingBottom: 110,

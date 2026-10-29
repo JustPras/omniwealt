@@ -88,6 +88,7 @@ export default function AccountsScreen() {
 
   // Interactive filters
   const [selectedTxFilter, setSelectedTxFilter] = useState<TxFilter>('ALL');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<'ALL' | 'BANK' | 'RDN' | 'E-WALLET' | 'CRYPTO' | 'LIABILITIES'>('ALL');
 
   // AI Parser state
   const [parserText, setParserText] = useState('');
@@ -101,6 +102,11 @@ export default function AccountsScreen() {
   const bankAccounts = useMemo(() => accounts.filter((a) => a.type === 'BANK'), [accounts]);
   const rdnAccounts = useMemo(() => accounts.filter((a) => a.type === 'RDN'), [accounts]);
   const ewalletAccounts = useMemo(() => accounts.filter((a) => a.type === 'E-WALLET'), [accounts]);
+
+  const displayedAccounts = useMemo(() => {
+    if (selectedCategoryFilter === 'ALL') return accounts;
+    return accounts.filter((a) => a.type === selectedCategoryFilter);
+  }, [accounts, selectedCategoryFilter]);
 
   const filteredTransactions = useMemo(() => {
     if (selectedTxFilter === 'ALL') return transactions;
@@ -147,6 +153,98 @@ export default function AccountsScreen() {
     setActiveAccountForMutation(accId);
     setMutationType(type);
     setMutationModalVisible(true);
+  };
+
+  const renderVaultAccountCard = (acc: typeof accounts[0], index: number) => {
+    const isRdn = acc.type === 'RDN';
+    const isEwallet = acc.type === 'E-WALLET';
+    const isBank = acc.type === 'BANK';
+
+    const cornerIndex = `${String(index + 1).padStart(2, '0')} // ${acc.name.toUpperCase()}`;
+    const maskedNumber = acc.accountNumber
+      ? `•••• ${acc.accountNumber.slice(-4)}`
+      : '•••• 8821';
+
+    const subtitle = isBank
+      ? 'Priority High-Yield Tier'
+      : isRdn
+      ? 'Bank Custody RDN Settlement'
+      : 'QRIS & Digital Micro Liquidity';
+
+    const rightLabel = isBank ? 'YIELD' : isRdn ? 'ROLE' : 'STATUS';
+    const rightValue = isBank ? '2.1% p.a.' : isRdn ? 'Standing Balance' : 'QRIS Ready';
+
+    const footerStatus = isBank
+      ? 'Verified 2h ago'
+      : isRdn
+      ? 'IDX Trading Ready'
+      : 'Daily Micro Liquidity Max';
+
+    const footerActionLabel = isBank ? 'STATEMENT' : isRdn ? 'ALLOCATE' : 'DETAILS';
+
+    return (
+      <View key={acc.id} style={styles.vaultCard}>
+        {/* Top Header Row */}
+        <View style={styles.vaultCardHeader}>
+          <Text style={styles.vaultCardIndexText}>{cornerIndex}</Text>
+          <View style={styles.vaultCardMaskedBadge}>
+            <Text style={styles.vaultCardMaskedText}>{maskedNumber}</Text>
+          </View>
+        </View>
+
+        {/* Amount & Tier Row */}
+        <View style={styles.vaultCardBodyRow}>
+          <View style={styles.vaultCardLeftCol}>
+            <Text style={styles.vaultCardSubtitle}>{subtitle}</Text>
+            <View style={styles.vaultCardAmountGroup}>
+              <Text style={styles.vaultCardCurrencySymbol}>Rp</Text>
+              <PrivacyValue value={acc.balance} style={styles.vaultCardAmountValue} />
+            </View>
+          </View>
+
+          <View style={styles.vaultCardRightCol}>
+            <Text style={styles.vaultCardRightLabel}>{rightLabel}</Text>
+            <Text style={styles.vaultCardRightValue}>{rightValue}</Text>
+          </View>
+        </View>
+
+        {/* Footer Bar */}
+        <View style={styles.vaultCardFooterBar}>
+          <View style={styles.vaultCardFooterLeft}>
+            <View style={styles.vaultCardFooterDot} />
+            <Text style={styles.vaultCardFooterStatusText}>{footerStatus}</Text>
+          </View>
+
+          <View style={styles.vaultCardFooterActions}>
+            <Pressable
+              onPress={() => openMutationModal(acc.id, 'INCOME')}
+              hitSlop={6}
+              style={styles.actionPill}
+            >
+              <Text style={styles.actionPillIncome}>+ Masuk</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => openMutationModal(acc.id, 'EXPENSE')}
+              hitSlop={6}
+              style={styles.actionPill}
+            >
+              <Text style={styles.actionPillExpense}>− Keluar</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                triggerHaptic('light');
+                setBankStatementModalVisible(true);
+              }}
+              hitSlop={6}
+              style={styles.vaultCardActionLink}
+            >
+              <Text style={styles.vaultCardActionLinkText}>{footerActionLabel}</Text>
+              <Icon name="ArrowRight" size={13} color={Colors.palette.champagneGold} />
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    );
   };
 
   const renderAccountGroupCard = (title: string, groupAccounts: typeof accounts, iconName: any) => {
@@ -464,26 +562,178 @@ export default function AccountsScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* 1. LIQUIDITY HERO CARD */}
-        <GlassCard level="bullion" style={styles.heroCard}>
-          <View style={styles.heroHeader}>
-            <View>
-              <Text style={[styles.heroLabel, { color: Colors.palette.naturalTitanium }]}>TOTAL LIKUIDITAS KAS & RDN</Text>
-              <PrivacyValue value={totalCash} style={[styles.heroAmount, { color: Colors.palette.alabasterWhite }]} />
-              <Text style={[styles.heroSubtitle, { color: Colors.palette.darkPewter }]}>{accounts.length} rekening aktif terhubung • AIR-GAPPED</Text>
+        {/* 1. EDITORIAL HEADER & OVERVIEW BLOCK */}
+        <View style={styles.vaultHeaderBlock}>
+          <View style={styles.vaultSubHeaderRow}>
+            <Text style={styles.vaultSubHeaderLabel}>INSTITUTIONAL LEDGER</Text>
+            <View style={styles.hsmSyncedPill}>
+              <View style={styles.hsmSyncedDot} />
+              <Text style={styles.hsmSyncedText}>HSM Synced</Text>
             </View>
-            <LiquidButton
-              title="+ Tambah rekening"
-              variant="azure"
-              size="sm"
-              onPress={() => {
-                setAccountModalVisible(true);
-              }}
-            />
           </View>
+          <View style={styles.vaultTitleCol}>
+            <Text style={styles.vaultTitle}>VAULT ACCOUNTS</Text>
+            <Text style={styles.vaultSubtitle}>Connected Institutional &amp; Self-Custody Ledgers</Text>
+          </View>
+        </View>
+
+        {/* 2. LIQUID CASH HIGHLIGHT SLAB (WARM TITANIUM METALLIC SLAB) */}
+        <GlassCard level="bullion" style={styles.liquidCashSlab}>
+          <View style={styles.liquidCashHeaderRow}>
+            <Text style={styles.liquidCashLabel}>TOTAL AVAILABLE LIQUIDITY</Text>
+            <Icon name="Landmark" size={18} color={Colors.palette.champagneGold} />
+          </View>
+          <View style={styles.liquidCashAmountRow}>
+            <Text style={styles.liquidCashCurrency}>Rp</Text>
+            <PrivacyValue value={totalCash} style={styles.liquidCashAmount} />
+          </View>
+          <View style={styles.liquidCashGuaranteeRow}>
+            <Icon name="ShieldCheck" size={14} color={Colors.palette.sovereignJade} />
+            <Text style={styles.liquidCashGuaranteeText}>100% Capital Guaranteed &amp; Immediate Settlement</Text>
+          </View>
+          {/* Decorative Warm Metallic Flare */}
+          <View style={styles.metallicFlareCircle} />
         </GlassCard>
 
-        {/* 2. REKENING DIKELOMPOKKAN (SATU KARTU PER KELOMPOK DENGAN BARIS) */}
+        {/* 3. FILTER PILLS ROW */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterPillsContainer}
+          style={styles.filterPillsScroll}
+        >
+          <Pressable
+            onPress={() => {
+              triggerHaptic('selection');
+              setSelectedCategoryFilter('ALL');
+            }}
+            style={[
+              styles.filterPill,
+              selectedCategoryFilter === 'ALL' && styles.filterPillActive,
+            ]}
+          >
+            {selectedCategoryFilter === 'ALL' && <View style={styles.filterPillActiveDot} />}
+            <Text
+              style={[
+                styles.filterPillText,
+                selectedCategoryFilter === 'ALL' && styles.filterPillTextActive,
+              ]}
+            >
+              All ({accounts.length})
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              triggerHaptic('selection');
+              setSelectedCategoryFilter('BANK');
+            }}
+            style={[
+              styles.filterPill,
+              selectedCategoryFilter === 'BANK' && styles.filterPillActive,
+            ]}
+          >
+            {selectedCategoryFilter === 'BANK' && <View style={styles.filterPillActiveDot} />}
+            <Text
+              style={[
+                styles.filterPillText,
+                selectedCategoryFilter === 'BANK' && styles.filterPillTextActive,
+              ]}
+            >
+              Banks ({bankAccounts.length})
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              triggerHaptic('selection');
+              setSelectedCategoryFilter('RDN');
+            }}
+            style={[
+              styles.filterPill,
+              selectedCategoryFilter === 'RDN' && styles.filterPillActive,
+            ]}
+          >
+            {selectedCategoryFilter === 'RDN' && <View style={styles.filterPillActiveDot} />}
+            <Text
+              style={[
+                styles.filterPillText,
+                selectedCategoryFilter === 'RDN' && styles.filterPillTextActive,
+              ]}
+            >
+              RDN Cash ({rdnAccounts.length})
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              triggerHaptic('selection');
+              setSelectedCategoryFilter('E-WALLET');
+            }}
+            style={[
+              styles.filterPill,
+              selectedCategoryFilter === 'E-WALLET' && styles.filterPillActive,
+            ]}
+          >
+            {selectedCategoryFilter === 'E-WALLET' && <View style={styles.filterPillActiveDot} />}
+            <Text
+              style={[
+                styles.filterPillText,
+                selectedCategoryFilter === 'E-WALLET' && styles.filterPillTextActive,
+              ]}
+            >
+              E-Wallets ({ewalletAccounts.length})
+            </Text>
+          </Pressable>
+
+          {cryptoWallets.length > 0 && (
+            <Pressable
+              onPress={() => {
+                triggerHaptic('selection');
+                setSelectedCategoryFilter('CRYPTO');
+              }}
+              style={[
+                styles.filterPill,
+                selectedCategoryFilter === 'CRYPTO' && styles.filterPillActive,
+              ]}
+            >
+              {selectedCategoryFilter === 'CRYPTO' && <View style={styles.filterPillActiveDot} />}
+              <Text
+                style={[
+                  styles.filterPillText,
+                  selectedCategoryFilter === 'CRYPTO' && styles.filterPillTextActive,
+                ]}
+              >
+                Web3 ({cryptoWallets.length})
+              </Text>
+            </Pressable>
+          )}
+
+          {liabilities.length > 0 && (
+            <Pressable
+              onPress={() => {
+                triggerHaptic('selection');
+                setSelectedCategoryFilter('LIABILITIES');
+              }}
+              style={[
+                styles.filterPill,
+                selectedCategoryFilter === 'LIABILITIES' && styles.filterPillActive,
+              ]}
+            >
+              {selectedCategoryFilter === 'LIABILITIES' && <View style={styles.filterPillActiveDot} />}
+              <Text
+                style={[
+                  styles.filterPillText,
+                  selectedCategoryFilter === 'LIABILITIES' && styles.filterPillTextActive,
+                ]}
+              >
+                Liabilities ({liabilities.length})
+              </Text>
+            </Pressable>
+          )}
+        </ScrollView>
+
+        {/* 4. STACKED VAULT CARDS WITH CORNER INDICES */}
         {accounts.length === 0 && cryptoWallets.length === 0 && liabilities.length === 0 ? (
           <GlassCard level="base" style={styles.emptyCard}>
             <Text style={styles.emptyTitle}>Belum ada rekening kas atau tagihan</Text>
@@ -502,14 +752,36 @@ export default function AccountsScreen() {
             />
           </GlassCard>
         ) : (
-          <View style={styles.groupsWrapper}>
-            {renderAccountGroupCard('Bank', bankAccounts, 'Landmark')}
-            {renderAccountGroupCard('Rekening Dana Nasabah (RDN)', rdnAccounts, 'TrendingUp')}
-            {renderAccountGroupCard('Dompet digital', ewalletAccounts, 'Smartphone')}
-            {renderCryptoWalletsGroupCard()}
-            {renderLiabilitiesGroupCard()}
+          <View style={styles.vaultStackWrapper}>
+            {(selectedCategoryFilter === 'ALL' || selectedCategoryFilter === 'BANK' || selectedCategoryFilter === 'RDN' || selectedCategoryFilter === 'E-WALLET') &&
+              displayedAccounts.map((acc, index) => renderVaultAccountCard(acc, index))}
+
+            {(selectedCategoryFilter === 'ALL' || selectedCategoryFilter === 'CRYPTO') &&
+              renderCryptoWalletsGroupCard()}
+
+            {(selectedCategoryFilter === 'ALL' || selectedCategoryFilter === 'LIABILITIES') &&
+              renderLiabilitiesGroupCard()}
           </View>
         )}
+
+        {/* VAULT SECURITY CERTIFICATION & SOVEREIGN ACTION STRIP */}
+        <View style={styles.securitySealStrip}>
+          <Icon name="Lock" size={16} color={Colors.palette.champagneGold} />
+          <Text style={styles.securitySealText}>
+            ENCRYPTED WITH HARDWARE KEYSTONE • SECURE ENCLAVE
+          </Text>
+        </View>
+
+        <Pressable
+          onPress={() => {
+            triggerHaptic('medium');
+            setAccountModalVisible(true);
+          }}
+          style={styles.sovereignActionBtn}
+        >
+          <Icon name="PlusCircle" size={20} color="#0A0A09" />
+          <Text style={styles.sovereignActionBtnText}>+ Add Account / Connect Bank</Text>
+        </Pressable>
 
         {/* 3. KOTAK TEMPEL MUTASI & AI PARSER */}
         <GlassCard level="base" style={styles.parserCard}>
@@ -807,6 +1079,312 @@ export default function AccountsScreen() {
 }
 
 const styles = StyleSheet.create({
+
+  // Luxury Stitch Screen 4 Styles
+  vaultHeaderBlock: {
+    gap: 4,
+    paddingTop: 4,
+  },
+  vaultSubHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  vaultSubHeaderLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    color: Colors.palette.champagneGold,
+    textTransform: 'uppercase',
+  },
+  hsmSyncedPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#2A2A28',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 9999,
+  },
+  hsmSyncedDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#60E6AA',
+  },
+  hsmSyncedText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.palette.naturalTitanium,
+  },
+  vaultTitleCol: {
+    marginTop: 4,
+  },
+  vaultTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
+    letterSpacing: -0.5,
+  },
+  vaultSubtitle: {
+    fontSize: 12,
+    color: Colors.palette.darkPewter,
+    marginTop: 2,
+  },
+  liquidCashSlab: {
+    backgroundColor: '#1C1C1A',
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.25)',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  liquidCashHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  liquidCashLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    color: Colors.palette.darkPewter,
+    textTransform: 'uppercase',
+  },
+  liquidCashAmountRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+    marginVertical: 6,
+  },
+  liquidCashCurrency: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.palette.champagneGold,
+  },
+  liquidCashAmount: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
+    letterSpacing: -0.5,
+  },
+  liquidCashGuaranteeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  liquidCashGuaranteeText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#60E6AA',
+  },
+  metallicFlareCircle: {
+    position: 'absolute',
+    right: -30,
+    bottom: -30,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+  },
+  filterPillsScroll: {
+    marginVertical: 2,
+  },
+  filterPillsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  filterPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 9999,
+    backgroundColor: '#20201D',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  filterPillActive: {
+    backgroundColor: 'rgba(212, 175, 55, 0.16)',
+    borderColor: 'rgba(212, 175, 55, 0.4)',
+  },
+  filterPillActiveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.palette.champagneGold,
+  },
+  filterPillText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.palette.naturalTitanium,
+  },
+  filterPillTextActive: {
+    color: Colors.palette.champagneGold,
+    fontWeight: '700',
+  },
+  vaultStackWrapper: {
+    gap: 12,
+  },
+  vaultCard: {
+    backgroundColor: '#1C1C1A',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    overflow: 'hidden',
+  },
+  vaultCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 6,
+  },
+  vaultCardIndexText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.1,
+    color: Colors.palette.champagneGold,
+    textTransform: 'uppercase',
+  },
+  vaultCardMaskedBadge: {
+    backgroundColor: '#2A2A28',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 9999,
+  },
+  vaultCardMaskedText: {
+    fontSize: 11,
+    color: Colors.palette.darkPewter,
+  },
+  vaultCardBodyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+  },
+  vaultCardLeftCol: {
+    flex: 1,
+  },
+  vaultCardSubtitle: {
+    fontSize: 12,
+    color: Colors.palette.darkPewter,
+    marginBottom: 2,
+  },
+  vaultCardAmountGroup: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
+  },
+  vaultCardCurrencySymbol: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.palette.naturalTitanium,
+  },
+  vaultCardAmountValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
+  },
+  vaultCardRightCol: {
+    alignItems: 'flex-end',
+  },
+  vaultCardRightLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: '#60E6AA',
+    textTransform: 'uppercase',
+  },
+  vaultCardRightValue: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.palette.alabasterWhite,
+    marginTop: 1,
+  },
+  vaultCardFooterBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#141412',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.04)',
+  },
+  vaultCardFooterLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  vaultCardFooterDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#60E6AA',
+  },
+  vaultCardFooterStatusText: {
+    fontSize: 11,
+    color: Colors.palette.darkPewter,
+  },
+  vaultCardFooterActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  vaultCardActionLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingLeft: 4,
+  },
+  vaultCardActionLinkText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: Colors.palette.champagneGold,
+  },
+  securitySealStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: '#141412',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  securitySealText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    color: Colors.palette.darkPewter,
+    textTransform: 'uppercase',
+  },
+  sovereignActionBtn: {
+    width: '100%',
+    height: 52,
+    borderRadius: 9999,
+    backgroundColor: Colors.palette.champagneGold,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  sovereignActionBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#0A0A09',
+    letterSpacing: 0.3,
+  },
   screenContainer: {
     flex: 1,
     backgroundColor: color.obsidian,

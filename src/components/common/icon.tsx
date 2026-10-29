@@ -53,7 +53,10 @@ export type IconName =
   | 'Send'
   | 'Bell'
   | 'CreditCard'
-  | 'Calendar';
+  | 'Calendar'
+  | 'Clock'
+  | 'PlusCircle'
+  | 'ArrowLeftRight';
 
 interface IconProps {
   name: IconName;
@@ -71,10 +74,13 @@ const MCI_ICONS: Partial<Record<IconName, MCIName>> = {
   ArrowDownLeft: 'arrow-bottom-left',
   Landmark: 'bank',
   Coins: 'cash-multiple',
+  ArrowLeftRight: 'swap-horizontal',
 };
 
 // Icons that use Ionicons
 const IONICONS_MAP: Partial<Record<IconName, IoniconsName>> = {
+  Clock: 'time-outline',
+  PlusCircle: 'add-circle',
   Droplet: 'water',
   Sun: 'sunny',
   Moon: 'moon',

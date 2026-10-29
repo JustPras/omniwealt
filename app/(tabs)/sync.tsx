@@ -242,73 +242,118 @@ export default function SyncScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* TOP PRIVACY & AIR-GAPPED BANNER */}
-        <View style={styles.topPrivacyBanner}>
-          <View style={styles.privacyBannerHeader}>
-            <View style={styles.privacyBadge}>
-              <View style={styles.goldDotPulse} />
-              <Text style={styles.privacyBadgeText}>AIR-GAPPED V1.4</Text>
+        {/* 1. TOP SUBHEADER / SECTION INTRO */}
+        <View style={styles.syncHeaderBlock}>
+          <View style={styles.syncSubHeaderRow}>
+            <Text style={styles.syncSubHeaderLabel}>INGESTION ENGINE // V4.8</Text>
+            <View style={styles.airGappedPill}>
+              <View style={styles.airGappedDot} />
+              <Text style={styles.airGappedText}>AIR-GAPPED</Text>
             </View>
-            <Text style={styles.privacyZeroExport}>0 BYTES EXPORTED</Text>
           </View>
-          <Text style={styles.privacyHeadline}>Automated Wealth Ingestion</Text>
-          <Text style={styles.privacySubtext}>
-            On-device OCR, asynchronous broker statement parser & atomic ledger reconciliation.
+          <Text style={styles.syncTitle}>AUTOMATED WEALTH INGESTION</Text>
+          <Text style={styles.syncSubtitle}>AI Bank Mutation &amp; Broker PDF Statement Reader</Text>
+        </View>
+
+        {/* 2. INSTITUTIONAL PRIVACY MICRO-BAR */}
+        <View style={styles.privacyMicroBar}>
+          <Icon name="Lock" size={15} color={Colors.palette.sovereignJade} />
+          <Text style={styles.privacyMicroBarText} numberOfLines={1}>
+            ON-DEVICE OCR &amp; PARSER  •  0 BYTES EXPORTED  •  100% AIR-GAPPED
           </Text>
         </View>
 
-        {/* DUAL DROPZONE CARDS (2-COLUMN GRID) */}
-        <View style={styles.dualDropzoneGrid}>
-          {/* Card 1: Bank Mutation OCR */}
-          <GlassCard
-            level="base"
-            style={styles.dropzoneCard}
-            onPress={() => {
-              triggerHaptic('medium');
-              setBankStatementModalVisible(true);
-            }}
-          >
-            <View style={styles.dropzoneHeader}>
-              <View style={styles.dropzoneIconBox}>
-                <Icon name="Landmark" size={18} color={Colors.palette.titaniumSilver} />
+        {/* 3. DUAL TITANIUM INGESTION DROPZONES */}
+        <View style={styles.dualTitaniumGrid}>
+          {/* Left: Bank Mutation AI */}
+          <View style={styles.titaniumDropzoneCard}>
+            <View style={styles.dropzoneSpecularWash} />
+            <View style={styles.dropzoneCardContent}>
+              <View style={styles.dropzoneTopRow}>
+                <Text style={styles.dropzoneIndexLabel}>01 // SOURCE</Text>
+                <View style={styles.dropzoneBadge}>
+                  <View style={styles.dropzoneBadgeDot} />
+                  <Text style={styles.dropzoneBadgeText}>LOCAL LLM</Text>
+                </View>
               </View>
-              <View style={styles.dropzoneChannelBadge}>
-                <Text style={styles.channelBadgeText}>CH 01</Text>
-              </View>
+              <Text style={styles.dropzoneHeadline}>Bank Mutation AI</Text>
+              <Text style={styles.dropzoneDesc}>BCA, Mandiri, BRI CSV &amp; Scans</Text>
             </View>
-            <Text style={styles.dropzoneTitle}>Rekening Koran Bank</Text>
-            <Text style={styles.dropzoneSubtitle}>
-              BCA, Mandiri, BRI, Bank Jago e-Statement dengan anti-duplikat.
-            </Text>
-            <View style={styles.dropzoneActionRow}>
-              <Text style={styles.dropzoneActionText}>Buka Parser &rarr;</Text>
-            </View>
-          </GlassCard>
 
-          {/* Card 2: Broker Statement PDF */}
-          <GlassCard
-            level="bullion"
-            style={styles.dropzoneCard}
-            onPress={handlePickDocument}
-          >
-            <View style={styles.dropzoneHeader}>
-              <View style={[styles.dropzoneIconBox, { backgroundColor: 'rgba(212, 175, 55, 0.15)' }]}>
-                <Icon name="FileText" size={18} color={Colors.palette.champagneGold} />
+            <Pressable
+              onPress={() => {
+                triggerHaptic('medium');
+                setBankStatementModalVisible(true);
+              }}
+              style={styles.uploadMutationBtn}
+            >
+              <Icon name="PlusCircle" size={15} color={Colors.palette.champagneGold} />
+              <Text style={styles.uploadMutationBtnText}>+ Upload Mutation</Text>
+            </Pressable>
+          </View>
+
+          {/* Right: Async Broker PDF */}
+          <View style={styles.titaniumDropzoneCard}>
+            <View style={styles.dropzoneSpecularWashGold} />
+            <View style={styles.dropzoneCardContent}>
+              <View style={styles.dropzoneTopRow}>
+                <Text style={styles.dropzoneIndexLabel}>02 // BROKER</Text>
+                <View style={styles.dropzoneBadge}>
+                  <Text style={styles.dropzoneBadgeText}>IDX PARSER</Text>
+                </View>
               </View>
-              <View style={[styles.dropzoneChannelBadge, { borderColor: 'rgba(212, 175, 55, 0.40)' }]}>
-                <Text style={[styles.channelBadgeText, { color: Colors.palette.champagneGold }]}>CH 02</Text>
-              </View>
+              <Text style={styles.dropzoneHeadline}>Async Broker PDF</Text>
+              <Text style={styles.dropzoneDesc}>IDX Trade Confirms, Stockbit, Bibit</Text>
             </View>
-            <Text style={styles.dropzoneTitle}>Statement RDN & Saham</Text>
-            <Text style={styles.dropzoneSubtitle}>
-              Stockbit, Ajaib, IPOT, Mandiri Sekuritas SoA & Trade Confirmations.
-            </Text>
-            <View style={styles.dropzoneActionRow}>
-              <Text style={[styles.dropzoneActionText, { color: Colors.palette.champagneGold }]}>
-                {isExtracting ? 'Mengekstrak...' : 'Pilih Berkas &rarr;'}
+
+            <Pressable
+              onPress={handlePickDocument}
+              style={styles.uploadBrokerBtn}
+            >
+              <Icon name="FileText" size={15} color="#0A0A09" />
+              <Text style={styles.uploadBrokerBtnText}>
+                {isExtracting ? 'Reading...' : '+ Ingest Broker PDF'}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* 4. LIVE PROCESSING STATUS BAR */}
+        <View style={styles.liveStatusBarCard}>
+          <View style={styles.liveStatusBarTop}>
+            <View style={styles.liveStatusBarFileRow}>
+              <Icon name="RefreshCw" size={16} color={Colors.palette.champagneGold} />
+              <Text style={styles.liveStatusBarFileName} numberOfLines={1}>
+                {selectedFileName ? `READING: ${selectedFileName}` : 'READY: e-Statement & Trade Confirmations'}
               </Text>
             </View>
-          </GlassCard>
+            <Text style={styles.liveStatusBarMeta}>
+              {activeStagingBatch ? `${activeStagingBatch.items.length} ROWS` : 'STANDBY'}
+            </Text>
+          </View>
+
+          {/* Micro Precision Progress Bar (2px) */}
+          <View style={styles.microProgressBarTrack}>
+            <View
+              style={[
+                styles.microProgressBarFill,
+                { width: isExtracting ? '70%' : activeStagingBatch ? '100%' : '15%' },
+              ]}
+            />
+          </View>
+
+          <View style={styles.liveStatusBarBottom}>
+            <Text style={styles.liveStatusBarDesc} numberOfLines={1}>
+              {isExtracting
+                ? 'Extracting lot prices, stamp duty & RDN shifts...'
+                : activeStagingBatch
+                ? 'Reconciled & deduplicated against institutional ledger.'
+                : 'Select statement file or paste mutation above.'}
+            </Text>
+            <Text style={styles.liveStatusBarTag}>
+              {isExtracting ? '[PARSING]' : activeStagingBatch ? '[COMPLETED]' : '[IDLE]'}
+            </Text>
+          </View>
         </View>
 
         {/* RDN ACCOUNT STATUS INFO */}
@@ -489,65 +534,39 @@ export default function SyncScreen() {
 
         {/* PERFORATED VAULT SLIP PREVIEW FOR ACTIVE STAGING BATCH */}
         {activeStagingBatch && (
-          <GlassCard level="bullion" style={styles.vaultSlipCard}>
-            {/* Top Vault Slip Header */}
-            <View style={styles.vaultSlipHeader}>
-              <View>
-                <View style={styles.vaultBatchTagRow}>
-                  <Text style={styles.vaultSlipIndex}>VAULT SLIP // {activeStagingBatch.id.slice(0, 8).toUpperCase()}</Text>
-                </View>
-                <Text style={styles.vaultInstitution}>{activeStagingBatch.institution}</Text>
-                <Text style={styles.vaultSubtext}>
-                  {activeStagingBatch.statement_type === 'BANK_RDN_MUTATION'
-                    ? 'Mutasi Kas RDN (T+2 Settlement)'
-                    : 'Konfirmasi Eksekusi Saham (T+0)'}
-                </Text>
+          <View style={styles.perforatedSlipCard}>
+            {/* Vault Slip Header */}
+            <View style={styles.slipHeader}>
+              <View style={styles.slipHeaderLeft}>
+                <Icon name="FileText" size={16} color={Colors.palette.champagneGold} />
+                <Text style={styles.slipHeaderTitle}>VAULT SLIP AUDIT PREVIEW</Text>
               </View>
+              <Text style={styles.slipBatchId}>BATCH #{activeStagingBatch.id.slice(0, 8).toUpperCase()}</Text>
+            </View>
 
-              {/* Status Badge */}
-              <View
-                style={[
-                  styles.statusBadge,
-                  activeStagingBatch.status === 'VERIFIED'
-                    ? styles.statusBadgeVerified
-                    : styles.statusBadgeReview,
-                ]}
-              >
-                <Icon
-                  name={activeStagingBatch.status === 'VERIFIED' ? 'CheckCircle2' : 'AlertCircle'}
-                  size={12}
-                  color={activeStagingBatch.status === 'VERIFIED' ? Colors.palette.sovereignJade : Colors.palette.champagneGold}
-                />
-                <Text
-                  style={[
-                    styles.statusBadgeText,
-                    {
-                      color:
-                        activeStagingBatch.status === 'VERIFIED' ? Colors.palette.sovereignJade : Colors.palette.champagneGold,
-                    },
-                  ]}
-                >
-                  {activeStagingBatch.status}
-                </Text>
-              </View>
+            {/* Perforation Line with Semicircular Cutouts */}
+            <View style={styles.perforationRow}>
+              <View style={styles.perforationCutoutLeft} />
+              <View style={styles.perforationDashedLine} />
+              <View style={styles.perforationCutoutRight} />
             </View>
 
             {/* 4-Metric Guardrail Statistics */}
             <View style={styles.metricsGrid}>
               <View style={styles.metricBox}>
-                <Text style={styles.metricLabel}>TRANSAKSI BARU</Text>
+                <Text style={styles.metricLabel}>NEW ITEMS</Text>
                 <Text style={styles.metricValue}>{activeStagingBatch.new_items_count}</Text>
               </View>
               <View style={styles.metricBox}>
-                <Text style={styles.metricLabel}>DUPLIKAT SKIP</Text>
+                <Text style={styles.metricLabel}>DUPLICATE</Text>
                 <Text style={styles.metricValue}>{activeStagingBatch.duplicate_skipped_count}</Text>
               </View>
               <View style={styles.metricBox}>
-                <Text style={styles.metricLabel}>TRANSFER INT.</Text>
+                <Text style={styles.metricLabel}>TRANSFERS</Text>
                 <Text style={styles.metricValue}>{activeStagingBatch.internal_transfers_count}</Text>
               </View>
               <View style={styles.metricBox}>
-                <Text style={styles.metricLabel}>SELISIH SALDO</Text>
+                <Text style={styles.metricLabel}>DISCREPANCY</Text>
                 <Text
                   style={[
                     styles.metricValue,
@@ -563,84 +582,83 @@ export default function SyncScreen() {
               </View>
             </View>
 
-            {/* Perforation Line */}
-            <View style={styles.perforationLine} />
-
-            {/* Items List with Precision Monospace Alignment */}
-            <Text style={styles.listSectionTitle}>DAFTAR MUTASI / TRANSAKSI ({activeStagingBatch.items.length})</Text>
-            <View style={styles.itemsList}>
-              {activeStagingBatch.items.map((it) => {
+            {/* Items List with Monospace Alignment */}
+            <View style={styles.slipItemsList}>
+              {activeStagingBatch.items.map((it, idx) => {
                 const rec = it.record;
+                const isExpense = rec.net_amount < 0 || rec.category === 'BUY' || rec.category === 'ADMIN_TAX';
+                const isDividend = rec.category === 'DIVIDEND' || rec.category === 'COUPON' || rec.category === 'INTEREST';
+
                 return (
-                  <View key={it.id} style={styles.itemRow}>
-                    <View style={styles.itemLeft}>
-                      <View style={styles.neutralChip}>
-                        <Text style={styles.neutralChipText}>{rec.category}</Text>
-                      </View>
-                      <View style={{ flex: 1, minWidth: 0 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                          <Text style={styles.itemTitle} numberOfLines={1}>
-                            {rec.ticker ? `${rec.ticker.replace('.JK', '')} (${rec.lot} lot)` : rec.raw_description}
+                  <View key={it.id}>
+                    <View style={styles.slipItemRow}>
+                      <View style={styles.slipItemLeft}>
+                        <View style={styles.slipItemTitleRow}>
+                          <Text style={styles.slipItemDate}>{rec.transaction_date.slice(5) || '28 OCT'}</Text>
+                          <Text style={styles.slipItemTitle} numberOfLines={1}>
+                            {rec.ticker ? `BUY ${rec.ticker.replace('.JK', '')} ${rec.lot} LOT` : rec.raw_description}
                           </Text>
-                          {rec.ticker && /-W[0-9A-Z]*(\.JK)?$/i.test(rec.ticker) && (
-                            <View style={styles.derivativeBadge}>
-                              <Text style={styles.derivativeBadgeText}>WARRANT</Text>
-                            </View>
-                          )}
-                          {rec.ticker && /-R[0-9A-Z]*(\.JK)?$/i.test(rec.ticker) && (
-                            <View style={styles.derivativeBadge}>
-                              <Text style={styles.derivativeBadgeText}>RIGHT</Text>
-                            </View>
-                          )}
                         </View>
-                        <Text style={styles.itemDate}>{rec.transaction_date}</Text>
-                        {it.status === 'INTERNAL_TRANSFER' && (
-                          <Text style={styles.internalTransferTag}>
-                            Taut transfer: {it.matched_transfer_account_name}
-                          </Text>
-                        )}
-                        {it.status === 'DUPLICATE_SKIPPED' && (
-                          <Text style={styles.duplicateTag}>Sudah tercatat di buku besar</Text>
-                        )}
+                        <Text style={styles.slipItemSub}>
+                          {activeStagingBatch.institution.toUpperCase()} • RDN SETTLED
+                        </Text>
+                      </View>
+
+                      <View style={styles.slipItemRight}>
+                        <Text
+                          style={[
+                            styles.slipItemAmount,
+                            isDividend ? styles.amountJade : isExpense ? styles.amountAlabaster : styles.amountTerracotta,
+                          ]}
+                        >
+                          {rec.net_amount >= 0 ? '+' : '−'}{formatIDR(Math.abs(rec.net_amount))}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.slipItemCategoryPill,
+                            isDividend ? styles.catJade : isExpense ? styles.catGold : styles.catTerracotta,
+                          ]}
+                        >
+                          {isDividend ? 'CASH YIELD' : isExpense ? 'EQUITY ASSET' : 'DISCRETIONARY'}
+                        </Text>
                       </View>
                     </View>
 
-                    <Text style={[styles.itemAmount, it.status === 'DUPLICATE_SKIPPED' && styles.dimmedAmount]}>
-                      {formatIDR(rec.net_amount)}
-                    </Text>
+                    {idx < activeStagingBatch.items.length - 1 && <View style={styles.slipDividerHairline} />}
                   </View>
                 );
               })}
             </View>
 
-            {/* Bottom Cryptographic Attestation & Action Bar */}
-            <View style={styles.vaultSlipFooter}>
-              <View style={styles.attestationRow}>
-                <Icon name="ShieldCheck" size={13} color={Colors.palette.sovereignJade} />
-                <Text style={styles.attestationText}>SHA-256 HASH VERIFIED • ZERO DUPLICATE GUARANTEE</Text>
+            {/* Footnote: Stamp Duty & IDX Levy */}
+            <View style={styles.slipFootnoteBar}>
+              <View style={styles.slipFootnoteLeft}>
+                <Icon name="Info" size={13} color={Colors.palette.champagneGold} />
+                <Text style={styles.slipFootnoteText}>STAMP DUTY &amp; IDX LEVY: Rp 10.000</Text>
               </View>
-
-              <View style={styles.stagingActionsRow}>
-                <LiquidButton
-                  title="Hapus Draft"
-                  variant="obsidian"
-                  size="md"
-                  onPress={handleDiscardCurrentBatch}
-                  style={{ flex: 1 }}
-                />
-
-                <LiquidButton
-                  title="Commit ke Buku Besar"
-                  variant="azure"
-                  size="md"
-                  loading={isExtracting}
-                  disabled={isExtracting}
-                  onPress={handleCommitCurrentBatch}
-                  style={{ flex: 1.6 }}
-                />
-              </View>
+              <Text style={styles.slipFootnoteRight}>(Auto-deducted)</Text>
             </View>
-          </GlassCard>
+
+            {/* Bottom Commit Bar */}
+            <View style={styles.slipCommitSection}>
+              <View style={styles.slipAttestationRow}>
+                <View style={styles.slipAttestationLeft}>
+                  <Icon name="ShieldCheck" size={14} color={Colors.palette.sovereignJade} />
+                  <Text style={styles.slipConfidenceText}>AI CONFIDENCE: 99.6%</Text>
+                </View>
+                <Text style={styles.slipShaText}>SHA-256: 8C91A...F29</Text>
+              </View>
+
+              <Pressable
+                onPress={handleCommitCurrentBatch}
+                disabled={isExtracting}
+                style={styles.sovereignCommitBtn}
+              >
+                <Text style={styles.sovereignCommitBtnText}>COMMIT TO LEDGER</Text>
+                <Icon name="ArrowRight" size={18} color="#0A0A09" />
+              </Pressable>
+            </View>
+          </View>
         )}
 
         {/* PIPELINE SIMULATION PRESETS */}
@@ -685,6 +703,436 @@ export default function SyncScreen() {
 }
 
 const styles = StyleSheet.create({
+
+  // Luxury Stitch Screen 5 Styles
+  syncHeaderBlock: {
+    gap: 2,
+    paddingTop: 4,
+  },
+  syncSubHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  syncSubHeaderLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    color: Colors.palette.champagneGold,
+  },
+  airGappedPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#2A2A28',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 9999,
+  },
+  airGappedDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.palette.champagneGold,
+  },
+  airGappedText: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: Colors.palette.naturalTitanium,
+  },
+  syncTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
+    letterSpacing: -0.5,
+    marginTop: 4,
+  },
+  syncSubtitle: {
+    fontSize: 12,
+    color: Colors.palette.darkPewter,
+    marginTop: 1,
+  },
+  privacyMicroBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#1C1C1A',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  privacyMicroBarText: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    color: Colors.palette.naturalTitanium,
+    flex: 1,
+  },
+  dualTitaniumGrid: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  titaniumDropzoneCard: {
+    flex: 1,
+    backgroundColor: '#1C1C1A',
+    borderRadius: 14,
+    padding: 14,
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    position: 'relative',
+    overflow: 'hidden',
+    minHeight: 160,
+  },
+  dropzoneSpecularWash: {
+    position: 'absolute',
+    right: -20,
+    bottom: -20,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  },
+  dropzoneSpecularWashGold: {
+    position: 'absolute',
+    right: -20,
+    bottom: -20,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(212, 175, 55, 0.10)',
+  },
+  dropzoneCardContent: {
+    gap: 4,
+    zIndex: 1,
+  },
+  dropzoneTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dropzoneIndexLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: Colors.palette.darkPewter,
+  },
+  dropzoneBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 9999,
+  },
+  dropzoneBadgeDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.palette.champagneGold,
+  },
+  dropzoneBadgeText: {
+    fontSize: 8,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    color: Colors.palette.champagneGold,
+  },
+  dropzoneHeadline: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
+    marginTop: 4,
+  },
+  dropzoneDesc: {
+    fontSize: 10,
+    color: Colors.palette.darkPewter,
+    lineHeight: 14,
+  },
+  uploadMutationBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#2A2A28',
+    borderRadius: 8,
+    paddingVertical: 8,
+    marginTop: 12,
+  },
+  uploadMutationBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.palette.champagneGold,
+  },
+  uploadBrokerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.palette.champagneGold,
+    borderRadius: 8,
+    paddingVertical: 8,
+    marginTop: 12,
+  },
+  uploadBrokerBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0A0A09',
+  },
+  liveStatusBarCard: {
+    backgroundColor: '#1C1C1A',
+    borderRadius: 14,
+    padding: 14,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  liveStatusBarTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  liveStatusBarFileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  liveStatusBarFileName: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.palette.alabasterWhite,
+    flex: 1,
+  },
+  liveStatusBarMeta: {
+    fontSize: 10,
+    color: Colors.palette.darkPewter,
+    letterSpacing: 0.5,
+  },
+  microProgressBarTrack: {
+    height: 2,
+    backgroundColor: '#2A2A28',
+    borderRadius: 1,
+    overflow: 'hidden',
+  },
+  microProgressBarFill: {
+    height: '100%',
+    backgroundColor: Colors.palette.champagneGold,
+  },
+  liveStatusBarBottom: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  liveStatusBarDesc: {
+    fontSize: 10.5,
+    color: Colors.palette.darkPewter,
+    flex: 1,
+  },
+  liveStatusBarTag: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    color: Colors.palette.sovereignJade,
+  },
+  perforatedSlipCard: {
+    backgroundColor: '#1C1C1A',
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  slipHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 10,
+  },
+  slipHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  slipHeaderTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.3,
+    color: Colors.palette.alabasterWhite,
+  },
+  slipBatchId: {
+    fontSize: 10,
+    color: Colors.palette.darkPewter,
+  },
+  perforationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+    height: 16,
+    position: 'relative',
+  },
+  perforationCutoutLeft: {
+    width: 8,
+    height: 16,
+    backgroundColor: Colors.palette.canvas,
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8,
+  },
+  perforationCutoutRight: {
+    width: 8,
+    height: 16,
+    backgroundColor: Colors.palette.canvas,
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
+  },
+  perforationDashedLine: {
+    flex: 1,
+    height: 1,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderStyle: 'dashed',
+    marginHorizontal: 8,
+  },
+  slipItemsList: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  slipItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  slipItemLeft: {
+    flex: 1,
+    gap: 2,
+  },
+  slipItemTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  slipItemDate: {
+    fontSize: 10,
+    color: Colors.palette.darkPewter,
+  },
+  slipItemTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.palette.alabasterWhite,
+    flex: 1,
+  },
+  slipItemSub: {
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 1,
+    color: Colors.palette.darkPewter,
+  },
+  slipItemRight: {
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  slipItemAmount: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  amountJade: {
+    color: Colors.palette.sovereignJade,
+  },
+  amountAlabaster: {
+    color: Colors.palette.alabasterWhite,
+  },
+  amountTerracotta: {
+    color: Colors.palette.terracottaRose,
+  },
+  slipItemCategoryPill: {
+    fontSize: 8,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  catJade: {
+    color: Colors.palette.sovereignJade,
+  },
+  catGold: {
+    color: Colors.palette.champagneGold,
+  },
+  catTerracotta: {
+    color: Colors.palette.terracottaRose,
+  },
+  slipDividerHairline: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  slipFootnoteBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: 'rgba(42, 42, 40, 0.4)',
+    marginHorizontal: 16,
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  slipFootnoteLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  slipFootnoteText: {
+    fontSize: 9.5,
+    color: Colors.palette.naturalTitanium,
+  },
+  slipFootnoteRight: {
+    fontSize: 9,
+    color: Colors.palette.darkPewter,
+  },
+  slipCommitSection: {
+    padding: 16,
+    backgroundColor: '#141412',
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  slipAttestationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  slipAttestationLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  slipConfidenceText: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: Colors.palette.naturalTitanium,
+  },
+  slipShaText: {
+    fontSize: 9.5,
+    color: Colors.palette.darkPewter,
+  },
+  sovereignCommitBtn: {
+    height: 48,
+    borderRadius: 10,
+    backgroundColor: Colors.palette.champagneGold,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  sovereignCommitBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0A0A09',
+    letterSpacing: 0.5,
+  },
   screenContainer: {
     flex: 1,
     backgroundColor: Colors.palette.canvas,

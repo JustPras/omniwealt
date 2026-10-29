@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;}body{overscroll-behavior:none;background-color:#131311;color:#e5e2de;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface": "#131311", "on-tertiary": "#003824", "on-error": "#690005", "tertiary-fixed-dim": "#57dea3", "on-primary": "#3c2f00", "surface-tint": "#e9c349", "tertiary": "#60e6aa", "on-error-container": "#ffdad6", "outline": "#99907c", "surface-container-lowest": "#0e0e0c", "on-surface": "#e5e2de", "surface-dim": "#131311", "secondary-fixed-dim": "#ccc6ba", "outline-variant": "#4d4635", "tertiary-fixed": "#77fbbd", "error-container": "#93000a", "primary-fixed": "#ffe088", "secondary-container": "#4a473e", "on-tertiary-container": "#005034", "surface-bright": "#3a3937", "surface-container-low": "#1c1c1a", "primary-container": "#d4af37", "surface-container-high": "#2a2a28", "on-primary-fixed-variant": "#574500", "surface-container-highest": "#353532", "on-background": "#e5e2de", "primary": "#f2ca50", "background": "#131311", "tertiary-container": "#3fc990", "inverse-surface": "#e5e2de", "secondary": "#ccc6ba", "inverse-on-surface": "#31302e", "on-secondary-fixed": "#1e1b14", "on-tertiary-fixed": "#002113", "on-primary-container": "#554300", "on-primary-fixed": "#241a00", "inverse-primary": "#735c00", "on-tertiary-fixed-variant": "#005235", "on-surface-variant": "#d0c5af", "secondary-fixed": "#e8e2d6", "on-secondary-fixed-variant": "#4a473e", "error": "#ffb4ab", "primary-fixed-dim": "#e9c349", "surface-variant": "#353532", "surface-container": "#20201d", "on-secondary": "#333028", "on-secondary-container": "#bab5a9" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-sm": "0.5rem", "space-xl": "1.75rem", "gutter": "0.75rem", "margin": "1rem", "space-lg": "1.25rem", "space-xs": "0.25rem", "space-md": "0.875rem" }, "fontFamily": { "body-md": ["Plus Jakarta Sans"], "label-caps": ["Plus Jakarta Sans"], "headline-xl": ["Plus Jakarta Sans"], "data-display-lg": ["JetBrains Mono"], "body-lg": ["Plus Jakarta Sans"], "data-display-md": ["JetBrains Mono"], "data-mono-sm": ["JetBrains Mono"], "body-sm": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"] }, "fontSize": { "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }], "label-caps": ["10px", { "lineHeight": "14px", "letterSpacing": "0.12em", "fontWeight": "700" }], "headline-xl": ["34px", { "lineHeight": "40px", "letterSpacing": "-0.03em", "fontWeight": "600" }], "data-display-lg": ["30px", { "lineHeight": "36px", "letterSpacing": "-0.04em", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }], "data-display-md": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.03em", "fontWeight": "500" }], "data-mono-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "400" }], "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }], "headline-lg": ["26px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "headline-md": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "600" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="h-6 px-margin flex items-center justify-between text-secondary"><span class="font-data-mono-sm text-data-mono-sm text-secondary font-medium tracking-tight">09:41</span><div class="flex items-center gap-space-xs text-secondary"><span class="material-symbols-outlined text-[14px]">signal_cellular_alt</span><span class="material-symbols-outlined text-[14px]">wifi</span><span class="material-symbols-outlined text-[16px]">battery_full</span></div></div><div class="h-14 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_10px_rgba(242,202,80,0.5)]"></div><span class="font-headline-md text-headline-md font-semibold tracking-tight text-on-surface">Vault Ledger</span></div><div class="flex items-center gap-space-sm"><button aria-label="Notifications" class="w-11 h-11 flex items-center justify-center rounded-full text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-20 pb-28 bg-surface min-h-screen"><div class="flex flex-col w-full px-margin gap-space-md">
+<!-- Top Status Capsule -->
+<div class="w-full flex items-center justify-between px-3.5 py-2 rounded-full bg-surface-container-low/80 backdrop-blur-xl shadow-[inset_0_1px_1px_rgba(245,243,239,0.12),0_4px_16px_rgba(0,0,0,0.4)]">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(242,202,80,0.8)]"></span>
+<span class="font-label-caps text-label-caps text-primary tracking-widest uppercase">Local AI Ready</span>
+</div>
+<div class="font-data-mono-sm text-[11px] text-secondary tracking-wider font-medium">
+      OMNI // PRIVATE LEDGER
+    </div>
+<button aria-label="Toggle sensitive balances visibility" class="w-7 h-7 rounded-full flex items-center justify-center text-secondary hover:text-on-surface active:scale-95 transition-all" id="privacy-toggle">
+<span class="material-symbols-outlined text-[17px]" id="privacy-icon">visibility</span>
+</button>
+</div>
+<!-- Hero "Bullion Glass" Net Worth Card -->
+<section class="relative w-full rounded-2xl p-5 bg-surface-container/60 backdrop-blur-2xl shadow-[inset_0_1px_1px_rgba(212,175,55,0.35),0_12px_32px_rgba(0,0,0,0.5)] overflow-hidden">
+<!-- Ambient Gold Glow Backing -->
+<div class="absolute -top-12 -right-12 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+<!-- Top Metadata Header -->
+<div class="flex items-center justify-between relative z-10 mb-2">
+<div class="flex items-center gap-1.5">
+<span class="font-data-mono-sm text-[11px] text-outline tracking-widest uppercase">00 // TOTAL NET WORTH</span>
+</div>
+<div class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-highest/60 backdrop-blur-md">
+<span class="material-symbols-outlined text-[13px] text-primary" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="font-label-caps text-[9px] text-primary tracking-wider uppercase font-semibold">Sovereign Tier</span>
+</div>
+</div>
+<!-- Balance & Performance Metric -->
+<div class="relative z-10 mb-3">
+<div class="flex items-baseline gap-1.5">
+<span class="font-data-mono-sm text-sm text-secondary font-medium tracking-tight">Rp</span>
+<h2 class="font-data-display-lg text-data-display-lg font-bold text-on-surface tracking-tight" data-raw="428.550.000" id="networth-val">
+          428.550.000
+        </h2>
+</div>
+<div class="mt-1.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-tertiary-container/15">
+<span class="material-symbols-outlined text-[14px] text-tertiary">trending_up</span>
+<span class="font-data-mono-sm text-data-mono-sm text-tertiary font-semibold tracking-tight">+Rp 12.400.000</span>
+<span class="font-data-mono-sm text-data-mono-sm text-tertiary/75 tracking-tight">| +2.98% 30D</span>
+</div>
+</div>
+<!-- SVG Sparkline with Specular Gradient & ATH Milestone -->
+<div class="relative w-full h-20 my-2 z-10">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 360 80">
+<defs>
+<lineargradient id="goldCurveGlow" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#f2ca50" stop-opacity="0.28"></stop>
+<stop offset="60%" stop-color="#f2ca50" stop-opacity="0.06"></stop>
+<stop offset="100%" stop-color="#f2ca50" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Area fill under line -->
+<polygon fill="url(#goldCurveGlow)" points="0,75 0,62 30,58 60,65 95,50 135,54 170,38 210,42 250,26 290,30 330,12 360,16 360,75"></polygon>
+<!-- Sharp tactile sparkline path -->
+<path d="M 0,62 L 30,58 L 60,65 L 95,50 L 135,54 L 170,38 L 210,42 L 250,26 L 290,30 L 330,12 L 360,16" fill="none" stroke="#f2ca50" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"></path>
+<!-- ATH Target Marker -->
+<circle class="fill-surface stroke-primary" cx="330" cy="12" r="3.5" stroke-width="2"></circle>
+</svg>
+<!-- Floating Interactive Metric Marker -->
+<div class="absolute top-0 right-7 -translate-y-1/2 px-2 py-0.5 rounded-full bg-surface-container-high/90 backdrop-blur-md shadow-md flex items-center gap-1">
+<span class="w-1 h-1 rounded-full bg-primary"></span>
+<span class="font-data-mono-sm text-[10px] text-primary font-medium tracking-tight">ATH Rp 430.1M</span>
+</div>
+</div>
+<!-- Perforated Hairline Separator -->
+<div class="w-full h-px my-3.5 bg-gradient-to-r from-transparent via-outline-variant/60 to-transparent"></div>
+<!-- Multi-Asset Allocation Bar -->
+<div class="relative z-10 flex flex-col gap-2">
+<div class="w-full h-2 rounded-full overflow-hidden flex gap-0.5 bg-surface-container-lowest p-0.5">
+<div class="h-full rounded-sm bg-primary transition-all" style="width: 35%;" title="IDX Stocks: 35%"></div>
+<div class="h-full rounded-sm bg-secondary transition-all" style="width: 30%;" title="Bank: 30%"></div>
+<div class="h-full rounded-sm bg-error transition-all" style="width: 15%;" title="Crypto: 15%"></div>
+<div class="h-full rounded-sm bg-tertiary transition-all" style="width: 10%;" title="RDN Cash: 10%"></div>
+<div class="h-full rounded-sm bg-secondary-container transition-all" style="width: 10%;" title="E-Wallet: 10%"></div>
+</div>
+<!-- Asset Allocation Legend Grid -->
+<div class="grid grid-cols-3 gap-y-1.5 gap-x-2 pt-1">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>
+<span class="font-data-mono-sm text-[11px] text-on-surface-variant truncate">IDX <span class="text-on-surface font-semibold">35%</span></span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary flex-shrink-0"></span>
+<span class="font-data-mono-sm text-[11px] text-on-surface-variant truncate">Bank <span class="text-on-surface font-semibold">30%</span></span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-error flex-shrink-0"></span>
+<span class="font-data-mono-sm text-[11px] text-on-surface-variant truncate">Crypto <span class="text-on-surface font-semibold">15%</span></span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary flex-shrink-0"></span>
+<span class="font-data-mono-sm text-[11px] text-on-surface-variant truncate">RDN <span class="text-on-surface font-semibold">10%</span></span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container flex-shrink-0"></span>
+<span class="font-data-mono-sm text-[11px] text-on-surface-variant truncate">Wallet <span class="text-on-surface font-semibold">10%</span></span>
+</div>
+<div class="flex items-center gap-1 justify-end">
+<span class="font-label-caps text-[9px] text-primary uppercase tracking-wider">Rebalanced</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Live AI Sync Banner -->
+<aside class="w-full rounded-xl p-3 flex items-center justify-between bg-surface-container-low/90 backdrop-blur-xl shadow-[inset_0_1px_1px_rgba(245,243,239,0.08),0_4px_12px_rgba(0,0,0,0.35)] active:scale-[0.99] transition-transform">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="relative w-7 h-7 rounded-lg bg-surface-container-highest flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[16px] text-primary">auto_read_pause</span>
+<span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-tertiary shadow-[0_0_6px_rgba(96,230,170,0.7)]"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-caps text-[9px] text-primary tracking-widest uppercase font-semibold">AI Auto-Parser</span>
+<span class="w-1 h-1 rounded-full bg-outline"></span>
+<span class="font-data-mono-sm text-[11px] text-on-surface truncate">Est_Stockbit_Oct.pdf</span>
+</div>
+<span class="font-data-mono-sm text-[11px] text-secondary truncate">42 institutional ledger rows matched</span>
+</div>
+</div>
+<button aria-label="Review Parsed Document" class="w-7 h-7 flex items-center justify-center rounded-full text-secondary hover:text-primary transition-colors flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</aside>
+<!-- 2x2 Tactile Asset Bento Grid -->
+<section class="grid grid-cols-2 gap-3.5 w-full">
+<!-- Card 1: Bank & E-Wallet -->
+<div class="relative rounded-xl p-3.5 bg-surface-container/70 backdrop-blur-xl shadow-[inset_0_1px_1px_rgba(204,198,186,0.18),0_6px_20px_rgba(0,0,0,0.4)] flex flex-col justify-between h-[152px] group">
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-data-mono-sm text-[10px] text-outline font-semibold tracking-wider">01 //</span>
+<span class="font-data-mono-sm text-[10px] text-tertiary px-1.5 py-0.5 rounded-full bg-tertiary/10 font-medium">+1.2%</span>
+</div>
+<h3 class="font-headline-md text-[13px] font-semibold tracking-tight text-on-surface leading-tight">BANK &amp; CASH</h3>
+<p class="font-body-sm text-[11px] text-secondary truncate mt-0.5">BCA, Mandiri, GoPay</p>
+</div>
+<div class="pt-2">
+<span class="font-data-mono-sm text-[10px] text-outline">TOTAL HOLDINGS</span>
+<p class="font-data-mono-sm text-data-mono-sm font-semibold text-on-surface tracking-tight" data-balance="192.847.500">
+          Rp 192.847.500
+        </p>
+</div>
+</div>
+<!-- Card 2: IDX Equities -->
+<div class="relative rounded-xl p-3.5 bg-surface-container/70 backdrop-blur-xl shadow-[inset_0_1px_1px_rgba(212,175,55,0.22),0_6px_20px_rgba(0,0,0,0.4)] flex flex-col justify-between h-[152px] group">
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-data-mono-sm text-[10px] text-outline font-semibold tracking-wider">02 //</span>
+<span class="font-data-mono-sm text-[10px] text-tertiary px-1.5 py-0.5 rounded-full bg-tertiary/10 font-medium">+4.8%</span>
+</div>
+<h3 class="font-headline-md text-[13px] font-semibold tracking-tight text-on-surface leading-tight">IDX EQUITIES</h3>
+<p class="font-body-sm text-[11px] text-secondary truncate mt-0.5">BBCA, BMRI, TLKM (185L)</p>
+</div>
+<div class="pt-2">
+<span class="font-data-mono-sm text-[10px] text-outline">PORTFOLIO VAL</span>
+<p class="font-data-mono-sm text-data-mono-sm font-semibold text-on-surface tracking-tight" data-balance="128.565.000">
+          Rp 128.565.000
+        </p>
+</div>
+</div>
+<!-- Card 3: RDN Liquidity -->
+<div class="relative rounded-xl p-3.5 bg-surface-container/70 backdrop-blur-xl shadow-[inset_0_1px_1px_rgba(204,198,186,0.18),0_6px_20px_rgba(0,0,0,0.4)] flex flex-col justify-between h-[152px] group">
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-data-mono-sm text-[10px] text-outline font-semibold tracking-wider">03 //</span>
+<span class="font-data-mono-sm text-[10px] text-primary px-1.5 py-0.5 rounded-full bg-primary/10 font-medium">Yield 4.2%</span>
+</div>
+<h3 class="font-headline-md text-[13px] font-semibold tracking-tight text-on-surface leading-tight">RDN LIQUIDITY</h3>
+<p class="font-body-sm text-[11px] text-secondary truncate mt-0.5">Stockbit / Bibit RDN</p>
+</div>
+<div class="pt-2">
+<span class="font-data-mono-sm text-[10px] text-outline">STANDBY BALANCE</span>
+<p class="font-data-mono-sm text-data-mono-sm font-semibold text-on-surface tracking-tight" data-balance="42.855.000">
+          Rp 42.855.000
+        </p>
+</div>
+</div>
+<!-- Card 4: Crypto Vault -->
+<div class="relative rounded-xl p-3.5 bg-surface-container/70 backdrop-blur-xl shadow-[inset_0_1px_1px_rgba(204,198,186,0.18),0_6px_20px_rgba(0,0,0,0.4)] flex flex-col justify-between h-[152px] group">
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-data-mono-sm text-[10px] text-outline font-semibold tracking-wider">04 //</span>
+<span class="font-data-mono-sm text-[10px] text-tertiary px-1.5 py-0.5 rounded-full bg-tertiary/10 font-medium">+7.4%</span>
+</div>
+<h3 class="font-headline-md text-[13px] font-semibold tracking-tight text-on-surface leading-tight">CRYPTO VAULT</h3>
+<p class="font-body-sm text-[11px] text-secondary truncate mt-0.5">BTC, ETH, SOL Ledger</p>
+</div>
+<div class="pt-2">
+<span class="font-data-mono-sm text-[10px] text-outline">COLD &amp; ON-CHAIN</span>
+<p class="font-data-mono-sm text-data-mono-sm font-semibold text-on-surface tracking-tight" data-balance="64.282.500">
+          Rp 64.282.500
+        </p>
+</div>
+</div>
+</section>
+<!-- Sovereign Action Capsule -->
+<section class="w-full flex items-center justify-between gap-2 pt-1 pb-2 overflow-x-auto">
+<button class="flex-1 py-2.5 px-3 rounded-full bg-primary-container text-on-primary font-headline-md text-[12px] font-semibold shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_4px_14px_rgba(212,175,55,0.3)] flex items-center justify-center gap-1.5 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[16px]">add_circle</span>
+<span class="whitespace-nowrap">Log Asset</span>
+</button>
+<button class="py-2.5 px-3.5 rounded-full bg-surface-container-high/80 text-on-surface font-headline-md text-[12px] font-medium shadow-[inset_0_1px_1px_rgba(245,243,239,0.1)] flex items-center justify-center gap-1.5 hover:text-primary active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[16px] text-secondary">upload_file</span>
+<span class="whitespace-nowrap">Import e-Statement</span>
+</button>
+<button aria-label="Generate Tax &amp; Audit Report" class="p-2.5 rounded-full bg-surface-container-high/80 text-secondary hover:text-primary active:scale-95 transition-all flex items-center justify-center shadow-[inset_0_1px_1px_rgba(245,243,239,0.1)]">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+</section>
+</div>
+<script>
+  (function() {
+    const privacyBtn = document.getElementById('privacy-toggle');
+    const privacyIcon = document.getElementById('privacy-icon');
+    const networthEl = document.getElementById('networth-val');
+    const bentoBalances = document.querySelectorAll('[data-balance]');
+    let isHidden = false;
+
+    if (privacyBtn) {
+      privacyBtn.addEventListener('click', function() {
+        isHidden = !isHidden;
+        if (isHidden) {
+          privacyIcon.textContent = 'visibility_off';
+          networthEl.textContent = '••••••••••••';
+          bentoBalances.forEach(function(el) {
+            el.dataset.cached = el.textContent;
+            el.textContent = '••••••••';
+          });
+        } else {
+          privacyIcon.textContent = 'visibility';
+          networthEl.textContent = networthEl.dataset.raw;
+          bentoBalances.forEach(function(el) {
+            el.textContent = 'Rp ' + el.dataset.balance;
+          });
+        }
+      });
+    }
+  })();
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe px-margin mb-space-sm pointer-events-none" data-active-classes="text-primary relative after:content-[''] after:absolute after:bottom-1 after:w-1 after:h-1 after:rounded-full after:bg-primary after:shadow-[0_0_6px_rgba(242,202,80,0.8)]"><div class="pointer-events-auto h-16 w-full max-w-[380px] mx-auto rounded-full bg-surface-container-low/70 backdrop-blur-2xl px-space-md flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.6)]"><a aria-current="page" class="w-12 h-12 flex flex-col items-center justify-center transition-colors text-primary relative after:content-[''] after:absolute after:bottom-1 after:w-1 after:h-1 after:rounded-full after:bg-primary after:shadow-[0_0_6px_rgba(242,202,80,0.8)]" data-path="vault-ledger" href="#"><span class="material-symbols-outlined text-[22px]">account_balance_wallet</span><span class="font-label-caps text-label-caps uppercase mt-0.5">Ledger</span></a><a class="w-12 h-12 flex flex-col items-center justify-center text-secondary hover:text-on-surface transition-colors" data-path="assets-portfolio" href="#"><span class="material-symbols-outlined text-[22px]">grid_view</span><span class="font-label-caps text-label-caps uppercase mt-0.5">Bento</span></a><a class="w-12 h-12 flex flex-col items-center justify-center text-secondary hover:text-on-surface transition-colors" data-path="intelligence-reports" href="#"><span class="material-symbols-outlined text-[22px]">hub</span><span class="font-label-caps text-label-caps uppercase mt-0.5">Sync</span></a><a class="w-12 h-12 flex flex-col items-center justify-center text-secondary hover:text-on-surface transition-colors" data-path="sovereign-vault" href="#"><span class="material-symbols-outlined text-[22px]">shield</span><span class="font-label-caps text-label-caps uppercase mt-0.5">Vault</span></a></div></nav></body></html>

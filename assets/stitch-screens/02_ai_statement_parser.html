@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;}body{overscroll-behavior:none;background-color:#131311;color:#e5e2de;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface": "#131311", "on-tertiary": "#003824", "on-error": "#690005", "tertiary-fixed-dim": "#57dea3", "on-primary": "#3c2f00", "surface-tint": "#e9c349", "tertiary": "#60e6aa", "on-error-container": "#ffdad6", "outline": "#99907c", "surface-container-lowest": "#0e0e0c", "on-surface": "#e5e2de", "surface-dim": "#131311", "secondary-fixed-dim": "#ccc6ba", "outline-variant": "#4d4635", "tertiary-fixed": "#77fbbd", "error-container": "#93000a", "primary-fixed": "#ffe088", "secondary-container": "#4a473e", "on-tertiary-container": "#005034", "surface-bright": "#3a3937", "surface-container-low": "#1c1c1a", "primary-container": "#d4af37", "surface-container-high": "#2a2a28", "on-primary-fixed-variant": "#574500", "surface-container-highest": "#353532", "on-background": "#e5e2de", "primary": "#f2ca50", "background": "#131311", "tertiary-container": "#3fc990", "inverse-surface": "#e5e2de", "secondary": "#ccc6ba", "inverse-on-surface": "#31302e", "on-secondary-fixed": "#1e1b14", "on-tertiary-fixed": "#002113", "on-primary-container": "#554300", "on-primary-fixed": "#241a00", "inverse-primary": "#735c00", "on-tertiary-fixed-variant": "#005235", "on-surface-variant": "#d0c5af", "secondary-fixed": "#e8e2d6", "on-secondary-fixed-variant": "#4a473e", "error": "#ffb4ab", "primary-fixed-dim": "#e9c349", "surface-variant": "#353532", "surface-container": "#20201d", "on-secondary": "#333028", "on-secondary-container": "#bab5a9" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-sm": "0.5rem", "space-xl": "1.75rem", "gutter": "0.75rem", "margin": "1rem", "space-lg": "1.25rem", "space-xs": "0.25rem", "space-md": "0.875rem" }, "fontFamily": { "body-md": ["Plus Jakarta Sans"], "label-caps": ["Plus Jakarta Sans"], "headline-xl": ["Plus Jakarta Sans"], "data-display-lg": ["JetBrains Mono"], "body-lg": ["Plus Jakarta Sans"], "data-display-md": ["JetBrains Mono"], "data-mono-sm": ["JetBrains Mono"], "body-sm": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"] }, "fontSize": { "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }], "label-caps": ["10px", { "lineHeight": "14px", "letterSpacing": "0.12em", "fontWeight": "700" }], "headline-xl": ["34px", { "lineHeight": "40px", "letterSpacing": "-0.03em", "fontWeight": "600" }], "data-display-lg": ["30px", { "lineHeight": "36px", "letterSpacing": "-0.04em", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }], "data-display-md": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.03em", "fontWeight": "500" }], "data-mono-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "400" }], "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }], "headline-lg": ["26px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "headline-md": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "600" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="h-6 px-margin flex items-center justify-between text-secondary"><span class="font-data-mono-sm text-data-mono-sm text-secondary font-medium tracking-tight">09:41</span><div class="flex items-center gap-space-xs text-secondary"><span class="material-symbols-outlined text-[14px]">signal_cellular_alt</span><span class="material-symbols-outlined text-[14px]">wifi</span><span class="material-symbols-outlined text-[16px]">battery_full</span></div></div><div class="h-14 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_10px_rgba(242,202,80,0.5)]"></div><span class="font-headline-md text-headline-md font-semibold tracking-tight text-on-surface">Vault Ledger</span></div><div class="flex items-center gap-space-sm"><button aria-label="Notifications" class="w-11 h-11 flex items-center justify-center rounded-full text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-20 pb-28 bg-surface min-h-screen"><div class="flex flex-col w-full px-margin pb-6 gap-space-lg select-none">
+<!-- Top Navigation & Privacy Banner -->
+<header class="flex flex-col gap-space-xs pt-1">
+<div class="flex items-center justify-between">
+<button class="group flex items-center gap-space-xs text-on-surface-variant hover:text-primary transition-colors py-1" type="button">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span class="font-data-mono-sm text-data-mono-sm tracking-wider uppercase font-medium">LEDGER // INGESTION</span>
+</button>
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high/90 shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-caps text-label-caps text-primary tracking-widest uppercase">AIR-GAPPED V1.4</span>
+</div>
+</div>
+<div class="flex flex-col mt-2">
+<h1 class="font-headline-lg text-headline-lg font-semibold tracking-tight text-on-surface uppercase">
+        Automated Wealth Ingestion
+      </h1>
+<p class="font-body-sm text-body-sm text-secondary mt-0.5">
+        AI Bank Mutation &amp; Broker PDF Statement Reader
+      </p>
+</div>
+<!-- Privacy / Local Inference Badge -->
+<div class="flex items-center gap-2 mt-2 px-3 py-1.5 rounded-lg bg-surface-container-low shadow-sm">
+<span class="material-symbols-outlined text-[15px] text-primary" style="font-variation-settings: 'FILL' 1;">lock</span>
+<span class="font-data-mono-sm text-[11px] leading-[15px] tracking-tight text-secondary">
+        ON-DEVICE OCR &amp; PARSER • <span class="text-on-surface font-semibold">0 BYTES EXPORTED</span>
+</span>
+<span class="ml-auto font-data-mono-sm text-[10px] text-tertiary font-medium">100% PRIVATE</span>
+</div>
+</header>
+<!-- Dual Dropzone Cards (2-Column Grid) -->
+<section aria-label="Ingestion Channels" class="grid grid-cols-2 gap-gutter">
+<!-- Card 1: Bank Mutation -->
+<div class="relative group flex flex-col justify-between p-3.5 rounded-xl bg-surface-container-low shadow-md overflow-hidden transition-all active:scale-[0.98] cursor-pointer" id="dropzone-bank">
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-data-mono-sm text-data-mono-sm font-semibold text-secondary">01 // BANK</span>
+<span class="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-label-caps text-[9px] tracking-widest uppercase">
+            LOCAL LLM
+          </span>
+</div>
+<div>
+<span class="font-headline-md text-[15px] leading-5 font-semibold text-on-surface block">Mutation AI</span>
+<p class="font-body-sm text-[11px] leading-4 text-on-surface-variant mt-1 line-clamp-2">
+            BCA, Mandiri, BRI CSV, e-Statement, Scan
+          </p>
+</div>
+</div>
+<!-- Tactile Drop Target -->
+<div class="mt-4 flex flex-col items-center justify-center p-3 rounded-lg bg-surface-container-lowest/80 text-center gap-1.5 transition-colors group-hover:bg-surface-container-high/60">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">document_scanner</span>
+</div>
+<span class="font-data-mono-sm text-[11px] font-semibold text-on-surface tracking-tight">+ Upload Mutation</span>
+</div>
+</div>
+<!-- Card 2: Async Broker PDF -->
+<div class="relative group flex flex-col justify-between p-3.5 rounded-xl bg-surface-container-low shadow-md overflow-hidden transition-all active:scale-[0.98] cursor-pointer" id="dropzone-broker">
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-data-mono-sm text-data-mono-sm font-semibold text-primary">02 // BROKER</span>
+<span class="px-1.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-caps text-[9px] tracking-widest uppercase">
+            IDX PARSER
+          </span>
+</div>
+<div>
+<span class="font-headline-md text-[15px] leading-5 font-semibold text-on-surface block">Async PDF</span>
+<p class="font-body-sm text-[11px] leading-4 text-on-surface-variant mt-1 line-clamp-2">
+            Stockbit, Bibit RDN &amp; Trade Confirmations
+          </p>
+</div>
+</div>
+<!-- Active Ingest Trigger Target -->
+<div class="mt-4 flex flex-col items-center justify-center p-3 rounded-lg bg-primary/10 text-center gap-1.5 transition-colors group-hover:bg-primary/20">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-sm">
+<span class="material-symbols-outlined text-[18px]">history_edu</span>
+</div>
+<span class="font-data-mono-sm text-[11px] font-semibold text-primary tracking-tight">+ Ingest Broker PDF</span>
+</div>
+</div>
+</section>
+<!-- Live Processing Bar (Liquid Glass Strip) -->
+<section aria-label="Ingestion Pipeline Status" class="flex flex-col gap-2 p-3.5 rounded-xl bg-surface-container-low shadow-lg">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 min-w-0">
+<div class="w-6 h-6 rounded-md bg-primary-container/20 flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[16px] animate-spin">sync</span>
+</div>
+<span class="font-data-mono-sm text-data-mono-sm font-medium text-on-surface truncate">
+          READING: Est_Stockbit_Oct2026.pdf
+        </span>
+</div>
+<span class="font-data-mono-sm text-[11px] text-secondary shrink-0 tracking-tight ml-2">
+        2.4 MB • 42 ROWS
+      </span>
+</div>
+<!-- Progress Track with Champagne Gold Gradient -->
+<div class="relative w-full h-2 rounded-full bg-surface-container-lowest overflow-hidden mt-1">
+<div class="h-full rounded-full bg-gradient-to-r from-primary-container via-primary to-primary-fixed shadow-[0_0_12px_rgba(242,202,80,0.5)] transition-all duration-700 ease-out" id="processing-fill" style="width: 82%;">
+</div>
+</div>
+<div class="flex items-center justify-between text-secondary mt-0.5">
+<p class="font-body-sm text-[11px] leading-4 text-on-surface-variant flex items-center gap-1">
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+        Extracting lot prices, stamp duty &amp; RDN shifts...
+      </p>
+<span class="font-data-mono-sm text-data-mono-sm font-semibold text-primary" id="processing-pct">82%</span>
+</div>
+</section>
+<!-- Perforated Vault Slip Ledger Preview -->
+<section aria-label="Parsed Transaction Slip" class="relative flex flex-col rounded-2xl bg-surface-container-low shadow-xl overflow-hidden">
+<!-- Slip Header -->
+<div class="px-4 pt-4 pb-3 flex items-center justify-between bg-surface-container-high/40">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full bg-tertiary/20 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[14px]">done_all</span>
+</div>
+<span class="font-label-caps text-label-caps tracking-widest text-on-surface uppercase font-bold">
+          PARSED MUTATION PREVIEW // 3 OF 42 VERIFIED
+        </span>
+</div>
+<span class="font-data-mono-sm text-[11px] text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+        SYNC ACTIVE
+      </span>
+</div>
+<!-- Perforated Receipt Divider (Notches + Dashed Line) -->
+<div class="relative w-full py-1 flex items-center bg-surface-container-high/40">
+<div class="absolute -left-2.5 w-5 h-5 rounded-full bg-surface"></div>
+<div class="w-full mx-3 border-b border-dashed border-outline-variant/60"></div>
+<div class="absolute -right-2.5 w-5 h-5 rounded-full bg-surface"></div>
+</div>
+<!-- Tabular Vault Entries -->
+<div class="flex flex-col px-4 py-2 divide-y divide-surface-container-high/60">
+<!-- Row 1: Stock Buy -->
+<article class="py-3 flex items-center justify-between gap-2">
+<div class="flex items-start gap-2.5 min-w-0">
+<div class="flex flex-col items-center justify-center w-10 py-1 rounded bg-surface-container-lowest text-center shrink-0">
+<span class="font-data-mono-sm text-[10px] uppercase text-secondary leading-none">OCT</span>
+<span class="font-data-display-md text-[15px] font-bold text-on-surface leading-tight">28</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="font-data-mono-sm text-data-mono-sm font-semibold text-on-surface">BUY BBCA</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container-highest font-data-mono-sm text-[10px] text-primary font-medium">10 LOT</span>
+</div>
+<span class="font-data-mono-sm text-[11px] text-secondary mt-0.5 truncate">RDN STOCKBIT • MANDIRI S-091</span>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-data-display-md text-[14px] font-semibold text-on-surface block tracking-tight">
+            -Rp 9.450.000
+          </span>
+<span class="font-data-mono-sm text-[10px] text-secondary font-medium">EQUITY ASSET</span>
+</div>
+</article>
+<!-- Row 2: Dividend Inflow -->
+<article class="py-3 flex items-center justify-between gap-2">
+<div class="flex items-start gap-2.5 min-w-0">
+<div class="flex flex-col items-center justify-center w-10 py-1 rounded bg-surface-container-lowest text-center shrink-0">
+<span class="font-data-mono-sm text-[10px] uppercase text-secondary leading-none">OCT</span>
+<span class="font-data-display-md text-[15px] font-bold text-on-surface leading-tight">27</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-data-mono-sm text-data-mono-sm font-semibold text-on-surface">DIVIDEND BMRI</span>
+<span class="px-1.5 py-0.2 rounded bg-tertiary/15 font-data-mono-sm text-[10px] text-tertiary font-medium">PAYOUT</span>
+</div>
+<span class="font-data-mono-sm text-[11px] text-secondary mt-0.5 truncate">RDN BCA • AUTO TAX WITHHELD</span>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-data-display-md text-[14px] font-semibold text-tertiary block tracking-tight">
+            +Rp 1.250.000
+          </span>
+<span class="font-data-mono-sm text-[10px] text-tertiary/80 font-medium">CASH YIELD</span>
+</div>
+</article>
+<!-- Row 3: Debit Expense -->
+<article class="py-3 flex items-center justify-between gap-2">
+<div class="flex items-start gap-2.5 min-w-0">
+<div class="flex flex-col items-center justify-center w-10 py-1 rounded bg-surface-container-lowest text-center shrink-0">
+<span class="font-data-mono-sm text-[10px] uppercase text-secondary leading-none">OCT</span>
+<span class="font-data-display-md text-[15px] font-bold text-on-surface leading-tight">25</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-data-mono-sm text-data-mono-sm font-semibold text-on-surface">QRIS MERCHANTS</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container-highest font-data-mono-sm text-[10px] text-secondary">NFC/STATIC</span>
+</div>
+<span class="font-data-mono-sm text-[11px] text-secondary mt-0.5 truncate">GOPAY WALLET • ID #88921</span>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-data-display-md text-[14px] font-semibold text-error block tracking-tight">
+            -Rp 450.000
+          </span>
+<span class="font-data-mono-sm text-[10px] text-secondary font-medium">DISCRETIONARY</span>
+</div>
+</article>
+</div>
+<!-- Slip Footer: Technical Fee & Stamp Duty -->
+<div class="px-4 py-2.5 bg-surface-container-lowest/80 flex items-center justify-between text-secondary">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-primary">receipt_long</span>
+<span class="font-data-mono-sm text-[11px]">STAMP DUTY &amp; IDX LEVY</span>
+</div>
+<span class="font-data-mono-sm text-[11px] font-semibold text-on-surface">
+        Rp 10.000 <span class="text-secondary font-normal">(Auto-deducted)</span>
+</span>
+</div>
+</section>
+<!-- Expand & Ledger Review Selector -->
+<button class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-surface-container-low text-secondary hover:text-on-surface transition-colors shadow-sm" id="review-all-btn" type="button">
+<span class="material-symbols-outlined text-[18px]">table_rows</span>
+<span class="font-body-sm text-body-sm font-semibold tracking-wide">Review All 42 Rows • Match Confidence Map</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+<!-- Bottom Commit Bar & Cryptographic Attestation -->
+<aside class="sticky bottom-20 z-30 w-full p-3.5 rounded-2xl bg-surface-container-high/95 backdrop-blur-xl shadow-2xl flex items-center justify-between gap-3">
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="font-data-mono-sm text-[12px] font-bold text-on-surface tracking-tight">AI CONFIDENCE: 99.6%</span>
+</div>
+<span class="font-data-mono-sm text-[10px] text-secondary tracking-widest uppercase mt-0.5 truncate">
+        SHA-256: 8C91A...F02B VERIFIED
+      </span>
+</div>
+<button class="shrink-0 px-4 py-3 rounded-full bg-primary text-on-primary font-headline-md text-[13px] font-bold tracking-tight hover:opacity-95 active:scale-95 transition-all shadow-[0_0_16px_rgba(242,202,80,0.3)] flex items-center gap-1.5" id="commit-btn" type="button">
+<span>COMMIT TO LEDGER</span>
+<span class="material-symbols-outlined text-[16px] font-bold">arrow_forward</span>
+</button>
+</aside>
+</div>
+<script>
+  // Simple micro-interactions for tactile responsiveness
+  const commitBtn = document.getElementById('commit-btn');
+  const reviewBtn = document.getElementById('review-all-btn');
+  const fillBar = document.getElementById('processing-fill');
+  const pctText = document.getElementById('processing-pct');
+
+  if (commitBtn) {
+    commitBtn.addEventListener('click', () => {
+      commitBtn.innerHTML = `
+        <span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+        <span>SEALING VAULT...</span>
+      `;
+      setTimeout(() => {
+        commitBtn.innerHTML = `
+          <span class="material-symbols-outlined text-[16px]">check</span>
+          <span>COMMITTED (42/42)</span>
+        `;
+        commitBtn.classList.remove('bg-primary', 'text-on-primary');
+        commitBtn.classList.add('bg-tertiary', 'text-on-tertiary');
+      }, 900);
+    });
+  }
+
+  // Visual feedback on dropzones
+  ['dropzone-bank', 'dropzone-broker'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('click', () => {
+        el.classList.add('scale-[0.98]');
+        setTimeout(() => el.classList.remove('scale-[0.98]'), 150);
+      });
+    }
+  });
+
+  if (reviewBtn) {
+    reviewBtn.addEventListener('click', () => {
+      reviewBtn.classList.toggle('text-primary');
+    });
+  }
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe px-margin mb-space-sm pointer-events-none" data-active-classes="text-primary relative after:content-[''] after:absolute after:bottom-1 after:w-1 after:h-1 after:rounded-full after:bg-primary after:shadow-[0_0_6px_rgba(242,202,80,0.8)]"><div class="pointer-events-auto h-16 w-full max-w-[380px] mx-auto rounded-full bg-surface-container-low/70 backdrop-blur-2xl px-space-md flex items-center justify-between shadow-[0_8px_32px_rgba(0,0,0,0.6)]"><a class="w-12 h-12 flex flex-col items-center justify-center text-secondary hover:text-on-surface transition-colors" data-path="vault-ledger" href="#"><span class="material-symbols-outlined text-[22px]">account_balance_wallet</span><span class="font-label-caps text-label-caps uppercase mt-0.5">Ledger</span></a><a class="w-12 h-12 flex flex-col items-center justify-center text-secondary hover:text-on-surface transition-colors" data-path="assets-portfolio" href="#"><span class="material-symbols-outlined text-[22px]">grid_view</span><span class="font-label-caps text-label-caps uppercase mt-0.5">Bento</span></a><a class="w-12 h-12 flex flex-col items-center justify-center text-secondary hover:text-on-surface transition-colors" data-path="intelligence-reports" href="#"><span class="material-symbols-outlined text-[22px]">hub</span><span class="font-label-caps text-label-caps uppercase mt-0.5">Sync</span></a><a class="w-12 h-12 flex flex-col items-center justify-center text-secondary hover:text-on-surface transition-colors" data-path="sovereign-vault" href="#"><span class="material-symbols-outlined text-[22px]">shield</span><span class="font-label-caps text-label-caps uppercase mt-0.5">Vault</span></a></div></nav></body></html>

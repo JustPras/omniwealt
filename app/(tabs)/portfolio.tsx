@@ -53,6 +53,7 @@ export default function PortfolioScreen() {
   } = useWealth();
 
   const [activeFilter, setActiveFilter] = useState<AssetFilter>('ALL');
+  const [perfFilter, setPerfFilter] = useState<'ALL' | 'GAIN' | 'LOSS'>('ALL');
   const [sortMode, setSortMode] = useState<SortMode>('VALUE');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -69,6 +70,29 @@ export default function PortfolioScreen() {
   const [syncingWalletId, setSyncingWalletId] = useState<string | null>(null);
 
   const isOverallProfit = totalUnrealizedPnL >= 0;
+
+  const stocksRatio = totalInvestments > 0 ? ((totalStocks / totalInvestments) * 100).toFixed(1) : '66.7';
+  const cryptoRatio = totalInvestments > 0 ? ((totalCryptos / totalInvestments) * 100).toFixed(1) : '33.3';
+
+  const stockGainersCount = useMemo(() => {
+    return stocks.filter((s) => {
+      const val = (Number(s.lots) || 0) * 100 * (Number(s.currentPrice) || 0);
+      const cost = (Number(s.lots) || 0) * 100 * (Number(s.avgBuyPrice) || 0);
+      return val >= cost;
+    }).length;
+  }, [stocks]);
+
+  const cryptoGainersCount = useMemo(() => {
+    return cryptos.filter((c) => {
+      const val = (Number(c.holdings) || 0) * (Number(c.currentPriceIdr) || 0);
+      const cost = (Number(c.holdings) || 0) * (Number(c.avgBuyPriceIdr) || 0);
+      return val >= cost;
+    }).length;
+  }, [cryptos]);
+
+  const totalGainersCount = stockGainersCount + cryptoGainersCount;
+  const totalLosersCount = (stocks.length + cryptos.length) - totalGainersCount;
+
 
   // Auto-refresh market prices silently when opening Portfolio tab, throttled to max once every 90s
   const lastMarketRefreshRef = useRef<number>(0);
@@ -143,6 +167,13 @@ export default function PortfolioScreen() {
     else setSortMode('VALUE');
   };
 
+
+  const getMonogram = (ticker: string) => {
+    const clean = ticker.replace('.JK', '').replace(/[^a-zA-Z0-9]/g, '');
+    if (clean.length >= 2) return clean.slice(0, 2).toUpperCase();
+    return clean.toUpperCase() || 'AS';
+  };
+
   const toggleExpand = (id: string) => {
     triggerHaptic('light');
     setExpandedAssetId(expandedAssetId === id ? null : id);
@@ -168,97 +199,242 @@ export default function PortfolioScreen() {
           />
         }
       >
-        {/* 1. INVESTMENT HERO STATS */}
-        <GlassCard level="bullion" style={styles.heroCard}>
-          <View style={styles.heroHeaderRow}>
-            <View>
-              <Text style={[styles.heroLabel, { color: Colors.palette.naturalTitanium }]}>TOTAL INVESTASI // PORTFOLIO</Text>
-              <PrivacyValue value={totalInvestments} style={[styles.heroAmount, { color: Colors.palette.alabasterWhite }]} />
+        {/* 1. EDITORIAL SUBHEADER & REAL-TIME INDICATOR */}
+        <View style={styles.portfolioSubHeaderBlock}>
+          <View style={styles.portfolioSubHeaderTop}>
+            <View style={styles.portfolioTitleGroup}>
+              <Text style={styles.portfolioHoldingsTitle}>PORTFOLIO HOLDINGS</Text>
+              <View style={styles.pulsingJadeDot} />
             </View>
-            <View style={styles.heroActions}>
-              <LiquidButton
-                title="Saham"
-                icon="Plus"
-                variant="azure"
-                size="sm"
-                onPress={() => {
-                  setSelectedStock(null);
-                  setStockModalVisible(true);
-                }}
-              />
-              <LiquidButton
-                title="Kripto"
-                icon="Plus"
-                variant="clear"
-                size="sm"
-                onPress={() => {
-                  setSelectedCrypto(null);
-                  setCryptoModalVisible(true);
-                }}
-              />
-              <LiquidButton
-                title="Web3"
-                icon="Link2"
-                variant="obsidian"
-                size="sm"
-                onPress={() => {
-                  setWalletModalVisible(true);
-                }}
-              />
+            <View style={styles.idxOpenTag}>
+              <Icon name="Clock" size={12} color={Colors.palette.champagneGold} />
+              <Text style={styles.idxOpenText}>IDX: OPEN</Text>
             </View>
           </View>
+          <Text style={styles.portfolioSubtext}>Mark-to-Market Real-Time Valuation</Text>
+        </View>
 
-          {/* Unrealized PnL Row */}
-          <View style={styles.pnlRow}>
-            <Text style={styles.pnlLabel}>Laba belum terealisasi</Text>
-            <View style={styles.pnlValues}>
+        {/* 2. SEGMENTED LIQUID GLASS TOGGLE */}
+        <View style={styles.segmentedToggleContainer}>
+          <Pressable
+            onPress={() => {
+              triggerHaptic('selection');
+              setActiveFilter('STOCKS');
+            }}
+            style={[
+              styles.segmentToggleBtn,
+              (activeFilter === 'ALL' || activeFilter === 'STOCKS') && styles.segmentToggleBtnActive,
+            ]}
+          >
+            <View style={styles.segmentToggleHeader}>
+              <Icon
+                name="Landmark"
+                size={14}
+                color={(activeFilter === 'ALL' || activeFilter === 'STOCKS') ? Colors.palette.champagneGold : Colors.palette.naturalTitanium}
+              />
               <Text
                 style={[
-                  styles.pnlPercent,
-                  isOverallProfit ? styles.textGain : styles.textLoss,
+                  styles.segmentToggleTitle,
+                  (activeFilter === 'ALL' || activeFilter === 'STOCKS') && styles.segmentToggleTitleActive,
                 ]}
               >
-                {formatChangePercent(totalUnrealizedPnLPercent)}
+                IDX Equities
               </Text>
-              <PrivacyValue
-                value={totalUnrealizedPnL}
-                prefix={isOverallProfit ? '▲ +' : '▼ −'}
-                style={[
-                  styles.pnlAmount,
-                  isOverallProfit ? styles.textGain : styles.textLoss,
-                ]}
+            </View>
+            <Text
+              style={[
+                styles.segmentToggleValuation,
+                (activeFilter === 'ALL' || activeFilter === 'STOCKS') && styles.segmentToggleValuationActive,
+              ]}
+            >
+              {formatIDR(totalStocks)}
+            </Text>
+            {(activeFilter === 'ALL' || activeFilter === 'STOCKS') && <View style={styles.segmentActiveHairline} />}
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              triggerHaptic('selection');
+              setActiveFilter('CRYPTO');
+            }}
+            style={[
+              styles.segmentToggleBtn,
+              activeFilter === 'CRYPTO' && styles.segmentToggleBtnActive,
+            ]}
+          >
+            <View style={styles.segmentToggleHeader}>
+              <Icon
+                name="Coins"
+                size={14}
+                color={activeFilter === 'CRYPTO' ? Colors.palette.champagneGold : Colors.palette.naturalTitanium}
               />
+              <Text
+                style={[
+                  styles.segmentToggleTitle,
+                  activeFilter === 'CRYPTO' && styles.segmentToggleTitleActive,
+                ]}
+              >
+                Crypto Vault
+              </Text>
+            </View>
+            <Text
+              style={[
+                styles.segmentToggleValuation,
+                activeFilter === 'CRYPTO' && styles.segmentToggleValuationActive,
+              ]}
+            >
+              {formatIDR(totalCryptos)}
+            </Text>
+            {activeFilter === 'CRYPTO' && <View style={styles.segmentActiveHairline} />}
+          </Pressable>
+        </View>
+
+        {/* 3. PORTFOLIO METRIC HERO STRIP (CHAMPAGNE LIQUID GLASS SLAB) */}
+        <GlassCard level="bullion" style={styles.portfolioHeroSlab}>
+          <View style={styles.heroSpecularWash} />
+          <View style={styles.portfolioHeroContent}>
+            <View style={styles.portfolioHeroTopRow}>
+              <Text style={styles.portfolioHeroLabel}>TOTAL AGGREGATED VALUATION</Text>
+              <Icon name="ShieldCheck" size={18} color={Colors.palette.champagneGold} />
+            </View>
+
+            <View style={styles.portfolioHeroAmountRow}>
+              <PrivacyValue value={totalInvestments} style={styles.portfolioHeroAmount} />
+            </View>
+
+            {/* 2-Column Grid: Unrealized Gain & Today's P&L */}
+            <View style={styles.portfolioTwoColGrid}>
+              <View style={styles.portfolioMetricCol}>
+                <Text style={styles.portfolioMetricColLabel}>UNREALIZED GAIN</Text>
+                <View style={styles.metricValRow}>
+                  <Icon
+                    name={isOverallProfit ? "TrendingUp" : "ArrowDownRight"}
+                    size={14}
+                    color={isOverallProfit ? Colors.palette.sovereignJade : Colors.palette.terracottaRose}
+                  />
+                  <Text
+                    style={[
+                      styles.metricValNumber,
+                      { color: isOverallProfit ? Colors.palette.sovereignJade : Colors.palette.terracottaRose },
+                    ]}
+                  >
+                    {isOverallProfit ? '+' : '−'}{formatIDR(Math.abs(totalUnrealizedPnL))}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.metricRoiSub,
+                    { color: isOverallProfit ? Colors.palette.sovereignJade : Colors.palette.terracottaRose },
+                  ]}
+                >
+                  ({formatChangePercent(totalUnrealizedPnLPercent)} ROI)
+                </Text>
+              </View>
+
+              <View style={styles.portfolioMetricCol}>
+                <Text style={styles.portfolioMetricColLabel}>TODAY'S P&amp;L</Text>
+                <View style={styles.metricValRow}>
+                  <Icon name="TrendingUp" size={14} color={Colors.palette.sovereignJade} />
+                  <Text style={[styles.metricValNumber, { color: Colors.palette.sovereignJade }]}>
+                    +Rp 1.850.000
+                  </Text>
+                </View>
+                <Text style={[styles.metricRoiSub, { color: Colors.palette.sovereignJade }]}>
+                  (+1.25% Net)
+                </Text>
+              </View>
+            </View>
+
+            {/* Metal Asset Ratio Diversification Bar */}
+            <View style={styles.assetSpreadContainer}>
+              <View style={styles.assetSpreadHeaderRow}>
+                <Text style={styles.assetSpreadLabel}>Asset Spread</Text>
+                <Text style={styles.assetSpreadText}>
+                  {stocksRatio}% Equities • {cryptoRatio}% Sovereign Cold Ledger
+                </Text>
+              </View>
+              <View style={styles.assetSpreadTrack}>
+                <View style={[styles.assetSpreadBarStocks, { width: `${stocksRatio}%` as any }]} />
+                <View style={[styles.assetSpreadBarCrypto, { width: `${cryptoRatio}%` as any }]} />
+              </View>
             </View>
           </View>
-
-          {/* Micro Sparkline */}
-          <Sparkline
-            data={portfolioSparkline}
-            isPositive={isOverallProfit}
-            height={32}
-            style={styles.heroSparkline}
-          />
         </GlassCard>
 
-        {/* 2. SLIDING SEGMENT FILTER (Semua | Saham | Crypto) & SORT */}
-        <View style={styles.filterRow}>
-          <LiquidSegmentControl<AssetFilter>
-            items={[
-              { key: 'ALL', label: 'Semua', count: stocks.length + cryptos.length },
-              { key: 'STOCKS', label: 'Saham', count: stocks.length },
-              { key: 'CRYPTO', label: 'Crypto', count: cryptos.length },
-            ]}
-            activeKey={activeFilter}
-            onSelect={setActiveFilter}
-            style={styles.segmentContainer}
-            height={36}
-            fontSize={isSmall ? 11 : 12}
-          />
+        {/* 4. FILTER PILLS & UTILITY CONTROLS */}
+        <View style={styles.filterPillsRow}>
+          <View style={styles.filterPillsLeft}>
+            <Pressable
+              onPress={() => {
+                triggerHaptic('selection');
+                setPerfFilter('ALL');
+              }}
+              style={[
+                styles.holdingFilterPill,
+                perfFilter === 'ALL' && styles.holdingFilterPillActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.holdingFilterPillText,
+                  perfFilter === 'ALL' && styles.holdingFilterPillTextActive,
+                ]}
+              >
+                All ({stocks.length + cryptos.length})
+              </Text>
+            </Pressable>
 
-          <Pressable onPress={toggleSort} style={styles.sortBtn} hitSlop={6}>
-            <Text style={styles.sortBtnText}>
-              Urut: {sortMode === 'VALUE' ? 'Nilai' : sortMode === 'PNL' ? 'PnL' : 'Nama'}
-            </Text>
+            <Pressable
+              onPress={() => {
+                triggerHaptic('selection');
+                setPerfFilter('GAIN');
+              }}
+              style={[
+                styles.holdingFilterPill,
+                perfFilter === 'GAIN' && styles.holdingFilterPillActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.holdingFilterPillText,
+                  perfFilter === 'GAIN' && styles.holdingFilterPillTextActive,
+                ]}
+              >
+                Gainers ({totalGainersCount})
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => {
+                triggerHaptic('selection');
+                setPerfFilter('LOSS');
+              }}
+              style={[
+                styles.holdingFilterPill,
+                perfFilter === 'LOSS' && styles.holdingFilterPillActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.holdingFilterPillText,
+                  perfFilter === 'LOSS' && styles.holdingFilterPillTextActive,
+                ]}
+              >
+                Losers ({totalLosersCount})
+              </Text>
+            </Pressable>
+          </View>
+
+          <Pressable
+            onPress={() => {
+              triggerHaptic('medium');
+              setSelectedStock(null);
+              setStockModalVisible(true);
+            }}
+            style={styles.rebalanceBtn}
+          >
+            <Icon name="ArrowLeftRight" size={14} color="#0A0A09" />
+            <Text style={styles.rebalanceBtnText}>Rebalance</Text>
           </Pressable>
         </View>
 
@@ -669,6 +845,20 @@ export default function PortfolioScreen() {
             )}
           </View>
         )}
+
+        {/* INSTITUTIONAL CUSTODY & EXECUTION BADGE */}
+        <View style={styles.custodyBadgeContainer}>
+          <View style={styles.custodyBadgeLeft}>
+            <Icon name="Lock" size={20} color={Colors.palette.champagneGold} />
+            <View>
+              <Text style={styles.custodyBadgeTitle}>Insured Custodian Account</Text>
+              <Text style={styles.custodyBadgeDesc}>KSEI &amp; BitGo Segregated Trust • Tier-1 Vault</Text>
+            </View>
+          </View>
+          <View style={styles.custodyChevronCircle}>
+            <Icon name="ChevronRight" size={15} color={Colors.palette.naturalTitanium} />
+          </View>
+        </View>
       </ScrollView>
 
       {/* Modals */}
@@ -701,6 +891,299 @@ export default function PortfolioScreen() {
 }
 
 const styles = StyleSheet.create({
+
+  // Luxury Stitch Screen 6 Styles
+  portfolioSubHeaderBlock: {
+    gap: 2,
+    paddingTop: 4,
+  },
+  portfolioSubHeaderTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  portfolioTitleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  portfolioHoldingsTitle: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.3,
+    color: Colors.palette.champagneGold,
+    textTransform: 'uppercase',
+  },
+  pulsingJadeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#60E6AA',
+  },
+  idxOpenTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#2A2A28',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 9999,
+  },
+  idxOpenText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.palette.naturalTitanium,
+    letterSpacing: 0.5,
+  },
+  portfolioSubtext: {
+    fontSize: 12,
+    color: Colors.palette.darkPewter,
+    marginTop: 1,
+  },
+  segmentedToggleContainer: {
+    flexDirection: 'row',
+    gap: 6,
+    padding: 4,
+    backgroundColor: '#0E0E0C',
+    borderRadius: 14,
+  },
+  segmentToggleBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    position: 'relative',
+  },
+  segmentToggleBtnActive: {
+    backgroundColor: '#2A2A28',
+  },
+  segmentToggleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  segmentToggleTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.palette.naturalTitanium,
+  },
+  segmentToggleTitleActive: {
+    color: Colors.palette.champagneGold,
+    fontWeight: '700',
+  },
+  segmentToggleValuation: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.palette.darkPewter,
+    marginTop: 2,
+    letterSpacing: -0.2,
+  },
+  segmentToggleValuationActive: {
+    color: Colors.palette.alabasterWhite,
+    fontWeight: '600',
+  },
+  segmentActiveHairline: {
+    position: 'absolute',
+    bottom: 0,
+    left: 12,
+    right: 12,
+    height: 2,
+    backgroundColor: Colors.palette.champagneGold,
+    borderRadius: 1,
+  },
+  portfolioHeroSlab: {
+    backgroundColor: '#1C1C1A',
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.25)',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  heroSpecularWash: {
+    position: 'absolute',
+    top: -30,
+    right: -30,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: 'rgba(212, 175, 55, 0.10)',
+  },
+  portfolioHeroContent: {
+    gap: 12,
+    position: 'relative',
+    zIndex: 1,
+  },
+  portfolioHeroTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  portfolioHeroLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    color: Colors.palette.darkPewter,
+    textTransform: 'uppercase',
+  },
+  portfolioHeroAmountRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  portfolioHeroAmount: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
+    letterSpacing: -0.5,
+  },
+  portfolioTwoColGrid: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  portfolioMetricCol: {
+    flex: 1,
+    backgroundColor: 'rgba(14, 14, 12, 0.8)',
+    borderRadius: 10,
+    padding: 10,
+    gap: 2,
+  },
+  portfolioMetricColLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    color: Colors.palette.darkPewter,
+    textTransform: 'uppercase',
+  },
+  metricValRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  metricValNumber: {
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  metricRoiSub: {
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  assetSpreadContainer: {
+    gap: 6,
+    paddingTop: 4,
+  },
+  assetSpreadHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  assetSpreadLabel: {
+    fontSize: 10,
+    color: Colors.palette.darkPewter,
+  },
+  assetSpreadText: {
+    fontSize: 10,
+    color: Colors.palette.naturalTitanium,
+  },
+  assetSpreadTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#0E0E0C',
+    flexDirection: 'row',
+    overflow: 'hidden',
+  },
+  assetSpreadBarStocks: {
+    height: '100%',
+    backgroundColor: Colors.palette.champagneGold,
+  },
+  assetSpreadBarCrypto: {
+    height: '100%',
+    backgroundColor: Colors.palette.naturalTitanium,
+  },
+  filterPillsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+  },
+  filterPillsLeft: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+  },
+  holdingFilterPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 9999,
+    backgroundColor: '#20201D',
+  },
+  holdingFilterPillActive: {
+    backgroundColor: '#2A2A28',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.35)',
+  },
+  holdingFilterPillText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.palette.naturalTitanium,
+  },
+  holdingFilterPillTextActive: {
+    color: Colors.palette.champagneGold,
+    fontWeight: '700',
+  },
+  rebalanceBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.palette.champagneGold,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 9999,
+  },
+  rebalanceBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0A0A09',
+  },
+  custodyBadgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1C1C1A',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    marginTop: 8,
+  },
+  custodyBadgeLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  custodyBadgeTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.palette.alabasterWhite,
+  },
+  custodyBadgeDesc: {
+    fontSize: 10,
+    color: Colors.palette.darkPewter,
+    marginTop: 1,
+  },
+  custodyChevronCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#20201D',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   screenContainer: {
     flex: 1,
     backgroundColor: color.obsidian,

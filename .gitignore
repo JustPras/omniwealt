@@ -36,6 +36,9 @@ test-results/
 coverage/
 *.log
 
+# Local UI Backups
+_backup_ui_*/
+
 # Python Cache
 __pycache__/
 *.py[cod]

@@ -208,7 +208,7 @@ export const LuxuryLoader: React.FC<LuxuryLoaderProps> = ({
             <G mask="url(#rnDonutMask)">
               <Path
                 d="M 511.5 439.5 A 72 72 0 1 0 511.5 583.5 A 72 72 0 1 0 511.5 439.5 Z M 511.5 476.5 A 35 35 0 1 1 511.5 546.5 A 35 35 0 1 1 511.5 476.5 Z"
-                fill="#007AFF"
+                fill="#D4AF37"
                 fillRule="evenodd"
               />
             </G>
@@ -217,11 +217,11 @@ export const LuxuryLoader: React.FC<LuxuryLoaderProps> = ({
             <G mask="url(#rnOuterMaskLeft)">
               <Path
                 d="M 647.2 728.6 A 256 256 0 0 1 375.8 728.6 L 413.7 667.9 A 184.5 184.5 0 0 0 609.3 667.9 Z"
-                fill="#007AFF"
+                fill="#D4AF37"
               />
               <Path
                 d="M 482 257.2 L 482 329.4 A 184.5 184.5 0 0 0 384.5 645.3 L 335.3 697.2 A 256 256 0 0 1 482 257.2 Z"
-                fill="#FFFFFF"
+                fill="#F5F3EF"
               />
             </G>
 
@@ -229,11 +229,11 @@ export const LuxuryLoader: React.FC<LuxuryLoaderProps> = ({
             <G mask="url(#rnOuterMaskRight)">
               <Path
                 d="M 647.2 728.6 A 256 256 0 0 1 375.8 728.6 L 413.7 667.9 A 184.5 184.5 0 0 0 609.3 667.9 Z"
-                fill="#007AFF"
+                fill="#D4AF37"
               />
               <Path
                 d="M 541 329.4 L 541 257.2 A 256 256 0 0 1 687.7 697.2 L 638.5 645.3 A 184.5 184.5 0 0 0 541 329.4 Z"
-                fill="#FFFFFF"
+                fill="#F5F3EF"
               />
             </G>
           </Svg>
@@ -272,8 +272,8 @@ const styles = StyleSheet.create({
     width: 170,
     height: 170,
     borderRadius: 85,
-    backgroundColor: 'rgba(0, 122, 255, 0.35)',
-    shadowColor: '#007AFF',
+    backgroundColor: 'rgba(212, 175, 55, 0.25)',
+    shadowColor: '#D4AF37',
     shadowOpacity: 0.8,
     shadowRadius: 40,
     elevation: 8,

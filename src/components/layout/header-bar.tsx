@@ -34,7 +34,7 @@ export const HeaderBar: React.FC = () => {
     lastUpdated,
   } = useWealth();
 
-  // Pulse animation for LIVE indicator dot per DESIGN.md
+  // Pulse animation for LIVE indicator dot per DESIGN_SYSTEM.md
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const pulseOpacity = useRef(new Animated.Value(1)).current;
 
@@ -126,11 +126,11 @@ export const HeaderBar: React.FC = () => {
     }).start();
   };
 
-  const textColor = theme.text;
+  const textColor = Colors.palette.alabasterWhite;
 
   return (
     <View style={[styles.outerWrapper, { paddingTop: Math.max(insets.top + 4, 12) }]}>
-      {/* Floating Capsule Glass Card per DESIGN.md Section 6.1 */}
+      {/* Floating Capsule Glass Card with Warm Titanium specular border */}
       <GlassCard
         level="raised"
         radius="pill"
@@ -138,30 +138,34 @@ export const HeaderBar: React.FC = () => {
         style={styles.capsuleCard}
         contentStyle={styles.capsuleInner}
       >
-        {/* Kiri: Brand Logo Concept B Nexus (Seamless Transparent Adaptive Mark) + teks OmniWealth */}
+        {/* Left: Brand Logo + OmniWealth + LOCAL AI READY capsule badge */}
         <View style={styles.leftBrandGroup}>
-          <LogoIcon size={26} variant="adaptive" style={styles.brandLogoBadge} />
+          <LogoIcon size={24} variant="adaptive" style={styles.brandLogoBadge} />
           <View style={styles.brandTitleCol}>
             <View style={styles.brandNameRow}>
               <Text style={[styles.brandTitle, { color: textColor }]}>OmniWealth</Text>
+              {/* Top Status Capsule: ● LOCAL AI READY */}
+              <View style={styles.aiReadyCapsule}>
+                <Animated.View
+                  style={[
+                    styles.aiPulseDot,
+                    {
+                      transform: [{ scale: pulseAnim }],
+                      opacity: pulseOpacity,
+                    },
+                  ]}
+                />
+                <Text style={styles.aiReadyText}>LOCAL AI</Text>
+              </View>
             </View>
             {/* Live Indicator Sub-text */}
             <View style={styles.liveSubRow}>
-              <Animated.View
-                style={[
-                  styles.pulseDot,
-                  {
-                    transform: [{ scale: pulseAnim }],
-                    opacity: pulseOpacity,
-                  },
-                ]}
-              />
-              <Text style={[styles.liveTimeText, { color: theme.textMuted }]}>{formatTime(lastUpdated.toISOString())}</Text>
+              <Text style={styles.liveTimeText}>{formatTime(lastUpdated.toISOString())} • AIR-GAPPED</Text>
             </View>
           </View>
         </View>
 
-        {/* Kanan: LiquidSegmentControl (IDR/USD) + Tema Terang/Gelap + Refresh + Privacy Mode */}
+        {/* Right: Currency Switcher + Theme Toggle + Refresh + Privacy Eye */}
         <View style={styles.rightActionGroup}>
           {/* Liquid Currency Switcher (IDR / USD) */}
           <LiquidSegmentControl
@@ -177,7 +181,7 @@ export const HeaderBar: React.FC = () => {
             style={styles.currencySegmentControl}
           />
 
-          {/* Theme Mode Toggle Button (Light ☀️ / Dark 🌙) */}
+          {/* Theme Mode Toggle Button (Light / Dark) */}
           <Pressable
             onPress={() => {
               triggerHaptic('medium');
@@ -194,15 +198,15 @@ export const HeaderBar: React.FC = () => {
                 styles.circularGlassButton,
                 {
                   transform: [{ scale: themeScale }],
-                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.65)',
-                  borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(15, 23, 42, 0.15)',
+                  backgroundColor: 'rgba(245, 243, 239, 0.05)',
+                  borderColor: 'rgba(255, 255, 255, 0.12)',
                 },
               ]}
             >
               <Icon
                 name={isDark ? 'Sun' : 'Moon'}
                 size={14}
-                color={isDark ? '#F59E0B' : '#0F172A'}
+                color={Colors.palette.champagneGold}
               />
             </Animated.View>
           </Pressable>
@@ -226,8 +230,8 @@ export const HeaderBar: React.FC = () => {
                 isRefreshing && styles.refreshingButton,
                 {
                   transform: [{ scale: refreshScale }],
-                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.65)',
-                  borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(15, 23, 42, 0.15)',
+                  backgroundColor: 'rgba(245, 243, 239, 0.05)',
+                  borderColor: 'rgba(255, 255, 255, 0.12)',
                 },
               ]}
             >
@@ -235,7 +239,7 @@ export const HeaderBar: React.FC = () => {
                 <Icon
                   name="RefreshCw"
                   size={14}
-                  color={isRefreshing ? Colors.palette.appleBlue : (isDark ? 'rgba(255, 255, 255, 0.85)' : '#334155')}
+                  color={isRefreshing ? Colors.palette.champagneGold : Colors.palette.naturalTitanium}
                 />
               </Animated.View>
             </Animated.View>
@@ -259,15 +263,15 @@ export const HeaderBar: React.FC = () => {
                 privacyMode && styles.activeEyeButton,
                 {
                   transform: [{ scale: eyeScale }],
-                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.65)',
-                  borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(15, 23, 42, 0.15)',
+                  backgroundColor: privacyMode ? 'rgba(212, 175, 55, 0.15)' : 'rgba(245, 243, 239, 0.05)',
+                  borderColor: privacyMode ? 'rgba(212, 175, 55, 0.45)' : 'rgba(255, 255, 255, 0.12)',
                 },
               ]}
             >
               {privacyMode ? (
-                <Icon name="EyeOff" size={14} color={Colors.palette.appleBlue} />
+                <Icon name="EyeOff" size={14} color={Colors.palette.champagneGold} />
               ) : (
-                <Icon name="Eye" size={14} color={isDark ? 'rgba(255, 255, 255, 0.85)' : '#334155'} />
+                <Icon name="Eye" size={14} color={Colors.palette.naturalTitanium} />
               )}
             </Animated.View>
           </Pressable>
@@ -286,6 +290,8 @@ const styles = StyleSheet.create({
   capsuleCard: {
     borderRadius: radius.pill,
     ...shadow.e1,
+    backgroundColor: 'rgba(20, 20, 18, 0.82)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
   },
   capsuleInner: {
     flexDirection: 'row',
@@ -304,16 +310,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dropletIconBadge: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'rgba(0, 122, 255, 0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 122, 255, 0.25)',
-  },
   brandTitleCol: {
     justifyContent: 'center',
   },
@@ -323,9 +319,32 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   brandTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
     letterSpacing: -0.3,
+  },
+  aiReadyCapsule: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 999,
+    backgroundColor: 'rgba(46, 189, 133, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(46, 189, 133, 0.30)',
+  },
+  aiPulseDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.palette.sovereignJade,
+  },
+  aiReadyText: {
+    fontSize: 8.5,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    color: Colors.palette.sovereignJade,
   },
   liveSubRow: {
     flexDirection: 'row',
@@ -333,39 +352,33 @@ const styles = StyleSheet.create({
     gap: 5,
     marginTop: 1,
   },
-  pulseDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: '#34C759',
-  },
   liveTimeText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '600',
-    color: Colors.palette.appleMuted,
+    color: Colors.palette.darkPewter,
     fontVariant: ['tabular-nums'],
   },
   rightActionGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 7,
   },
   currencySegmentControl: {
-    width: 76,
+    width: 68,
   },
   circularGlassButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   refreshingButton: {
-    borderColor: Colors.palette.appleBlue,
+    borderColor: Colors.palette.champagneGold,
   },
   activeEyeButton: {
-    borderColor: Colors.palette.appleBlue,
-    backgroundColor: 'rgba(0, 122, 255, 0.12)',
+    borderColor: Colors.palette.champagneGold,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
   },
 });

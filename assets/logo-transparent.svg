@@ -1,21 +1,65 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <!-- Actor 1: Top-Left White Arc -->
-  <path id="whiteLeftArc"
-    d="M 482 257.2 L 482 329.4 A 184.5 184.5 0 0 0 384.5 645.3 L 335.3 697.2 A 256 256 0 0 1 482 257.2 Z"
-    fill="#FFFFFF" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5E6B3" />
+      <stop offset="30%" stop-color="#E8CA65" />
+      <stop offset="70%" stop-color="#D4AF37" />
+      <stop offset="100%" stop-color="#997E20" />
+    </linearGradient>
+    <linearGradient id="titaniumGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="45%" stop-color="#F5F3EF" />
+      <stop offset="85%" stop-color="#A39E93" />
+      <stop offset="100%" stop-color="#78716C" />
+    </linearGradient>
+  </defs>
 
-  <!-- Actor 2: Top-Right White Arc -->
-  <path id="whiteRightArc"
-    d="M 541 329.4 L 541 257.2 A 256 256 0 0 1 687.7 697.2 L 638.5 645.3 A 184.5 184.5 0 0 0 541 329.4 Z"
-    fill="#FFFFFF" />
+  <g id="omni-mark">
+    <!-- Pillar 1: Liquid Cash & Banking Arc (Left) in Natural Titanium -->
+    <path id="arc-left" fill="url(#titaniumGrad)" d="
+      M 116 22
+      C 58 28 22 72 22 128
+      C 22 158 35 186 56 206
+      L 76 182
+      C 62 167 52 148 52 128
+      C 52 86 78 52 116 48
+      Z
+    "/>
 
-  <!-- Actor 3: Bottom Blue Arc -->
-  <path id="blueBottomArc"
-    d="M 647.2 728.6 A 256 256 0 0 1 375.8 728.6 L 413.7 667.9 A 184.5 184.5 0 0 0 609.3 667.9 Z"
-    fill="#007AFF" />
+    <!-- Pillar 2: Capital Markets & IDX Equities Arc (Right) in Natural Titanium -->
+    <path id="arc-right" fill="url(#titaniumGrad)" d="
+      M 140 22
+      C 198 28 234 72 234 128
+      C 234 158 221 186 200 206
+      L 180 182
+      C 194 167 204 148 204 128
+      C 204 86 178 52 140 48
+      Z
+    "/>
 
-  <!-- Actor 4: Center Blue Donut -->
-  <path id="centerDonut"
-    d="M 511.5 439.5 A 72 72 0 1 0 511.5 583.5 A 72 72 0 1 0 511.5 439.5 Z M 511.5 476.5 A 35 35 0 1 1 511.5 546.5 A 35 35 0 1 1 511.5 476.5 Z"
-    fill="#007AFF" fill-rule="evenodd" />
+    <!-- Pillar 3: Web3 & Growth Catalyst Arc (Bottom Base) in Champagne Gold -->
+    <path id="arc-bottom" fill="url(#goldGrad)" d="
+      M 72 216
+      C 88 228 107 236 128 236
+      C 149 236 168 228 184 216
+      L 168 194
+      C 156 202 143 208 128 208
+      C 113 208 100 202 88 194
+      Z
+    "/>
+
+    <!-- Central Asset Nexus Ring in Radiant Champagne Gold -->
+    <path id="nexus-core" fill="url(#goldGrad)" fill-rule="evenodd" d="
+      M 128 98
+      C 144.6 98 158 111.4 158 128
+      C 158 144.6 144.6 158 128 158
+      C 111.4 158 98 144.6 98 128
+      C 98 111.4 111.4 98 128 98 Z
+      M 128 114
+      C 120.3 114 114 120.3 114 128
+      C 114 135.7 120.3 142 128 142
+      C 135.7 142 142 135.7 142 128
+      C 142 120.3 135.7 114 128 114 Z
+    "/>
+  </g>
 </svg>

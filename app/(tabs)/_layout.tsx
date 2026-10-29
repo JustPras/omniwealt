@@ -14,7 +14,7 @@ import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, IconName } from '../../src/components/common/icon';
 import { triggerHaptic } from '../../src/utils/haptics';
-import { useTheme, radius, shadow, motion, Theme, themes, isDarkTheme } from '../../src/theme/tokens';
+import { useTheme, radius, shadow, motion, Theme, themes, isDarkTheme, Colors } from '../../src/theme/tokens';
 
 interface AnimatedTabIconProps {
   name: IconName;
@@ -24,7 +24,6 @@ interface AnimatedTabIconProps {
 }
 
 const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = React.memo(({ name, focused, isDark, size }) => {
-  const theme = useTheme();
   const anim = useRef(new Animated.Value(focused ? 1 : 0)).current;
 
   useEffect(() => {
@@ -46,15 +45,10 @@ const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = React.memo(({ name, focu
     outputRange: [0.5, -1.5],
   });
 
-  // Dynamic Icon Contrast:
-  // Daytime (Light): Deep Obsidian Ink (#0F172A)
-  // Nighttime (Dark): Pure Glowing White (#FFFFFF)
-  // Focused: White (#FFFFFF) inside the dark inset pod
+  // Dynamic Icon Contrast: Champagne Gold when focused, Natural Titanium when unfocused
   const iconColor = focused
-    ? '#FFFFFF'
-    : isDark
-    ? '#FFFFFF'
-    : '#0F172A';
+    ? Colors.palette.champagneGold
+    : Colors.palette.naturalTitanium;
 
   return (
     <Animated.View
@@ -117,10 +111,8 @@ const TabBarButton: React.FC<TabBarButtonProps> = React.memo(
     const iconName: IconName = TAB_ICONS[route.name] || 'LayoutDashboard';
 
     const labelColor = isFocused
-      ? '#FFFFFF'
-      : isDark
-      ? '#FFFFFF'
-      : '#0F172A';
+      ? Colors.palette.champagneGold
+      : Colors.palette.naturalTitanium;
 
     return (
       <Pressable
@@ -151,7 +143,7 @@ const TabBarButton: React.FC<TabBarButtonProps> = React.memo(
               styles.tabBarLabel,
               {
                 color: labelColor,
-                fontWeight: isFocused ? '800' : '700',
+                fontWeight: isFocused ? '700' : '500',
               },
             ]}
           >
@@ -170,9 +162,9 @@ const TabBarBackground = React.memo(({ theme, isDark }: { theme: Theme; isDark: 
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.20)',
+            backgroundColor: 'rgba(20, 20, 18, 0.82)',
             // @ts-ignore
-            backdropFilter: 'blur(3px) saturate(190%) contrast(105%)',
+            backdropFilter: 'blur(20px) saturate(190%)',
           },
         ]}
       />
@@ -184,17 +176,17 @@ const TabBarBackground = React.memo(({ theme, isDark }: { theme: Theme; isDark: 
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.85)',
+            backgroundColor: 'rgba(20, 20, 18, 0.92)',
             borderRadius: radius.pill,
           },
         ]}
       />
     );
   }
-  return <BlurView intensity={3} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />;
+  return <BlurView intensity={25} tint="dark" style={StyleSheet.absoluteFill} />;
 });
 
-// Liquid Glass Continuous Tab Bar Component with Smooth Flowing Water Animation
+// Liquid Glass Continuous Tab Bar Component with Champagne Gold Wave Animation
 const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
   state,
   descriptors,
@@ -218,7 +210,6 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
   const effectiveWidth = rowWidth > 0 ? rowWidth : width - (isSmallScreen ? 20 : 28);
   const tabWidth = effectiveWidth / numTabs;
 
-  // Active pod fills the initial menu nicely ("menu yg penuh")
   const capsuleWidth = Math.min(Math.max(tabWidth - 6, 60), 84);
   const capsuleHeight = 52;
   const barHeight = 64;
@@ -235,24 +226,17 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
     if (fromIndex !== toIndex) {
       previousIndex.current = toIndex;
       const distance = Math.abs(toIndex - fromIndex);
-
-      // Dynamic water stretch factor based on distance:
-      // 1 tab: 1.35x stretch
-      // 2 tabs: 1.60x stretch
-      // 3 tabs: 1.85x stretch
       const maxStretch = Math.min(1.0 + distance * 0.32, 1.95);
 
       waveAnim.setValue(0);
 
       Animated.parallel([
-        // 1. Water center fluid spring glide
         Animated.spring(currentPosition, {
           toValue: toIndex,
           tension: 165,
           friction: 14,
           useNativeDriver: true,
         }),
-        // 2. Viscous water stream surge: stretches forward then contracts into new menu
         Animated.sequence([
           Animated.timing(flowSurge, {
             toValue: maxStretch,
@@ -267,7 +251,6 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
             useNativeDriver: true,
           }),
         ]),
-        // 3. Shimmering water wave flowing along the stream
         Animated.timing(waveAnim, {
           toValue: 1,
           duration: 320,
@@ -278,7 +261,6 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
     }
   }, [state.index, currentPosition, flowSurge, waveAnim]);
 
-  // Interpolate continuous sliding translateX
   const inputRange = useMemo(() => state.routes.map((_, i) => i), [numTabs]);
   const outputRange = useMemo(
     () => state.routes.map((_, i) => getTabCenterX(i)),
@@ -291,7 +273,6 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
     extrapolate: 'clamp',
   });
 
-  // Viscous fluid mass conservation per DESIGN.md Section 1 & 5.2: stretch 1.14, squash 0.90
   const scaleX = flowSurge.interpolate({
     inputRange: [0, 1],
     outputRange: [1.0, 1.14],
@@ -302,17 +283,6 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
     outputRange: [1.0, 0.90],
   });
 
-  // Flowing wave shimmer across the water stream
-  const waveTranslateX = waveAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-capsuleWidth * 0.8, capsuleWidth * 0.8],
-  });
-
-  const waveOpacity = waveAnim.interpolate({
-    inputRange: [0, 0.25, 0.75, 1],
-    outputRange: [0, 0.7, 0.7, 0],
-  });
-
   return (
     <View
       style={[
@@ -321,8 +291,6 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
           bottom: Math.max(insets.bottom + 6, 14),
           left: isSmallScreen ? 10 : 14,
           right: isSmallScreen ? 10 : 14,
-          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.20)',
-          borderColor: isDark ? 'rgba(255, 255, 255, 0.58)' : 'rgba(255, 255, 255, 0.85)',
         },
       ]}
     >
@@ -351,34 +319,16 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
           ]}
         >
           {/* Inner clipped liquid container for wave shimmer and water lens */}
-          <View
-            style={[
-              styles.liquidInnerContainer,
-              {
-                backgroundColor: isDark
-                  ? 'rgba(35, 45, 60, 0.90)'
-                  : 'rgba(15, 23, 42, 0.94)',
-                borderColor: 'rgba(255, 255, 255, 0.40)',
-              },
-            ]}
-          >
+          <View style={styles.liquidInnerContainer}>
             {/* Specular Water Meniscus Arc on Top Rim */}
             <View style={styles.specularGlossGlint} />
           </View>
 
-          {/* Ambient Glowing Bottom Active Water Droplet */}
-          <View
-            style={[
-              styles.liquidActiveDot,
-              {
-                backgroundColor: theme.tint,
-                shadowColor: theme.tint,
-              },
-            ]}
-          />
+          {/* Ambient Glowing Bottom Active Gold Droplet */}
+          <View style={styles.liquidActiveDot} />
         </Animated.View>
 
-        {/* Interactive Tab Buttons */}
+        {/* Interactive Tab Buttons with min 44x44px touch targets */}
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;
@@ -429,8 +379,6 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
 };
 
 export default function TabsLayout() {
-  const theme = useTheme();
-
   return (
     <View style={{ flex: 1, backgroundColor: 'transparent' }}>
       <Tabs
@@ -500,8 +448,10 @@ const styles = StyleSheet.create({
   tabBarContainer: {
     position: 'absolute',
     height: 64,
-    borderRadius: radius.pill, // 9999 floating dock per DESIGN.md Section 6.6
-    borderWidth: 1.5,
+    borderRadius: radius.pill,
+    borderWidth: 1.2,
+    borderColor: 'rgba(255, 255, 255, 0.14)',
+    backgroundColor: 'rgba(20, 20, 18, 0.85)',
     ...shadow.e2,
     overflow: 'hidden',
   },
@@ -517,32 +467,19 @@ const styles = StyleSheet.create({
     zIndex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#007AFF',
+    shadowColor: Colors.palette.champagneGold,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 14,
-    shadowOpacity: 0.45,
+    shadowOpacity: 0.35,
     elevation: 6,
   },
   liquidInnerContainer: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: radius.pill,
-    borderWidth: 1.5,
+    borderWidth: 1.2,
+    backgroundColor: 'rgba(212, 175, 55, 0.14)',
+    borderColor: 'rgba(212, 175, 55, 0.45)',
     overflow: 'hidden',
-  },
-  liquidNucleus: {
-    position: 'absolute',
-    top: 3,
-    bottom: 3,
-    left: 5,
-    right: 5,
-    borderRadius: radius.pill,
-  },
-  waterWaveShimmer: {
-    position: 'absolute',
-    width: 38,
-    height: '110%',
-    backgroundColor: 'rgba(255, 255, 255, 0.28)',
-    borderRadius: 18,
   },
   specularGlossGlint: {
     position: 'absolute',
@@ -551,14 +488,16 @@ const styles = StyleSheet.create({
     right: '8%',
     height: 2.5,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: 'rgba(212, 175, 55, 0.75)',
   },
   liquidActiveDot: {
     position: 'absolute',
     bottom: 3.5,
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.palette.champagneGold,
+    shadowColor: Colors.palette.champagneGold,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.95,
     shadowRadius: 5,
@@ -566,6 +505,8 @@ const styles = StyleSheet.create({
   },
   tabItemPressable: {
     flex: 1,
+    minHeight: 44,
+    minWidth: 44,
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
@@ -584,7 +525,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   tabBarLabel: {
-    fontSize: 11,
+    fontSize: 10.5,
     letterSpacing: -0.2,
     marginTop: 1,
   },

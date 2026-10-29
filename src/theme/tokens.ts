@@ -8,34 +8,36 @@ export { Colors };
 export const themes = {
   light: {
     id: 'light',
-    canvas: 'transparent',
-    text: '#0F172A', // Deep dark obsidian ink (High-contrast for daytime)
-    textMuted: '#334155', // Slate 700
-    textFaint: '#64748B', // Slate 500
-    textSecondary: '#334155',
-    tint: Colors.palette.appleBlue, // #007AFF
-    tintText: '#0066CC',
-    onTint: '#FFFFFF',
+    canvas: Colors.palette.canvas, // OLED Warm Carbon
+    text: Colors.palette.alabasterWhite, // #F5F3EF
+    textMuted: Colors.palette.naturalTitanium, // #A39E93
+    textFaint: Colors.palette.darkPewter, // #57534E
+    textSecondary: Colors.palette.naturalTitanium,
+    tint: Colors.palette.champagneGold, // #D4AF37
+    tintText: Colors.palette.champagneGoldLight,
+    onTint: '#0A0A09',
     glass: {
-      frost: 'rgba(255, 255, 255, 0.40)',
-      lens: 'rgba(255, 255, 255, 0.20)',
-      inset: 'rgba(255, 255, 255, 0.65)',
-      tint: 'rgba(0, 122, 255, 0.88)',
+      frost: 'rgba(245, 243, 239, 0.05)',
+      lens: 'rgba(245, 243, 239, 0.02)',
+      inset: 'rgba(20, 20, 18, 0.75)',
+      tint: 'rgba(212, 175, 55, 0.25)',
     },
     rim: {
-      hi: 'rgba(255, 255, 255, 0.95)',
-      mid: 'rgba(255, 255, 255, 0.85)',
-      lo: 'rgba(255, 255, 255, 0.60)',
+      hi: 'rgba(212, 175, 55, 0.45)',
+      mid: 'rgba(255, 255, 255, 0.16)',
+      lo: 'rgba(255, 255, 255, 0.05)',
     },
-    hairline: 'rgba(15, 23, 42, 0.15)',
-    gain: '#16A34A',
-    loss: '#DC2626',
+    hairline: 'rgba(255, 255, 255, 0.08)',
+    dividerDashed: 'rgba(255, 255, 255, 0.10)',
+    gain: Colors.palette.sovereignJade, // #2EBD85
+    loss: Colors.palette.terracottaRose, // #E15241
     asset: {
-      cash: '#334155',
-      stock: '#0F172A',
-      crypto: Colors.palette.appleBlue,
+      cash: Colors.palette.titaniumSilver, // #94A3B8
+      stock: Colors.palette.champagneGold, // #D4AF37
+      crypto: Colors.palette.burnishedCopper, // #E07A5F
+      rdn: Colors.palette.sovereignJade, // #2EBD85
     },
-    dockIcon: '#0F172A',
+    dockIcon: Colors.palette.alabasterWhite,
     liquidGlass: {
       blur: 3,
       specularGloss: 0.85,
@@ -43,41 +45,43 @@ export const themes = {
       tint: 0.03,
     },
     lights: [
-      { color: Colors.palette.appleBlue, alpha: 0.10, at: 'topLeft' },
-      { color: '#FFFFFF', alpha: 0.15, at: 'bottomRight' },
+      { color: Colors.palette.champagneGold, alpha: 0.12, at: 'topLeft' },
+      { color: '#FFFFFF', alpha: 0.06, at: 'bottomRight' },
     ],
     elev: { e1: 0.08, e2: 0.14 },
   },
   dark: {
     id: 'dark',
-    canvas: 'transparent',
-    text: '#FFFFFF', // Pure crisp white (Glowing for nighttime)
-    textMuted: 'rgba(255, 255, 255, 0.75)',
-    textFaint: 'rgba(255, 255, 255, 0.50)',
-    textSecondary: 'rgba(255, 255, 255, 0.85)',
-    tint: Colors.palette.appleBlue, // #007AFF
-    tintText: '#0A84FF',
-    onTint: '#FFFFFF',
+    canvas: Colors.palette.canvas, // OLED Warm Carbon #0A0A09
+    text: Colors.palette.alabasterWhite, // #F5F3EF
+    textMuted: Colors.palette.naturalTitanium, // #A39E93
+    textFaint: Colors.palette.darkPewter, // #57534E
+    textSecondary: Colors.palette.naturalTitanium,
+    tint: Colors.palette.champagneGold, // #D4AF37
+    tintText: Colors.palette.champagneGoldLight,
+    onTint: '#0A0A09',
     glass: {
-      frost: 'rgba(255, 255, 255, 0.05)',
-      lens: 'rgba(255, 255, 255, 0.03)',
-      inset: 'rgba(0, 0, 0, 0.45)',
-      tint: 'rgba(0, 122, 255, 0.82)',
+      frost: 'rgba(245, 243, 239, 0.04)',
+      lens: 'rgba(245, 243, 239, 0.015)',
+      inset: 'rgba(20, 20, 18, 0.85)',
+      tint: 'rgba(212, 175, 55, 0.20)',
     },
     rim: {
-      hi: 'rgba(255, 255, 255, 0.70)',
-      mid: 'rgba(255, 255, 255, 0.58)',
-      lo: 'rgba(255, 255, 255, 0.25)',
+      hi: 'rgba(212, 175, 55, 0.40)',
+      mid: 'rgba(255, 255, 255, 0.14)',
+      lo: 'rgba(255, 255, 255, 0.03)',
     },
-    hairline: 'rgba(255, 255, 255, 0.12)',
-    gain: '#30D158',
-    loss: '#FF453A',
+    hairline: 'rgba(255, 255, 255, 0.08)',
+    dividerDashed: 'rgba(255, 255, 255, 0.10)',
+    gain: Colors.palette.sovereignJade, // #2EBD85
+    loss: Colors.palette.terracottaRose, // #E15241
     asset: {
-      cash: 'rgba(255, 255, 255, 0.75)',
-      stock: '#FFFFFF',
-      crypto: '#FF9F0A',
+      cash: Colors.palette.titaniumSilver, // #94A3B8
+      stock: Colors.palette.champagneGold, // #D4AF37
+      crypto: Colors.palette.burnishedCopper, // #E07A5F
+      rdn: Colors.palette.sovereignJade, // #2EBD85
     },
-    dockIcon: '#FFFFFF',
+    dockIcon: Colors.palette.alabasterWhite,
     liquidGlass: {
       blur: 3,
       specularGloss: 0.70,
@@ -85,8 +89,8 @@ export const themes = {
       tint: 0.03,
     },
     lights: [
-      { color: Colors.palette.appleBlue, alpha: 0.20, at: 'bottomRight' },
-      { color: '#FFFFFF', alpha: 0.05, at: 'topLeft' },
+      { color: Colors.palette.champagneGold, alpha: 0.15, at: 'topLeft' },
+      { color: '#FFFFFF', alpha: 0.04, at: 'bottomRight' },
     ],
     elev: { e1: 0.28, e2: 0.42 },
   },
@@ -170,26 +174,35 @@ export const useThemeController = (): ThemeContextType => {
 const activeTheme = themes.dark;
 
 export const color = {
-  obsidian: Colors.palette.appleInk,
-  canvas: activeTheme.canvas,
-  text: activeTheme.text,
-  textMuted: Colors.palette.appleMuted,
-  textFaint: activeTheme.textFaint,
+  obsidian: Colors.palette.canvas,
+  canvas: Colors.palette.canvas,
+  elevated: Colors.palette.elevated,
+  text: Colors.palette.alabasterWhite,
+  textMuted: Colors.palette.naturalTitanium,
+  textFaint: Colors.palette.darkPewter,
 
-  tint: Colors.palette.appleBlue,
+  tint: Colors.palette.champagneGold,
   tintText: activeTheme.tintText,
   onTint: activeTheme.onTint,
 
-  // Apple Modern palette direct access
-  appleBg: Colors.palette.appleBg,
-  appleInk: Colors.palette.appleInk,
-  appleMuted: Colors.palette.appleMuted,
-  appleBlue: Colors.palette.appleBlue,
+  // Warm Titanium & Champagne palette direct access
+  champagne: Colors.palette.champagneGold,
+  champagneLight: Colors.palette.champagneGoldLight,
+  champagneDark: Colors.palette.champagneGoldDark,
+  jade: Colors.palette.sovereignJade,
+  terracotta: Colors.palette.terracottaRose,
+  titanium: Colors.palette.naturalTitanium,
+  basalt: Colors.palette.elevated,
+
+  appleBg: Colors.palette.canvas,
+  appleInk: Colors.palette.alabasterWhite,
+  appleMuted: Colors.palette.naturalTitanium,
+  appleBlue: Colors.palette.champagneGold,
 
   // Accent mappings
-  accent: Colors.palette.appleBlue,
+  accent: Colors.palette.champagneGold,
   accentSoft: activeTheme.glass.inset,
-  accentRim: activeTheme.rim.mid,
+  accentRim: activeTheme.rim.hi,
   onAccent: activeTheme.onTint,
 
   glassFill: activeTheme.glass.frost,
@@ -198,6 +211,7 @@ export const color = {
   rim: activeTheme.rim.mid,
   rimStrong: activeTheme.rim.hi,
   hairline: activeTheme.hairline,
+  dividerDashed: activeTheme.dividerDashed,
 
   gain: activeTheme.gain,
   loss: activeTheme.loss,
@@ -208,8 +222,8 @@ export const radius = {
   sm: 10,
   md: 14,
   lg: 20,
-  xl: 24, // Card container radius per DESIGN.md Section 4.1
-  pill: 9999, // Pill & capsule buttons per DESIGN.md Section 4.1
+  xl: 24, // Card container radius
+  pill: 9999, // Pill & capsule buttons
 } as const;
 
 export const space = {
@@ -225,22 +239,29 @@ export const space = {
 
 export const shadow = {
   e1: {
-    shadowColor: Colors.palette.appleInk,
-    shadowOpacity: 0.08,
+    shadowColor: '#000000',
+    shadowOpacity: 0.35,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 6 },
     elevation: 4,
   },
   e2: {
-    shadowColor: Colors.palette.appleInk,
-    shadowOpacity: 0.12,
+    shadowColor: '#000000',
+    shadowOpacity: 0.45,
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 10 },
     elevation: 5,
   },
+  gold: {
+    shadowColor: Colors.palette.champagneGold,
+    shadowOpacity: 0.35,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
+  },
   azure: {
-    shadowColor: Colors.palette.appleBlue,
-    shadowOpacity: 0.40,
+    shadowColor: Colors.palette.champagneGold,
+    shadowOpacity: 0.35,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 6 },
     elevation: 6,
@@ -255,17 +276,18 @@ export const motion = {
   bloom: 420,
   count: 450,
   spring: {
-    press: { tension: 160, friction: 4 }, // per DESIGN.md Section 5.1
+    press: { tension: 160, friction: 4 },
     settle: { tension: 160, friction: 4 },
-    segment: { damping: 14, stiffness: 150, mass: 0.8 }, // per DESIGN.md Section 5.2
+    segment: { damping: 14, stiffness: 150, mass: 0.8 },
   },
 } as const;
 
 export const font = {
-  ui: Platform.select({ ios: 'System', default: 'sans-serif' }),
-  uiSemi: Platform.select({ ios: 'System', default: 'sans-serif-medium' }),
-  uiBold: Platform.select({ ios: 'System', default: 'sans-serif' }),
-  num: Platform.select({ ios: 'System', default: 'sans-serif' }),
+  ui: Platform.select({ ios: 'Plus Jakarta Sans', default: 'sans-serif' }),
+  uiSemi: Platform.select({ ios: 'Plus Jakarta Sans', default: 'sans-serif-medium' }),
+  uiBold: Platform.select({ ios: 'Plus Jakarta Sans', default: 'sans-serif' }),
+  num: Platform.select({ ios: 'JetBrains Mono', default: 'monospace' }),
+  mono: Platform.select({ ios: 'JetBrains Mono', default: 'monospace' }),
 } as const;
 
 export const fontWeights = {
@@ -276,44 +298,50 @@ export const fontWeights = {
   extraBold: '800' as const,
 };
 
-// Typography hierarchy per DESIGN.md Section 3
+// Typography hierarchy with strict tabular-nums per DESIGN_SYSTEM.md
 export const typography: Record<string, TextStyle> = {
   heroNetWorth: {
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.6,
-    color: Colors.palette.appleInk,
+    fontFamily: font.num,
+    fontSize: 32,
+    fontWeight: '700',
+    letterSpacing: -0.8,
+    color: Colors.palette.alabasterWhite,
     fontVariant: ['tabular-nums'],
   },
   screenTitle: {
+    fontFamily: font.ui,
     fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.4,
-    color: Colors.palette.appleInk,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+    color: Colors.palette.alabasterWhite,
   },
   cardTitle: {
+    fontFamily: font.ui,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: -0.2,
-    color: Colors.palette.appleInk,
+    color: Colors.palette.alabasterWhite,
   },
   bodyStrong: {
+    fontFamily: font.num,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: -0.1,
-    color: Colors.palette.appleInk,
+    color: Colors.palette.alabasterWhite,
     fontVariant: ['tabular-nums'],
   },
   captionLabel: {
+    fontFamily: font.ui,
     fontSize: 11,
     fontWeight: '600',
-    letterSpacing: 0.2,
-    color: Colors.palette.appleMuted,
+    letterSpacing: 0.3,
+    color: Colors.palette.naturalTitanium,
   },
   microBadge: {
+    fontFamily: font.mono,
     fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 0.5,
-    color: Colors.palette.appleBlue,
+    letterSpacing: 0.6,
+    color: Colors.palette.champagneGold,
   },
 };

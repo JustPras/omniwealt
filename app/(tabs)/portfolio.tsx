@@ -27,7 +27,7 @@ import { useWealth } from '../../src/store/wealth-context';
 import { formatPercent, formatChangePercent, formatIDR } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
 import { StockAsset, CryptoAsset } from '../../src/types';
-import { color, space, radius, shadow, font, useTheme } from '../../src/theme/tokens';
+import { color, space, radius, shadow, font, useTheme, Colors } from '../../src/theme/tokens';
 
 type AssetFilter = 'ALL' | 'STOCKS' | 'CRYPTO';
 type SortMode = 'VALUE' | 'PNL' | 'NAME';
@@ -169,11 +169,11 @@ export default function PortfolioScreen() {
         }
       >
         {/* 1. INVESTMENT HERO STATS */}
-        <GlassCard level="base" style={styles.heroCard}>
+        <GlassCard level="bullion" style={styles.heroCard}>
           <View style={styles.heroHeaderRow}>
             <View>
-              <Text style={[styles.heroLabel, { color: theme.textMuted }]}>Nilai investasi</Text>
-              <PrivacyValue value={totalInvestments} style={[styles.heroAmount, { color: theme.text }]} />
+              <Text style={[styles.heroLabel, { color: Colors.palette.naturalTitanium }]}>TOTAL INVESTASI // PORTFOLIO</Text>
+              <PrivacyValue value={totalInvestments} style={[styles.heroAmount, { color: Colors.palette.alabasterWhite }]} />
             </View>
             <View style={styles.heroActions}>
               <LiquidButton
@@ -983,15 +983,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 1.5,
     borderRadius: 4,
-    backgroundColor: 'rgba(255, 159, 10, 0.15)',
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
     borderWidth: 0.5,
-    borderColor: 'rgba(255, 159, 10, 0.35)',
+    borderColor: 'rgba(212, 175, 55, 0.35)',
   },
   derivativeBadgeText: {
     fontSize: 9,
-    fontFamily: font.uiBold,
+    fontFamily: font.mono,
     fontWeight: '700',
-    color: '#FF9F0A',
+    color: Colors.palette.champagneGold,
     letterSpacing: 0.4,
   },
   emptyCard: {
@@ -1009,8 +1009,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(139, 92, 246, 0.2)',
-    borderColor: 'rgba(139, 92, 246, 0.4)',
+    backgroundColor: 'rgba(224, 122, 95, 0.16)',
+    borderColor: 'rgba(224, 122, 95, 0.35)',
   },
   connectWalletBtn: {
     flexDirection: 'row',
@@ -1019,14 +1019,14 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+    backgroundColor: 'rgba(224, 122, 95, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.3)',
+    borderColor: 'rgba(224, 122, 95, 0.30)',
   },
   connectWalletBtnText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#DDD6FE',
+    color: Colors.palette.burnishedCopper,
   },
   web3EmptyCard: {
     padding: space.md,
@@ -1042,7 +1042,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(139, 92, 246, 0.18)',
+    backgroundColor: 'rgba(224, 122, 95, 0.16)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1062,16 +1062,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: 'rgba(139, 92, 246, 0.28)',
+    backgroundColor: 'rgba(224, 122, 95, 0.20)',
     borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.5)',
+    borderColor: 'rgba(224, 122, 95, 0.40)',
     paddingVertical: 8,
     borderRadius: radius.md,
   },
   web3ConnectActionText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#EDE9FE',
+    color: Colors.palette.alabasterWhite,
   },
   walletCardGrid: {
     gap: space.sm,
@@ -1095,14 +1095,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: radius.sm,
-    backgroundColor: 'rgba(139, 92, 246, 0.25)',
+    backgroundColor: 'rgba(224, 122, 95, 0.20)',
     borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.4)',
+    borderColor: 'rgba(224, 122, 95, 0.35)',
   },
   walletNetworkBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#DDD6FE',
+    color: Colors.palette.burnishedCopper,
   },
   walletNameText: {
     fontSize: 14,

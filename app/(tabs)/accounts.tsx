@@ -29,7 +29,7 @@ import { useWealth } from '../../src/store/wealth-context';
 import { formatIDR, formatDate } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
 import { BankMutationResult, AccountType, Liability } from '../../src/types';
-import { color, space, radius, shadow, useTheme } from '../../src/theme/tokens';
+import { color, space, radius, shadow, useTheme, Colors } from '../../src/theme/tokens';
 
 type TxFilter = 'ALL' | 'INCOME' | 'EXPENSE' | 'TRANSFER';
 
@@ -465,12 +465,12 @@ export default function AccountsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* 1. LIQUIDITY HERO CARD */}
-        <GlassCard level="base" style={styles.heroCard}>
+        <GlassCard level="bullion" style={styles.heroCard}>
           <View style={styles.heroHeader}>
             <View>
-              <Text style={[styles.heroLabel, { color: theme.textMuted }]}>Total likuiditas kas & RDN</Text>
-              <PrivacyValue value={totalCash} style={[styles.heroAmount, { color: theme.text }]} />
-              <Text style={[styles.heroSubtitle, { color: theme.textMuted }]}>{accounts.length} rekening aktif terhubung</Text>
+              <Text style={[styles.heroLabel, { color: Colors.palette.naturalTitanium }]}>TOTAL LIKUIDITAS KAS & RDN</Text>
+              <PrivacyValue value={totalCash} style={[styles.heroAmount, { color: Colors.palette.alabasterWhite }]} />
+              <Text style={[styles.heroSubtitle, { color: Colors.palette.darkPewter }]}>{accounts.length} rekening aktif terhubung • AIR-GAPPED</Text>
             </View>
             <LiquidButton
               title="+ Tambah rekening"

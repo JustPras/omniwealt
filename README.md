@@ -2,7 +2,7 @@
 ### *Personal Multi-Asset Wealth & True Net Worth Intelligence*
 
 [![Build Native Android APK](https://github.com/JustPras/omniwealt/actions/workflows/build-native-apk.yml/badge.svg)](https://github.com/JustPras/omniwealt/actions/workflows/build-native-apk.yml)
-[![Tests Passing](https://img.shields.io/badge/Unit%20Tests-41%2F41%20Passed-10B981.svg)](https://github.com/JustPras/omniwealt)
+[![Tests Passing](https://img.shields.io/badge/Unit%20Tests-42%2F42%20Passed-10B981.svg)](https://github.com/JustPras/omniwealt)
 [![Security Audited](https://img.shields.io/badge/Security-0%20Leaks%20%7C%20Audited-10B981.svg)](README.md#-%EF%B8%8F-keamanan--privasi-data)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Web-0284C7.svg)](https://github.com/JustPras/omniwealt)
 [![React Native](https://img.shields.io/badge/React%20Native-0.76.9-61DAFB.svg?logo=react&logoColor=white)](https://reactnative.dev/)
@@ -18,7 +18,7 @@
 
 <p align="center">
   <b>Aplikasi pelacak total kekayaan bersih (True Net Worth) multi-aset pribadi generasi modern.<br/>
-  Mengintegrasikan Kas Perbankan, E-Wallet, Saham IDX & RDN, Kripto, dan Liabilitas dalam antarmuka <i>True Liquid Glass</i> dengan wallpaper anime dinamis (Siang & Malam), parser mutasi berbasis AI & PDF broker, serta kalkulasi neraca saldo presisi.</b>
+  Mengintegrasikan Kas Perbankan, E-Wallet, Saham IDX & RDN, Kripto, dan Liabilitas dalam antarmuka berkelas <i>Warm Titanium & Champagne Liquid Glass</i>, parser mutasi on-device AI & PDF broker statement reader, serta kalkulasi neraca saldo presisi.</b>
 </p>
 
 <p align="center">
@@ -27,19 +27,29 @@
 
 ---
 
-## 🎨 Desain Sistem: *True Liquid Glass & Dual Typography*
+## 🎨 Desain Sistem: *Warm Titanium & Champagne Liquid Glass*
 
-OmniWealth mengusung filosofi desain mutakhir yang menggabungkan estetika **kaca cair tembus pandang (*True Liquid Glass*)** dengan latar belakang ilustrasi anime Jepang berkualitas tinggi:
+OmniWealth mengusung filosofi desain mutakhir yang menggabungkan estetika **Warm Titanium & Champagne Liquid Glass** (terinspirasi oleh *Swiss Private Banking & Bullion Vault*):
 
 | Token Desain | Spesifikasi | Detail Penerapan |
 |---|---|---|
-| **Glass Tint** | `3% Tint` (`rgba(255,255,255,0.03)` / `rgba(15,23,42,0.03)`) | Efek kaca ultra-tipis, transparan, dan tidak berkabut |
-| **Lens Blur** | `3px Lens Blur` (`experimentalBlurMethod="dimezisBlurView"`) | Kedalaman optik lembut menjaga kejernihan wallpaper |
-| **Surface Gloss** | `70% Specular Gloss` | Pantulan cahaya atas dinamis menonjolkan elevasi kartu |
-| **Bevel Rim** | `0.58 Opacity Rim` | Garis tepi kaca tegas bergradasi presisi |
-| **Dual Wallpapers** | Japanese Anime Aesthetic | Latar malam berbintang di Mode Gelap & pemandangan cerah di Mode Siang |
-| **Dual Typography** | `#FFFFFF` (Gelap) / `#0F172A` (Terang) | Kontras teks maksimal berstandar WCAG AAA di setiap mode tema |
-| **Brand Mark** | *Asset Convergence Nexus* | Lambang vektor transparan murni, menyatu alami tanpa kotak solid |
+| **Canvas / Background** | `#0A0A09` (Warm Carbon OLED) | Kanvas hitam arang dengan tone hangat mewah ramah layar OLED & minim eye-strain |
+| **Titanium Spectrum** | `#F5F3EF` / `#A39E93` | Aksen brushed natural titanium pada typography, data labels & iconography |
+| **Champagne Bullion Gold** | `#D4AF37` / `#F2CA50` | Primary jewel color untuk hero net worth, accents, badge, dan visual highlights |
+| **Asymmetric Specular Rim** | `1px top-left specular border` | Garis pantulan kristal pada sudut kiri-atas (`rgba(212,175,55,0.22)`) |
+| **Quartz & Bullion Card Glass** | `.quartz-card` & `.hero-bullion-card` | Elevasi kartu kaca kuarsa dengan latar `#131311`, border asimetris & blur optik |
+| **Dual Typography** | `Plus Jakarta Sans` & `JetBrains Mono` | Sans-serif modern berkelas dipadukan dengan tabular-nums monospaced presisi |
+| **Motion Choreography** | Fluid Circular Arc Draw-on | Animasi loading elegan: 360° donut sweep + symmetrical outer arcs sweep |
+| **Brand Mark** | *Bullion Nexus* (Pure Gold & Titanium) | Lambang vektor transparan murni bersudut presisi tanpa kotak solid |
+
+---
+
+## ⚡ Fluid Circular Arc Draw-on Loading Motion
+
+Indikator animasi loading OmniWealth dirancang dengan transisi kurva matematika fluida (`assets/motion/logo_motion.html`, `LogoLoader`, dan `LuxuryLoader`):
+- **Center Donut Sweep:** Rotasi busur cincin emas `#D4AF37` dengan stroke melingkar 360° mulus (`stroke-dasharray`, `stroke-dashoffset`).
+- **Symmetrical Outer Arcs Sweep:** Busur lengkung ganda titanium `#F5F3EF` & `#A39E93` yang memanjang dari bawah ke atas secara simetris mengapit inti emas.
+- **Ambient Aura Glow:** Efek pendaran cahaya champagne halus (`rgba(212, 175, 55, 0.22)`) yang bernapas lembut mengikuti siklus loading.
 
 ---
 
@@ -87,16 +97,16 @@ omniwealth-v2/
 ├── app/                           # File-based Navigation (Expo Router v4)
 │   ├── _layout.tsx                # Root layout, theme controller & ambient background
 │   └── (tabs)/                    # Floating bottom navigation tabs
-│       ├── _layout.tsx            # Tab bar dengan Liquid Glass effect
-│       ├── index.tsx              # Tab 1: Overview Dashboard & Bento Grid
+│       ├── _layout.tsx            # Floating Capsule Bottom Bar (min-height 100dvh, safe-area padding)
+│       ├── index.tsx              # Tab 1: Overview Dashboard (Hero Bullion Card, Bento Grid 01-04)
 │       ├── accounts.tsx           # Tab 2: Kas Perbankan & Mutasi AI
-│       ├── portfolio.tsx          # Tab 3: Saham IDX & Kripto
-│       └── sync.tsx               # Tab 4: Broker Statement Parser & MacroDroid Sync
+│       ├── portfolio.tsx          # Tab 3: Saham IDX, RDN & Kripto
+│       └── sync.tsx               # Tab 4: Dual Dropzone Statement Ingestion & LogoLoader
 │
 ├── src/                           # Core Logic, Components & Services
 │   ├── components/
-│   │   ├── common/                # GlassCard, AmbientBackground, LogoIcon, Icon, Sparkline
-│   │   ├── layout/                # HeaderBar (Capsule glass, theme toggle, currency switcher)
+│   │   ├── common/                # GlassCard, AmbientBackground, LogoLoader, LuxuryLoader, Icon
+│   │   ├── layout/                # HeaderBar (Capsule glass, Local AI ready status)
 │   │   └── modals/                # Modal Form (Account, Stock, Crypto, Mutasi, SoA, Liability)
 │   ├── constants/
 │   │   └── initial-data.ts        # Synthetic demo data fixtures
@@ -108,20 +118,21 @@ omniwealth-v2/
 │   ├── store/
 │   │   └── wealth-context.tsx     # State Manager, True Net Worth Math & Hydration
 │   ├── theme/
-│   │   ├── colors.ts              # Semantic dual-mode palette (Dark & Light)
-│   │   └── tokens.ts              # Liquid glass tokens (tint, blur, gloss, rim)
+│   │   ├── colors.ts              # Semantic Warm Titanium & Champagne Gold palette
+│   │   └── tokens.ts              # Quartz card tokens (asymmetric specular rim, bullion glass)
 │   ├── types/                     # TypeScript Strict Definitions
 │   └── utils/                     # Format Rupiah/USD, lot math, haptics feedback
 │
 ├── assets/
-│   ├── brand-kit/                 # Master SVG (Dark/Light/Mono), Favicon suite & Web Manifest
-│   ├── wallpapers/                # Japanese Anime Wallpapers (Day & Night)
+│   ├── brand-kit/                 # Master SVG (Dark/Light/Pure Gold), Favicon suite & Lockup
+│   ├── motion/                    # logo_motion.html (Fluid Circular Arc Draw-on choreography)
 │   ├── icon.png                   # Universal App Icon (1024×1024)
 │   ├── adaptive-icon.png          # Android Adaptive Icon (1024×1024)
 │   └── favicon.png                # Web Favicon (192×192)
 │
 ├── supabase/                      # Optional Database DDL Schemas & Migrations
-├── tests/                         # Node.js Built-in Test Suite (41 Automated Tests)
+├── DESIGN_SYSTEM.md               # Spesifikasi lengkap Warm Titanium & Champagne Liquid Glass
+├── tests/                         # Node.js Built-in Test Suite (42 Automated Tests)
 └── .github/workflows/             # CI/CD GitHub Actions Build APK
 ```
 
@@ -135,7 +146,7 @@ omniwealth-v2/
 
 ## 🧪 Rangkaian Pengujian Otomatis (Unit Testing)
 
-OmniWealth dilengkapi **41 unit test bawaan Node.js** (`node:test` & `node:assert`) tanpa ketergantungan framework berat:
+OmniWealth dilengkapi **42 unit test bawaan Node.js** (`node:test` & `node:assert`) tanpa ketergantungan framework berat:
 
 ```bash
 npm test
@@ -156,10 +167,12 @@ TAP version 13
 # Subtest: 11. Dekompresi PDF Binary Streams FlateDecode - ok
 # Subtest: 12. Rekalibrasi Average Buy Price Saham, Warrant, & Right Issue - ok
 ...
-# tests 41
-# pass 41
+# Subtest: 42. Atomic Commit & Recalculate Portfolio Holdings untuk Warrant dan Right Issue - ok
+1..42
+# tests 42
+# pass 42
 # fail 0
-# duration_ms 1545.98
+# duration_ms 2329.93
 ```
 
 ---

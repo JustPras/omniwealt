@@ -1,8 +1,42 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <rect width="1024" height="1024" fill="#0F172A" />
-  <g transform="translate(202, 202) scale(2.421875)">
-    <!-- Pillar 1: Liquid Cash & Banking Arc (Left) in Crisp White -->
-    <path fill="#FFFFFF" d="
+  <defs>
+    <radialGradient id="carbonBg" cx="30%" cy="20%" r="90%">
+      <stop offset="0%" stop-color="#1C1C19" />
+      <stop offset="50%" stop-color="#121210" />
+      <stop offset="100%" stop-color="#0A0A09" />
+    </radialGradient>
+    <linearGradient id="rimSpecular" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(212, 175, 55, 0.45)" />
+      <stop offset="40%" stop-color="rgba(255, 255, 255, 0.18)" />
+      <stop offset="100%" stop-color="rgba(255, 255, 255, 0.03)" />
+    </linearGradient>
+    <linearGradient id="goldIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5E6B3" />
+      <stop offset="30%" stop-color="#E8CA65" />
+      <stop offset="70%" stop-color="#D4AF37" />
+      <stop offset="100%" stop-color="#997E20" />
+    </linearGradient>
+    <linearGradient id="titaniumIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="45%" stop-color="#F5F3EF" />
+      <stop offset="85%" stop-color="#A39E93" />
+      <stop offset="100%" stop-color="#78716C" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1024" height="1024" rx="230" fill="url(#carbonBg)" />
+
+  <!-- Asymmetric Specular Border -->
+  <rect x="3" y="3" width="1018" height="1018" rx="227" fill="none" stroke="url(#rimSpecular)" stroke-width="6" />
+
+  <!-- Ambient Gold Glow Orb Behind Symbol -->
+  <circle cx="512" cy="512" r="280" fill="rgba(212, 175, 55, 0.08)" filter="blur(60px)" />
+
+  <!-- Centered Nexus Symbol (scaled from 256x256 to ~540x540) -->
+  <g transform="translate(242, 242) scale(2.11)">
+    <!-- Pillar 1: Liquid Cash & Banking Arc (Left) -->
+    <path fill="url(#titaniumIcon)" d="
       M 116 22
       C 58 28 22 72 22 128
       C 22 158 35 186 56 206
@@ -11,8 +45,8 @@
       C 52 86 78 52 116 48
       Z
     "/>
-    <!-- Pillar 2: Capital Markets & IDX Equities Arc (Right) in Crisp White -->
-    <path fill="#FFFFFF" d="
+    <!-- Pillar 2: Capital Markets & IDX Equities Arc (Right) -->
+    <path fill="url(#titaniumIcon)" d="
       M 140 22
       C 198 28 234 72 234 128
       C 234 158 221 186 200 206
@@ -21,8 +55,8 @@
       C 204 86 178 52 140 48
       Z
     "/>
-    <!-- Pillar 3: Web3 & Growth Catalyst Arc (Bottom Base) in Apple Blue -->
-    <path fill="#007AFF" d="
+    <!-- Pillar 3: Web3 Arc (Bottom Base) -->
+    <path fill="url(#goldIcon)" d="
       M 72 216
       C 88 228 107 236 128 236
       C 149 236 168 228 184 216
@@ -31,8 +65,8 @@
       C 113 208 100 202 88 194
       Z
     "/>
-    <!-- Central Asset Nexus Ring with real hole (evenodd) in Apple Blue -->
-    <path fill="#007AFF" fill-rule="evenodd" d="
+    <!-- Central Nexus Ring -->
+    <path fill="url(#goldIcon)" fill-rule="evenodd" d="
       M 128 98
       C 144.6 98 158 111.4 158 128
       C 158 144.6 144.6 158 128 158

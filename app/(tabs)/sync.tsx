@@ -14,6 +14,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { Icon } from '../../src/components/common/icon';
 import { HeaderBar } from '../../src/components/layout/header-bar';
 import { GlassCard } from '../../src/components/common/glass-card';
+import { LogoLoader } from '../../src/components/common/logo-loader';
 import { LiquidButton } from '../../src/components/common/liquid-button';
 import { LiquidSegmentControl } from '../../src/components/common/liquid-segment-control';
 import { ScreenTransition } from '../../src/components/common/screen-transition';
@@ -25,10 +26,10 @@ import { triggerHaptic } from '../../src/utils/haptics';
 import { AIParserService } from '../../src/services/ai-parser';
 import { PDFExtractorService } from '../../src/services/pdf-extractor';
 import { BankStatementModal } from '../../src/components/modals/bank-statement-modal';
-import { color, space, radius, shadow, font, useTheme } from '../../src/theme/tokens';
+import { color, space, radius, shadow, font, useTheme, Colors } from '../../src/theme/tokens';
 import { IngestionPayload } from '../../src/types/rdn-pipeline';
 
-// Generic Broker Simulation Presets (static outside component)
+// Generic Broker Simulation Presets
 const SIMULATION_PRESETS = [
   {
     id: 'sim1',
@@ -143,11 +144,9 @@ export default function SyncScreen() {
         const isPdf = file.name.toLowerCase().endsWith('.pdf');
 
         try {
-          // 1. Ekstraksi langsung di memori (Offline In-Memory PDF & Text Parser)
           const extractedText = await PDFExtractorService.extractTextFromFile(file);
 
           if (extractedText && extractedText.trim().length > 30) {
-            // Berhasil membaca teks langsung dari PDF/dokumen!
             await handleRunPipelineIngestion(
               extractedText,
               file.name,
@@ -156,7 +155,6 @@ export default function SyncScreen() {
             return;
           }
 
-          // 2. Fallback: jika PDF berisi hasil scan murni atau biner gambar
           try {
             const parsed = await AIParserService.parseDocumentFile(file);
             await handleRunPipelineIngestion(
@@ -232,7 +230,7 @@ export default function SyncScreen() {
   };
 
   return (
-    <ScreenTransition style={[styles.screenContainer, { backgroundColor: theme.canvas }]}>
+    <ScreenTransition style={[styles.screenContainer, { backgroundColor: Colors.palette.canvas }]}>
       <AmbientBackground activeAssetClass="STOCK" />
       <HeaderBar />
 
@@ -244,73 +242,107 @@ export default function SyncScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* 1. HERO EXPLANATION CARD */}
-        <GlassCard level="base" style={styles.heroCard}>
-          <Text style={styles.heroLabel}>Pipeline Statement RDN Asinkron</Text>
-          <Text style={[styles.heroTitle, { color: theme.text }]}>Sinkronisasi Rekening Dana Nasabah</Text>
-          <Text style={[styles.heroDesc, { color: theme.textMuted }]}>
-            Pipeline 6-tahap dengan validasi matematis saldo, proteksi anti-duplikasi SHA-256, deteksi transfer internal bank-ke-RDN, dan buku besar atomik.
+        {/* TOP PRIVACY & AIR-GAPPED BANNER */}
+        <View style={styles.topPrivacyBanner}>
+          <View style={styles.privacyBannerHeader}>
+            <View style={styles.privacyBadge}>
+              <View style={styles.goldDotPulse} />
+              <Text style={styles.privacyBadgeText}>AIR-GAPPED V1.4</Text>
+            </View>
+            <Text style={styles.privacyZeroExport}>0 BYTES EXPORTED</Text>
+          </View>
+          <Text style={styles.privacyHeadline}>Automated Wealth Ingestion</Text>
+          <Text style={styles.privacySubtext}>
+            On-device OCR, asynchronous broker statement parser & atomic ledger reconciliation.
           </Text>
+        </View>
 
-          {/* RDN Status info */}
+        {/* DUAL DROPZONE CARDS (2-COLUMN GRID) */}
+        <View style={styles.dualDropzoneGrid}>
+          {/* Card 1: Bank Mutation OCR */}
+          <GlassCard
+            level="base"
+            style={styles.dropzoneCard}
+            onPress={() => {
+              triggerHaptic('medium');
+              setBankStatementModalVisible(true);
+            }}
+          >
+            <View style={styles.dropzoneHeader}>
+              <View style={styles.dropzoneIconBox}>
+                <Icon name="Landmark" size={18} color={Colors.palette.titaniumSilver} />
+              </View>
+              <View style={styles.dropzoneChannelBadge}>
+                <Text style={styles.channelBadgeText}>CH 01</Text>
+              </View>
+            </View>
+            <Text style={styles.dropzoneTitle}>Rekening Koran Bank</Text>
+            <Text style={styles.dropzoneSubtitle}>
+              BCA, Mandiri, BRI, Bank Jago e-Statement dengan anti-duplikat.
+            </Text>
+            <View style={styles.dropzoneActionRow}>
+              <Text style={styles.dropzoneActionText}>Buka Parser &rarr;</Text>
+            </View>
+          </GlassCard>
+
+          {/* Card 2: Broker Statement PDF */}
+          <GlassCard
+            level="bullion"
+            style={styles.dropzoneCard}
+            onPress={handlePickDocument}
+          >
+            <View style={styles.dropzoneHeader}>
+              <View style={[styles.dropzoneIconBox, { backgroundColor: 'rgba(212, 175, 55, 0.15)' }]}>
+                <Icon name="FileText" size={18} color={Colors.palette.champagneGold} />
+              </View>
+              <View style={[styles.dropzoneChannelBadge, { borderColor: 'rgba(212, 175, 55, 0.40)' }]}>
+                <Text style={[styles.channelBadgeText, { color: Colors.palette.champagneGold }]}>CH 02</Text>
+              </View>
+            </View>
+            <Text style={styles.dropzoneTitle}>Statement RDN & Saham</Text>
+            <Text style={styles.dropzoneSubtitle}>
+              Stockbit, Ajaib, IPOT, Mandiri Sekuritas SoA & Trade Confirmations.
+            </Text>
+            <View style={styles.dropzoneActionRow}>
+              <Text style={[styles.dropzoneActionText, { color: Colors.palette.champagneGold }]}>
+                {isExtracting ? 'Mengekstrak...' : 'Pilih Berkas &rarr;'}
+              </Text>
+            </View>
+          </GlassCard>
+        </View>
+
+        {/* RDN ACCOUNT STATUS INFO */}
+        <GlassCard level="base" style={styles.rdnInfoCard}>
           <View style={styles.rdnInfoBox}>
             <View>
-              <Text style={styles.rdnInfoLabel}>Rekening RDN terhubung</Text>
+              <Text style={styles.rdnInfoLabel}>REKENING RDN TERHUBUNG</Text>
               <Text style={styles.rdnInfoName}>{rdnAccount?.name || 'Kas RDN'}</Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.rdnInfoLabel}>Saldo kas saat ini</Text>
+              <Text style={styles.rdnInfoLabel}>SALDO KAS BUKU BESAR</Text>
               <PrivacyValue value={rdnAccount?.balance || 0} style={styles.rdnInfoBalance} />
             </View>
           </View>
 
-          {/* Auto-Commit Verified Email Switch */}
           {rdnAccount && (
             <View style={styles.autoCommitRow}>
               <View style={{ flex: 1, marginRight: space.md }}>
-                <Text style={styles.autoCommitTitle}>Auto-commit email terverifikasi</Text>
+                <Text style={styles.autoCommitTitle}>Auto-Commit Email Terverifikasi</Text>
                 <Text style={styles.autoCommitDesc}>
-                  Otomatis simpan ke buku besar jika email statement resmi seimbang (selisih saldo Rp 0).
+                  Otomatis commit ke buku besar jika selisih saldo e-statement bernilai Rp 0.
                 </Text>
               </View>
               <Switch
                 value={Boolean(rdnAccount.autoCommitVerifiedEmail)}
                 onValueChange={() => toggleAccountAutoCommit(rdnAccount.id)}
-                trackColor={{ false: color.glassFillInset, true: color.gain }}
-                thumbColor={color.text}
+                trackColor={{ false: 'rgba(255, 255, 255, 0.12)', true: Colors.palette.sovereignJade }}
+                thumbColor={Colors.palette.alabasterWhite}
               />
             </View>
           )}
         </GlassCard>
 
-        {/* BANK E-STATEMENT BANNER (PILAR 3) */}
-        <Pressable
-          onPress={() => {
-            triggerHaptic('medium');
-            setBankStatementModalVisible(true);
-          }}
-          style={styles.bankStatementBanner}
-        >
-          <View style={styles.bankStatementBannerLeft}>
-            <View style={styles.bankStatementBannerIcon}>
-              <Icon name="FileText" size={16} color="#A78BFA" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={styles.bankStatementBannerTitle}>Rekening Koran Bank</Text>
-                <View style={styles.pilar3Badge}>
-                  <Text style={styles.pilar3BadgeText}>Pilar 3</Text>
-                </View>
-              </View>
-              <Text style={styles.bankStatementBannerDesc}>
-                Import e-Statement bulanan BCA, Mandiri, BRI & Jago dengan rekonsiliasi saldo & anti-duplikat.
-              </Text>
-            </View>
-          </View>
-          <Icon name="ChevronRight" size={16} color="#A78BFA" />
-        </Pressable>
-
-        {/* 2. INGESTION ENTRY POINTS TABS */}
+        {/* INGESTION ENTRY POINT TABS */}
         <LiquidSegmentControl<'MANUAL' | 'EMAIL_WEBHOOK'>
           items={[
             { key: 'MANUAL', label: 'Unggah Berkas / Teks' },
@@ -318,22 +350,21 @@ export default function SyncScreen() {
           ]}
           activeKey={activeTab}
           onSelect={setActiveTab}
-          style={{ width: '100%', marginBottom: space.sm }}
+          style={{ width: '100%', marginBottom: space.xs }}
           height={38}
         />
 
-        {/* 3. UPLOAD & SELECT FILE SECTION */}
+        {/* INPUT & PASTE AREA CARD */}
         <GlassCard level="base" style={styles.uploadCard}>
           {activeTab === 'MANUAL' ? (
             <>
-              <Text style={[styles.sectionHeadline, { color: theme.text }]}>Unggah Berkas atau Salin Teks</Text>
+              <Text style={styles.sectionHeadline}>Unggah Berkas atau Salin Teks</Text>
               <Text style={styles.uploadDesc}>
-                Mendukung dokumen resmi Stockbit, Ajaib, IPOT, Mandiri Sekuritas, BCA RDN, dan Bank Jago.
+                Mendukung PDF & gambar resmi Stockbit, Ajaib, IPOT, Mandiri Sekuritas, dan Bank Jago RDN.
               </Text>
 
-              {/* Document Picker Primary Button */}
               <LiquidButton
-                title={selectedFileName ? `Ganti berkas (${selectedFileName})` : 'Pilih berkas PDF atau gambar'}
+                title={selectedFileName ? `Ganti berkas (${selectedFileName})` : 'Pilih Berkas PDF Statement'}
                 icon="UploadCloud"
                 variant="azure"
                 size="md"
@@ -343,14 +374,13 @@ export default function SyncScreen() {
                 style={{ width: '100%', marginVertical: space.sm }}
               />
 
-              {/* In-Place Password Input if Encrypted PDF */}
               {isEncryptedPdf && (
                 <View style={styles.passwordContainer}>
-                  <Icon name="Lock" size={15} color={color.textMuted} />
+                  <Icon name="Lock" size={15} color={Colors.palette.naturalTitanium} />
                   <TextInput
                     style={styles.passwordInput}
                     placeholder="Kata sandi PDF (contoh: tanggal lahir DDMMYYYY)"
-                    placeholderTextColor={color.textFaint}
+                    placeholderTextColor={Colors.palette.darkPewter}
                     secureTextEntry
                     value={pdfPassword}
                     onChangeText={setPdfPassword}
@@ -360,9 +390,9 @@ export default function SyncScreen() {
             </>
           ) : (
             <>
-              <Text style={[styles.sectionHeadline, { color: theme.text }]}>Inbound Email Webhook Forwarding</Text>
+              <Text style={styles.sectionHeadline}>Inbound Email Webhook Forwarding</Text>
               <Text style={styles.uploadDesc}>
-                Simulasi payload email statement yang diteruskan secara otomatis dari sekuritas ke Omniwealth.
+                Simulasi payload email statement yang diteruskan otomatis dari sekuritas resmi.
               </Text>
 
               <View style={styles.webhookInputRow}>
@@ -372,7 +402,7 @@ export default function SyncScreen() {
                   value={webhookSender}
                   onChangeText={setWebhookSender}
                   placeholder="e.g. statement@stockbit.com"
-                  placeholderTextColor={color.textFaint}
+                  placeholderTextColor={Colors.palette.darkPewter}
                 />
               </View>
             </>
@@ -398,7 +428,7 @@ export default function SyncScreen() {
               <TextInput
                 style={styles.pasteInput}
                 placeholder="Tempel teks mutasi RDN atau konfirmasi transaksi di sini..."
-                placeholderTextColor={color.textFaint}
+                placeholderTextColor={Colors.palette.darkPewter}
                 multiline
                 numberOfLines={5}
                 value={pastedText}
@@ -417,15 +447,15 @@ export default function SyncScreen() {
           )}
         </GlassCard>
 
-        {/* 4. SUCCESS / NOTICE MESSAGE */}
+        {/* NOTICE MESSAGE */}
         {confirmationNotice && (
           <GlassCard
             level="base"
             style={[
               styles.successCard,
               confirmationNotice.toLowerCase().includes('gagal') && {
-                backgroundColor: 'rgba(239, 68, 68, 0.08)',
-                borderColor: 'rgba(239, 68, 68, 0.22)',
+                backgroundColor: 'rgba(225, 82, 65, 0.08)',
+                borderColor: 'rgba(225, 82, 65, 0.28)',
               },
             ]}
           >
@@ -433,13 +463,13 @@ export default function SyncScreen() {
               <Icon
                 name={confirmationNotice.toLowerCase().includes('gagal') ? 'AlertCircle' : 'CheckCircle2'}
                 size={18}
-                color={confirmationNotice.toLowerCase().includes('gagal') ? color.loss : color.gain}
+                color={confirmationNotice.toLowerCase().includes('gagal') ? Colors.palette.terracottaRose : Colors.palette.sovereignJade}
               />
               <View style={{ flex: 1 }}>
                 <Text
                   style={[
                     styles.successTitle,
-                    confirmationNotice.toLowerCase().includes('gagal') && { color: color.loss },
+                    confirmationNotice.toLowerCase().includes('gagal') && { color: Colors.palette.terracottaRose },
                   ]}
                 >
                   {confirmationNotice.toLowerCase().includes('gagal') ? 'Peringatan Pipeline' : 'Pemberitahuan Pipeline'}
@@ -450,20 +480,31 @@ export default function SyncScreen() {
           </GlassCard>
         )}
 
-        {/* 5. TAHAP 5: STAGING AREA & HUMAN-IN-THE-LOOP PREVIEW */}
+        {/* ACTIVE EXTRACTION LOADER (PIXEL2MOTION) */}
+        {isExtracting && (
+          <GlassCard level="bullion" style={{ padding: space.xl, alignItems: 'center', justifyContent: 'center' }}>
+            <LogoLoader size={60} label="AIR-GAPPED AI INGESTION IN PROGRESS..." />
+          </GlassCard>
+        )}
+
+        {/* PERFORATED VAULT SLIP PREVIEW FOR ACTIVE STAGING BATCH */}
         {activeStagingBatch && (
-          <GlassCard level="base" style={styles.stagingCard}>
-            <View style={styles.stagingHeader}>
+          <GlassCard level="bullion" style={styles.vaultSlipCard}>
+            {/* Top Vault Slip Header */}
+            <View style={styles.vaultSlipHeader}>
               <View>
-                <Text style={styles.stagingBrokerText}>{activeStagingBatch.institution}</Text>
-                <Text style={styles.stagingSubtext}>
+                <View style={styles.vaultBatchTagRow}>
+                  <Text style={styles.vaultSlipIndex}>VAULT SLIP // {activeStagingBatch.id.slice(0, 8).toUpperCase()}</Text>
+                </View>
+                <Text style={styles.vaultInstitution}>{activeStagingBatch.institution}</Text>
+                <Text style={styles.vaultSubtext}>
                   {activeStagingBatch.statement_type === 'BANK_RDN_MUTATION'
                     ? 'Mutasi Kas RDN (T+2 Settlement)'
-                    : 'Konfirmasi Transaksi Saham (T+0 Execution)'}
+                    : 'Konfirmasi Eksekusi Saham (T+0)'}
                 </Text>
               </View>
 
-              {/* Reconciliation Status Badge */}
+              {/* Status Badge */}
               <View
                 style={[
                   styles.statusBadge,
@@ -475,14 +516,14 @@ export default function SyncScreen() {
                 <Icon
                   name={activeStagingBatch.status === 'VERIFIED' ? 'CheckCircle2' : 'AlertCircle'}
                   size={12}
-                  color={activeStagingBatch.status === 'VERIFIED' ? color.gain : color.accent}
+                  color={activeStagingBatch.status === 'VERIFIED' ? Colors.palette.sovereignJade : Colors.palette.champagneGold}
                 />
                 <Text
                   style={[
                     styles.statusBadgeText,
                     {
                       color:
-                        activeStagingBatch.status === 'VERIFIED' ? color.gain : color.accent,
+                        activeStagingBatch.status === 'VERIFIED' ? Colors.palette.sovereignJade : Colors.palette.champagneGold,
                     },
                   ]}
                 >
@@ -491,28 +532,28 @@ export default function SyncScreen() {
               </View>
             </View>
 
-            {/* 4-Metric Guardrail Statistics Grid */}
+            {/* 4-Metric Guardrail Statistics */}
             <View style={styles.metricsGrid}>
               <View style={styles.metricBox}>
-                <Text style={styles.metricLabel}>Transaksi Baru</Text>
+                <Text style={styles.metricLabel}>TRANSAKSI BARU</Text>
                 <Text style={styles.metricValue}>{activeStagingBatch.new_items_count}</Text>
               </View>
               <View style={styles.metricBox}>
-                <Text style={styles.metricLabel}>Duplikat Dilewati</Text>
+                <Text style={styles.metricLabel}>DUPLIKAT SKIP</Text>
                 <Text style={styles.metricValue}>{activeStagingBatch.duplicate_skipped_count}</Text>
               </View>
               <View style={styles.metricBox}>
-                <Text style={styles.metricLabel}>Transfer Internal</Text>
+                <Text style={styles.metricLabel}>TRANSFER INT.</Text>
                 <Text style={styles.metricValue}>{activeStagingBatch.internal_transfers_count}</Text>
               </View>
               <View style={styles.metricBox}>
-                <Text style={styles.metricLabel}>Selisih Saldo</Text>
+                <Text style={styles.metricLabel}>SELISIH SALDO</Text>
                 <Text
                   style={[
                     styles.metricValue,
                     activeStagingBatch.reconciliation.discrepancy_amount === 0
-                      ? { color: color.gain }
-                      : { color: color.accent },
+                      ? { color: Colors.palette.sovereignJade }
+                      : { color: Colors.palette.champagneGold },
                   ]}
                 >
                   {activeStagingBatch.reconciliation.discrepancy_amount === 0
@@ -522,8 +563,11 @@ export default function SyncScreen() {
               </View>
             </View>
 
-            {/* Items List */}
-            <Text style={styles.listSectionTitle}>Daftar Transaksi Staging ({activeStagingBatch.items.length})</Text>
+            {/* Perforation Line */}
+            <View style={styles.perforationLine} />
+
+            {/* Items List with Precision Monospace Alignment */}
+            <Text style={styles.listSectionTitle}>DAFTAR MUTASI / TRANSAKSI ({activeStagingBatch.items.length})</Text>
             <View style={styles.itemsList}>
               {activeStagingBatch.items.map((it) => {
                 const rec = it.record;
@@ -533,9 +577,9 @@ export default function SyncScreen() {
                       <View style={styles.neutralChip}>
                         <Text style={styles.neutralChipText}>{rec.category}</Text>
                       </View>
-                      <View style={{ flex: 1 }}>
+                      <View style={{ flex: 1, minWidth: 0 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                          <Text style={styles.itemTitle}>
+                          <Text style={styles.itemTitle} numberOfLines={1}>
                             {rec.ticker ? `${rec.ticker.replace('.JK', '')} (${rec.lot} lot)` : rec.raw_description}
                           </Text>
                           {rec.ticker && /-W[0-9A-Z]*(\.JK)?$/i.test(rec.ticker) && (
@@ -556,7 +600,7 @@ export default function SyncScreen() {
                           </Text>
                         )}
                         {it.status === 'DUPLICATE_SKIPPED' && (
-                          <Text style={styles.duplicateTag}>Sudah ada di buku besar (Dilewati)</Text>
+                          <Text style={styles.duplicateTag}>Sudah tercatat di buku besar</Text>
                         )}
                       </View>
                     </View>
@@ -569,33 +613,40 @@ export default function SyncScreen() {
               })}
             </View>
 
-            {/* Action Buttons: Confirm & Commit vs Discard */}
-            <View style={styles.stagingActionsRow}>
-              <LiquidButton
-                title="Hapus draft"
-                variant="obsidian"
-                size="md"
-                onPress={handleDiscardCurrentBatch}
-                style={{ flex: 1 }}
-              />
+            {/* Bottom Cryptographic Attestation & Action Bar */}
+            <View style={styles.vaultSlipFooter}>
+              <View style={styles.attestationRow}>
+                <Icon name="ShieldCheck" size={13} color={Colors.palette.sovereignJade} />
+                <Text style={styles.attestationText}>SHA-256 HASH VERIFIED • ZERO DUPLICATE GUARANTEE</Text>
+              </View>
 
-              <LiquidButton
-                title="Confirm & commit"
-                variant="azure"
-                size="md"
-                loading={isExtracting}
-                disabled={isExtracting}
-                onPress={handleCommitCurrentBatch}
-                style={{ flex: 1.5 }}
-              />
+              <View style={styles.stagingActionsRow}>
+                <LiquidButton
+                  title="Hapus Draft"
+                  variant="obsidian"
+                  size="md"
+                  onPress={handleDiscardCurrentBatch}
+                  style={{ flex: 1 }}
+                />
+
+                <LiquidButton
+                  title="Commit ke Buku Besar"
+                  variant="azure"
+                  size="md"
+                  loading={isExtracting}
+                  disabled={isExtracting}
+                  onPress={handleCommitCurrentBatch}
+                  style={{ flex: 1.6 }}
+                />
+              </View>
             </View>
           </GlassCard>
         )}
 
-        {/* 6. SIMULASI PRESETS */}
+        {/* PIPELINE SIMULATION PRESETS */}
         <View style={styles.presetsHeader}>
-          <Text style={[styles.sectionHeadline, { color: theme.text }]}>Uji Alur Pipeline Dokumen</Text>
-          <Text style={styles.presetsSubtext}>Jalankan pipeline 6-tahap menggunakan berkas simulasi resmi</Text>
+          <Text style={styles.sectionHeadline}>Uji Alur Pipeline Dokumen</Text>
+          <Text style={styles.presetsSubtext}>Jalankan simulasi 6-tahap menggunakan sampel statement resmi</Text>
         </View>
 
         <GlassCard level="base" noPadding style={styles.presetsCard}>
@@ -636,464 +687,490 @@ export default function SyncScreen() {
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: color.obsidian,
+    backgroundColor: Colors.palette.canvas,
   },
   scrollContent: {
     paddingBottom: 110,
-    gap: space.lg,
+    gap: space.md,
   },
-  heroCard: {
-    padding: space.lg,
+  topPrivacyBanner: {
+    padding: space.md,
+    borderRadius: radius.lg,
+    backgroundColor: 'rgba(20, 20, 18, 0.75)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.22)',
   },
-  bankStatementBanner: {
+  privacyBannerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(167, 139, 250, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(167, 139, 250, 0.25)',
-    borderRadius: radius.lg,
-    padding: space.md,
+    marginBottom: 6,
   },
-  bankStatementBannerLeft: {
+  privacyBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    flex: 1,
-    marginRight: space.sm,
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.35)',
   },
-  bankStatementBannerIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(167, 139, 250, 0.18)',
+  goldDotPulse: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: Colors.palette.champagneGold,
+  },
+  privacyBadgeText: {
+    fontSize: 9.5,
+    fontFamily: font.mono,
+    fontWeight: '700',
+    color: Colors.palette.champagneGold,
+    letterSpacing: 0.6,
+  },
+  privacyZeroExport: {
+    fontSize: 9.5,
+    fontFamily: font.mono,
+    color: Colors.palette.sovereignJade,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  privacyHeadline: {
+    fontSize: 16,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
+    letterSpacing: -0.2,
+  },
+  privacySubtext: {
+    fontSize: 11,
+    fontFamily: font.ui,
+    color: Colors.palette.naturalTitanium,
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  dualDropzoneGrid: {
+    flexDirection: 'row',
+    gap: space.sm,
+  },
+  dropzoneCard: {
+    flex: 1,
+    padding: space.md,
+    minHeight: 140,
+    justifyContent: 'space-between',
+  },
+  dropzoneHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: space.xs,
+  },
+  dropzoneIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bankStatementBannerTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#DDD6FE',
-  },
-  pilar3Badge: {
-    paddingHorizontal: 6,
+  dropzoneChannelBadge: {
+    paddingHorizontal: 5,
     paddingVertical: 1.5,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(167, 139, 250, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
   },
-  pilar3BadgeText: {
-    fontSize: 9,
+  channelBadgeText: {
+    fontSize: 8.5,
+    fontFamily: font.mono,
     fontWeight: '700',
-    color: '#A78BFA',
+    color: Colors.palette.naturalTitanium,
   },
-  bankStatementBannerDesc: {
+  dropzoneTitle: {
+    fontSize: 13,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
+    marginTop: 4,
+  },
+  dropzoneSubtitle: {
+    fontSize: 10,
+    fontFamily: font.ui,
+    color: Colors.palette.naturalTitanium,
+    lineHeight: 14,
+    marginTop: 3,
+  },
+  dropzoneActionRow: {
+    marginTop: 8,
+  },
+  dropzoneActionText: {
     fontSize: 11,
-    color: color.textMuted,
-    lineHeight: 15,
-    marginTop: 2,
-  },
-  heroLabel: {
-    fontSize: 13,
-    color: color.accent,
-    fontWeight: '600',
-    marginBottom: space.xs,
-  },
-  heroTitle: {
-    fontSize: 22,
+    fontFamily: font.uiBold,
     fontWeight: '700',
-    color: color.text,
-    marginBottom: space.xs,
+    color: Colors.palette.naturalTitanium,
   },
-  heroDesc: {
-    fontSize: 13,
-    color: color.textMuted,
-    lineHeight: 18,
-    marginBottom: space.md,
+  rdnInfoCard: {
+    padding: space.md,
   },
   rdnInfoBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: space.md,
-    borderRadius: radius.md,
-    backgroundColor: color.glassFillInset,
-    borderWidth: 1,
-    borderColor: color.hairline,
   },
   rdnInfoLabel: {
-    fontSize: 11,
-    color: color.textMuted,
+    fontSize: 9.5,
+    fontFamily: font.mono,
+    color: Colors.palette.naturalTitanium,
+    fontWeight: '700',
+    letterSpacing: 0.5,
     marginBottom: 2,
   },
   rdnInfoName: {
     fontSize: 14,
-    fontWeight: '600',
-    color: color.text,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
   },
   rdnInfoBalance: {
     fontSize: 14,
+    fontFamily: font.num,
     fontWeight: '700',
-    color: color.text,
+    color: Colors.palette.champagneGold,
+    fontVariant: ['tabular-nums'],
   },
   autoCommitRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: space.md,
-    paddingTop: space.md,
+    marginTop: space.sm,
+    paddingTop: space.sm,
     borderTopWidth: 1,
-    borderTopColor: color.hairline,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
   },
   autoCommitTitle: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: font.uiBold,
     fontWeight: '600',
-    color: color.text,
+    color: Colors.palette.alabasterWhite,
   },
   autoCommitDesc: {
-    fontSize: 11,
-    color: color.textMuted,
-    marginTop: 2,
-    lineHeight: 15,
+    fontSize: 10.5,
+    fontFamily: font.ui,
+    color: Colors.palette.naturalTitanium,
+    marginTop: 1,
   },
-
-  // Tab Selector
-  tabSelector: {
-    flexDirection: 'row',
-    backgroundColor: color.glassFillInset,
-    borderRadius: radius.pill,
-    padding: 3,
-    borderWidth: 1,
-    borderColor: color.hairline,
-    gap: 4,
-  },
-  tabButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    borderRadius: radius.pill,
-    gap: 6,
-  },
-  tabButtonActive: {
-    backgroundColor: color.accent,
-  },
-  tabButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: color.textMuted,
-  },
-  tabButtonTextActive: {
-    color: color.onAccent,
-  },
-
-  // Upload Card
   uploadCard: {
-    padding: space.lg,
+    padding: space.md,
   },
   sectionHeadline: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: color.text,
+    fontSize: 14,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
     marginBottom: 2,
   },
   uploadDesc: {
-    fontSize: 13,
-    color: color.textMuted,
-    marginBottom: space.md,
-    lineHeight: 18,
-  },
-  pickFileButton: {
-    backgroundColor: color.accent,
-    paddingVertical: 12,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadow.e1,
-  },
-  pickFileInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.sm,
-  },
-  pickFileText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: color.onAccent,
+    fontSize: 11,
+    fontFamily: font.ui,
+    color: Colors.palette.naturalTitanium,
+    lineHeight: 15,
+    marginBottom: space.sm,
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.sm,
-    backgroundColor: color.glassFillInset,
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: radius.md,
+    backgroundColor: 'rgba(10, 10, 9, 0.70)',
     borderWidth: 1,
-    borderColor: color.hairline,
-    paddingHorizontal: space.md,
-    height: 42,
-    marginTop: space.md,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    marginTop: space.xs,
   },
   passwordInput: {
     flex: 1,
-    fontSize: 13,
-    color: color.text,
+    fontSize: 12,
+    fontFamily: font.mono,
+    color: Colors.palette.alabasterWhite,
   },
   webhookInputRow: {
-    marginBottom: space.md,
-    gap: 6,
+    marginTop: space.xs,
+    marginBottom: space.sm,
   },
   webhookLabel: {
-    fontSize: 12,
-    color: color.textMuted,
+    fontSize: 11,
+    fontFamily: font.mono,
+    color: Colors.palette.naturalTitanium,
+    marginBottom: 4,
   },
   webhookSenderInput: {
-    backgroundColor: color.glassFillInset,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: radius.md,
+    backgroundColor: 'rgba(10, 10, 9, 0.70)',
     borderWidth: 1,
-    borderColor: color.hairline,
-    paddingHorizontal: space.md,
-    height: 40,
-    color: color.text,
-    fontSize: 13,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    fontSize: 12,
+    fontFamily: font.mono,
+    color: Colors.palette.alabasterWhite,
   },
   pasteToggleRow: {
-    marginTop: space.md,
     alignItems: 'center',
+    marginTop: space.xs,
   },
   pasteToggleText: {
-    fontSize: 12,
-    color: color.accent,
-    fontWeight: '500',
-  },
-  pasteAreaContainer: {
-    marginTop: space.md,
-    gap: space.sm,
-  },
-  pasteInput: {
-    backgroundColor: color.glassFillInset,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: color.hairline,
-    padding: space.md,
-    color: color.text,
-    fontSize: 13,
-    minHeight: 90,
-    textAlignVertical: 'top',
-  },
-  extractTextButton: {
-    backgroundColor: color.glassFillInset,
-    borderWidth: 1,
-    borderColor: color.hairline,
-    paddingVertical: 10,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
-  extractTextButtonText: {
-    fontSize: 12,
-    color: color.text,
+    fontSize: 11,
+    color: Colors.palette.champagneGold,
     fontWeight: '600',
   },
-
-  // Success / Notice
+  pasteAreaContainer: {
+    marginTop: space.sm,
+  },
+  pasteInput: {
+    backgroundColor: 'rgba(10, 10, 9, 0.70)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: radius.md,
+    padding: space.md,
+    fontSize: 11,
+    fontFamily: font.mono,
+    color: Colors.palette.alabasterWhite,
+    textAlignVertical: 'top',
+    minHeight: 100,
+  },
   successCard: {
     padding: space.md,
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
-    borderColor: 'rgba(16, 185, 129, 0.22)',
+    backgroundColor: 'rgba(46, 189, 133, 0.08)',
+    borderColor: 'rgba(46, 189, 133, 0.28)',
   },
   successInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.md,
+    gap: 10,
   },
   successTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: color.gain,
+    fontSize: 12,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: Colors.palette.sovereignJade,
   },
   successMessage: {
-    fontSize: 12,
-    color: color.textMuted,
+    fontSize: 11,
+    fontFamily: font.ui,
+    color: Colors.palette.alabasterWhite,
     marginTop: 2,
+    lineHeight: 15,
   },
-
-  // Staging Card
-  stagingCard: {
-    padding: space.lg,
-    gap: space.md,
+  vaultSlipCard: {
+    padding: space.md,
   },
-  stagingHeader: {
+  vaultSlipHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: space.sm,
+  },
+  vaultBatchTagRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 6,
+    marginBottom: 2,
   },
-  stagingBrokerText: {
-    fontSize: 17,
+  vaultSlipIndex: {
+    fontSize: 9.5,
+    fontFamily: font.mono,
+    color: Colors.palette.champagneGold,
     fontWeight: '700',
-    color: color.text,
+    letterSpacing: 0.6,
   },
-  stagingSubtext: {
-    fontSize: 12,
-    color: color.textMuted,
-    marginTop: 2,
+  vaultInstitution: {
+    fontSize: 15,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
+  },
+  vaultSubtext: {
+    fontSize: 10.5,
+    fontFamily: font.ui,
+    color: Colors.palette.naturalTitanium,
+    marginTop: 1,
   },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingVertical: 3,
     paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: radius.pill,
     borderWidth: 1,
   },
   statusBadgeVerified: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    borderColor: 'rgba(16, 185, 129, 0.3)',
+    backgroundColor: 'rgba(46, 189, 133, 0.12)',
+    borderColor: 'rgba(46, 189, 133, 0.35)',
   },
   statusBadgeReview: {
-    backgroundColor: color.accentSoft,
-    borderColor: color.accentRim,
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    borderColor: 'rgba(212, 175, 55, 0.35)',
   },
   statusBadgeText: {
-    fontSize: 11,
+    fontSize: 10,
+    fontFamily: font.mono,
     fontWeight: '700',
   },
   metricsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: space.sm,
+    gap: 6,
+    marginTop: space.xs,
   },
   metricBox: {
     flex: 1,
-    minWidth: '45%',
-    backgroundColor: color.glassFillInset,
-    padding: space.sm,
-    borderRadius: radius.sm,
+    padding: 8,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(10, 10, 9, 0.65)',
     borderWidth: 1,
-    borderColor: color.hairline,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   metricLabel: {
-    fontSize: 11,
-    color: color.textMuted,
+    fontSize: 8,
+    fontFamily: font.mono,
+    color: Colors.palette.naturalTitanium,
+    fontWeight: '700',
+    letterSpacing: 0.4,
   },
   metricValue: {
-    fontSize: 14,
+    fontSize: 12,
+    fontFamily: font.num,
     fontWeight: '700',
-    color: color.text,
-    marginTop: 2,
+    color: Colors.palette.alabasterWhite,
+    marginTop: 3,
+    fontVariant: ['tabular-nums'],
+  },
+  perforationLine: {
+    height: 1,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.10)',
+    borderStyle: 'dashed',
+    marginVertical: space.md,
   },
   listSectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: color.text,
-    marginTop: space.xs,
+    fontSize: 10,
+    fontFamily: font.mono,
+    fontWeight: '700',
+    color: Colors.palette.naturalTitanium,
+    letterSpacing: 0.6,
+    marginBottom: space.xs,
   },
   itemsList: {
-    gap: space.xs,
+    gap: 6,
   },
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: color.hairline,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(10, 10, 9, 0.50)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
   itemLeft: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: space.sm,
+    alignItems: 'center',
+    gap: 8,
     flex: 1,
-    marginRight: space.sm,
+    marginRight: 8,
   },
   neutralChip: {
+    paddingHorizontal: 5,
     paddingVertical: 2,
-    paddingHorizontal: 6,
-    borderRadius: radius.pill,
-    backgroundColor: color.glassFillInset,
-    borderWidth: 1,
-    borderColor: color.hairline,
-    marginTop: 2,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   neutralChipText: {
     fontSize: 9,
+    fontFamily: font.mono,
     fontWeight: '700',
-    color: color.text,
+    color: Colors.palette.naturalTitanium,
   },
   itemTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: color.text,
+    fontSize: 12,
+    fontFamily: font.mono,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
+  },
+  derivativeBadge: {
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 3,
+    backgroundColor: 'rgba(212, 175, 55, 0.18)',
+  },
+  derivativeBadgeText: {
+    fontSize: 8,
+    fontFamily: font.mono,
+    fontWeight: '700',
+    color: Colors.palette.champagneGold,
   },
   itemDate: {
-    fontSize: 11,
-    color: color.textMuted,
+    fontSize: 10,
+    fontFamily: font.mono,
+    color: Colors.palette.darkPewter,
+    marginTop: 1,
   },
   internalTransferTag: {
-    fontSize: 10,
-    color: color.asset.stock,
-    marginTop: 2,
+    fontSize: 9.5,
+    fontFamily: font.ui,
+    color: Colors.palette.sovereignJade,
+    marginTop: 1,
   },
   duplicateTag: {
-    fontSize: 10,
-    color: color.loss,
-    marginTop: 2,
+    fontSize: 9.5,
+    fontFamily: font.ui,
+    color: Colors.palette.naturalTitanium,
+    marginTop: 1,
   },
   itemAmount: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: color.text,
+    fontSize: 12,
+    fontFamily: font.num,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
     fontVariant: ['tabular-nums'],
   },
   dimmedAmount: {
-    opacity: 0.4,
-    textDecorationLine: 'line-through',
+    opacity: 0.45,
+  },
+  vaultSlipFooter: {
+    marginTop: space.md,
+    gap: space.sm,
+  },
+  attestationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    justifyContent: 'center',
+  },
+  attestationText: {
+    fontSize: 8.5,
+    fontFamily: font.mono,
+    color: Colors.palette.naturalTitanium,
+    letterSpacing: 0.6,
   },
   stagingActionsRow: {
     flexDirection: 'row',
-    gap: space.md,
-    marginTop: space.sm,
+    gap: space.sm,
   },
-  discardButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: color.hairline,
-    backgroundColor: color.glassFillInset,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  discardButtonText: {
-    fontSize: 13,
-    color: color.textMuted,
-    fontWeight: '600',
-  },
-  commitButton: {
-    flex: 2,
-    paddingVertical: 12,
-    borderRadius: radius.pill,
-    backgroundColor: color.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...shadow.e1,
-  },
-  commitButtonText: {
-    fontSize: 13,
-    color: color.onAccent,
-    fontWeight: '700',
-  },
-
-  // Presets
   presetsHeader: {
-    paddingHorizontal: 2,
+    marginTop: space.xs,
   },
   presetsSubtext: {
-    fontSize: 12,
-    color: color.textMuted,
-    marginTop: 2,
+    fontSize: 11,
+    fontFamily: font.ui,
+    color: Colors.palette.naturalTitanium,
+    marginTop: 1,
+    marginBottom: space.xs,
   },
   presetsCard: {
     borderRadius: radius.lg,
@@ -1102,54 +1179,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: space.md,
-    paddingHorizontal: space.lg,
+    padding: space.md,
   },
   presetLeft: {
     flex: 1,
-    marginRight: space.md,
+    marginRight: space.sm,
   },
   presetTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: color.text,
+    fontSize: 12,
+    fontFamily: font.uiBold,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
   },
   presetDesc: {
-    fontSize: 12,
-    color: color.textMuted,
+    fontSize: 10.5,
+    fontFamily: font.ui,
+    color: Colors.palette.naturalTitanium,
     marginTop: 2,
-  },
-  presetActionChip: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: radius.pill,
-    backgroundColor: color.glassFillInset,
-    borderWidth: 1,
-    borderColor: color.hairline,
-  },
-  presetActionText: {
-    fontSize: 11,
-    color: color.accent,
-    fontWeight: '600',
+    lineHeight: 14,
   },
   rowHairline: {
     height: 1,
-    backgroundColor: color.hairline,
-    marginHorizontal: space.lg,
-  },
-  derivativeBadge: {
-    paddingHorizontal: 5,
-    paddingVertical: 1.5,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 159, 10, 0.15)',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 159, 10, 0.35)',
-  },
-  derivativeBadgeText: {
-    fontSize: 9,
-    fontFamily: font.uiBold,
-    fontWeight: '700',
-    color: '#FF9F0A',
-    letterSpacing: 0.4,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginHorizontal: space.md,
   },
 });

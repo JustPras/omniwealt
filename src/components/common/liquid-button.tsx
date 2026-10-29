@@ -57,7 +57,7 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
   const theme = useTheme();
   const isDark = isDarkTheme(theme);
 
-  // Fluid scale & squash animation per DESIGN.md Section 5.1
+  // Fluid scale & squash animation per DESIGN_SYSTEM.md
   const scaleX = useRef(new Animated.Value(1)).current;
   const scaleY = useRef(new Animated.Value(1)).current;
 
@@ -69,14 +69,11 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
   const handlePressIn = useCallback((e: GestureResponderEvent) => {
     if (disabled || loading) return;
 
-    // 1. Tactile feedback
     triggerHaptic('light');
 
-    // 2. Liquid splash ripple position
     const { locationX, locationY } = e.nativeEvent;
     setRipplePos({ x: locationX, y: locationY });
 
-    // 3. Elastic squash animation: scaleX: 0.93, scaleY: 1.05 in 110ms
     Animated.parallel([
       Animated.timing(scaleX, {
         toValue: 0.93,
@@ -88,7 +85,6 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
         duration: 110,
         useNativeDriver: true,
       }),
-      // Ripple expand to 3.2 and fade opacity 0.9 -> 0
       Animated.sequence([
         Animated.timing(rippleOpacity, {
           toValue: 0.9,
@@ -114,7 +110,6 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
   const handlePressOut = useCallback(() => {
     if (disabled || loading) return;
 
-    // Bounce back to scaleX: 1, scaleY: 1 using Animated.spring({ friction: 4, tension: 160 }) per DESIGN.md Section 5.1
     Animated.parallel([
       Animated.spring(scaleX, {
         toValue: 1,
@@ -131,7 +126,6 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
     ]).start();
   }, [disabled, loading, scaleX, scaleY]);
 
-  // Gradient & color selection per variant in DESIGN.md Section 5.1
   const activeGradients = isDark ? Colors.darkGlass : Colors.lightGlass;
 
   const gradientColors =
@@ -143,47 +137,40 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
 
   const defaultTextColor =
     variant === 'azure'
-      ? '#FFFFFF'
-      : variant === 'obsidian'
-      ? '#FFFFFF'
-      : isDark
-      ? '#FFFFFF'
-      : '#0F172A';
+      ? '#0A0A09' // High-contrast Swiss bullion dark ink on Champagne gold
+      : Colors.palette.alabasterWhite;
 
   const iconColor =
     variant === 'azure'
-      ? '#FFFFFF'
+      ? '#0A0A09'
       : variant === 'obsidian'
-      ? Colors.palette.appleBg
-      : Colors.palette.appleBlue;
+      ? Colors.palette.champagneGold
+      : Colors.palette.champagneGold;
 
   const borderColor =
     variant === 'azure'
-      ? 'rgba(255, 255, 255, 0.45)'
+      ? 'rgba(212, 175, 55, 0.55)'
       : variant === 'obsidian'
-      ? 'rgba(255, 255, 255, 0.18)'
-      : isDark
-      ? 'rgba(255, 255, 255, 0.22)'
-      : 'rgba(255, 255, 255, 0.92)';
+      ? 'rgba(255, 255, 255, 0.14)'
+      : 'rgba(255, 255, 255, 0.16)';
 
   const shadowStyle =
     variant === 'azure'
       ? {
-          shadowColor: Colors.palette.appleBlue,
+          shadowColor: Colors.palette.champagneGold,
           shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.40,
+          shadowOpacity: 0.35,
           shadowRadius: 14,
           elevation: 5,
         }
       : {
-          shadowColor: Colors.palette.appleInk,
+          shadowColor: '#000000',
           shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: isDark ? 0.35 : 0.08,
+          shadowOpacity: 0.35,
           shadowRadius: 10,
           elevation: 3,
         };
 
-  // Dimensions by size
   const sizeStyles = {
     sm: {
       paddingVertical: 7,
@@ -241,7 +228,6 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
           },
         ]}
       >
-        {/* Liquid Gradient Fill */}
         <LinearGradient
           colors={gradientColors}
           start={{ x: 0, y: 0 }}
@@ -249,13 +235,12 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
           style={StyleSheet.absoluteFill}
         />
 
-        {/* Top Meniscus Specular Highlight: white water meniscus arc at top rim */}
         <View style={styles.topMeniscusArc} pointerEvents="none">
           <LinearGradient
             colors={
               variant === 'azure'
                 ? ['rgba(255, 255, 255, 0.70)', 'rgba(255, 255, 255, 0.0)']
-                : ['rgba(255, 255, 255, 0.92)', 'rgba(255, 255, 255, 0.0)']
+                : ['rgba(255, 255, 255, 0.50)', 'rgba(255, 255, 255, 0.0)']
             }
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
@@ -263,7 +248,6 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
           />
         </View>
 
-        {/* Liquid splash ripple layer */}
         <Animated.View
           pointerEvents="none"
           style={[
@@ -276,12 +260,11 @@ export const LiquidButton: React.FC<LiquidButtonProps> = ({
               backgroundColor:
                 variant === 'azure'
                   ? 'rgba(255, 255, 255, 0.35)'
-                  : 'rgba(0, 122, 255, 0.20)',
+                  : 'rgba(212, 175, 55, 0.20)',
             },
           ]}
         />
 
-        {/* Button Content */}
         {loading ? (
           <ActivityIndicator size="small" color={defaultTextColor} />
         ) : children ? (

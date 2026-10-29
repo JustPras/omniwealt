@@ -24,7 +24,7 @@ import { LiabilityService } from '../../src/services/liability-service';
 import { useWealth } from '../../src/store/wealth-context';
 import { formatPercent, formatChangePercent, formatIDR } from '../../src/utils/format';
 import { triggerHaptic } from '../../src/utils/haptics';
-import { color, space, radius, shadow, motion, useTheme, themes, font, isDarkTheme } from '../../src/theme/tokens';
+import { color, space, radius, shadow, motion, useTheme, themes, font, isDarkTheme, Colors } from '../../src/theme/tokens';
 
 type Timeframe = '1H' | '1M' | '1B' | '1T' | 'Semua';
 type AllocationType = 'ALL' | 'CASH' | 'STOCKS' | 'CRYPTO';
@@ -62,7 +62,6 @@ const TimeframeButton: React.FC<{
   isActive: boolean;
   onPress: () => void;
 }> = React.memo(({ tf, isActive, onPress }) => {
-  const theme = useTheme();
   const pressScale = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = useCallback(() => {
@@ -97,8 +96,7 @@ const TimeframeButton: React.FC<{
         <Text
           style={[
             styles.timeframeText,
-            { color: theme.textMuted },
-            isActive && [styles.activeTimeframeText, { color: theme.tint }],
+            isActive && styles.activeTimeframeText,
           ]}
         >
           {tf}
@@ -115,8 +113,6 @@ interface LiquidTimeframeSelectorProps {
 
 const LiquidTimeframeSelector: React.FC<LiquidTimeframeSelectorProps> = React.memo(
   ({ activeTimeframe, onSelectTimeframe }) => {
-    const theme = useTheme();
-    const isDark = isDarkTheme(theme);
     const [rowWidth, setRowWidth] = useState(0);
 
     const tfIndex = TIMEFRAMES.indexOf(activeTimeframe);
@@ -204,16 +200,6 @@ const LiquidTimeframeSelector: React.FC<LiquidTimeframeSelectorProps> = React.me
       outputRange: [1.0, 0.86],
     });
 
-    const waveTranslateX = waveAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [-capsuleWidth * 0.8, capsuleWidth * 0.8],
-    });
-
-    const waveOpacity = waveAnim.interpolate({
-      inputRange: [0, 0.25, 0.75, 1],
-      outputRange: [0, 0.75, 0.75, 0],
-    });
-
     return (
       <View
         style={styles.timeframeRow}
@@ -224,7 +210,7 @@ const LiquidTimeframeSelector: React.FC<LiquidTimeframeSelectorProps> = React.me
           }
         }}
       >
-        {/* Flowing Liquid Glass Water Capsule */}
+        {/* Flowing Champagne Gold Liquid Capsule */}
         {rowWidth > 0 && (
           <Animated.View
             pointerEvents="none"
@@ -237,60 +223,11 @@ const LiquidTimeframeSelector: React.FC<LiquidTimeframeSelectorProps> = React.me
               },
             ]}
           >
-            {/* Inner clipped liquid container */}
-            <View
-              style={[
-                styles.timeframeLiquidInner,
-                {
-                  backgroundColor: isDark
-                    ? 'rgba(0, 122, 255, 0.22)'
-                    : 'rgba(0, 122, 255, 0.16)',
-                  borderColor: isDark
-                    ? 'rgba(255, 255, 255, 0.32)'
-                    : 'rgba(0, 122, 255, 0.38)',
-                },
-              ]}
-            >
-              {/* Internal Radiant Water Tint Nucleus */}
-              <View
-                style={[
-                  styles.timeframeLiquidNucleus,
-                  {
-                    backgroundColor: isDark
-                      ? 'rgba(0, 140, 255, 0.18)'
-                      : 'rgba(0, 122, 255, 0.12)',
-                  },
-                ]}
-              />
-
-              {/* Water Wave Shimmer Ribbon */}
-              <Animated.View
-                style={[
-                  styles.timeframeWaveShimmer,
-                  {
-                    opacity: waveOpacity,
-                    transform: [
-                      { translateX: waveTranslateX },
-                      { rotate: '25deg' },
-                    ],
-                  },
-                ]}
-              />
-
-              {/* Specular Water Meniscus Arc */}
+            <View style={styles.timeframeLiquidInner}>
+              <View style={styles.timeframeLiquidNucleus} />
               <View style={styles.timeframeSpecularGlint} />
             </View>
-
-            {/* Subtle Active Glow Dot at Bottom */}
-            <View
-              style={[
-                styles.timeframeActiveDot,
-                {
-                  backgroundColor: color.accent,
-                  shadowColor: color.accent,
-                },
-              ]}
-            />
+            <View style={styles.timeframeActiveDot} />
           </Animated.View>
         )}
 
@@ -320,6 +257,7 @@ export default function OverviewScreen() {
   const theme = useTheme();
 
   const {
+    accounts,
     totalNetWorth,
     totalCash,
     totalStocks,
@@ -341,6 +279,19 @@ export default function OverviewScreen() {
   const [mutationModalVisible, setMutationModalVisible] = useState(false);
   const [activeTimeframe, setActiveTimeframe] = useState<Timeframe>('1H');
   const [selectedAllocation, setSelectedAllocation] = useState<AllocationType>('ALL');
+
+  // Breakdown for 2x2 Bento Grid
+  const rdnCash = useMemo(() => {
+    return accounts
+      .filter((a) => a.type === 'RDN')
+      .reduce((acc, a) => acc + (Number(a.balance) || 0), 0);
+  }, [accounts]);
+
+  const bankCash = useMemo(() => {
+    return accounts
+      .filter((a) => a.type === 'BANK' || a.type === 'E-WALLET')
+      .reduce((acc, a) => acc + (Number(a.balance) || 0), 0);
+  }, [accounts]);
 
   // Upcoming Due Date Alerts for liabilities
   const upcomingBills = useMemo(() => {
@@ -386,11 +337,9 @@ export default function OverviewScreen() {
     };
   }, [totalNetWorth, isCurrentProfit, activeTimeframe]);
 
-  // Handle Scrub interaction
   const handleScrub = useCallback(
     (point: ScrubPoint) => {
       setIsScrubbing(true);
-      // Map normalized point to actual simulated portfolio value
       const latestPoint = activePoints[activePoints.length - 1] || 1;
       const ratio = point.val / latestPoint;
       const simulatedVal = Math.round(totalNetWorth * ratio);
@@ -405,24 +354,22 @@ export default function OverviewScreen() {
   );
 
   const handleScrubEnd = useCallback(() => {
-    // Settle back to live
     setIsScrubbing(false);
     setScrubPoint(null);
     triggerHaptic('light');
   }, []);
 
-  // Displayed Hero Values (live vs scrubbed)
   const displayNetWorth = isScrubbing && scrubPoint ? scrubPoint.val : totalNetWorth;
   const displayDeltaPct = isScrubbing && scrubPoint ? scrubPoint.changePct : currentChangePct;
   const displayDeltaLabel = isScrubbing && scrubPoint ? scrubPoint.label : currentTimeLabel;
   const isDisplayProfit = displayDeltaPct >= 0;
 
-  // Asset Allocations
+  // Proportional Asset Allocations
   const cashPct = totalNetWorth > 0 ? (totalCash / totalNetWorth) * 100 : 0;
   const stockPct = totalNetWorth > 0 ? (totalStocks / totalNetWorth) * 100 : 0;
   const cryptoPct = totalNetWorth > 0 ? (totalCryptos / totalNetWorth) * 100 : 0;
 
-  // Top Movers: max 4 rows sorted by largest absolute change (memoized)
+  // Top Movers: max 4 rows sorted by largest absolute change
   const allMovers = useMemo(() => {
     return [
       ...stocks.map((s) => ({
@@ -449,8 +396,7 @@ export default function OverviewScreen() {
   const isPnLProfit = totalUnrealizedPnL >= 0;
 
   return (
-    <ScreenTransition style={[styles.screenContainer, { backgroundColor: theme.canvas }]}>
-      {/* Background with subtle ambient lighting that shifts on allocation tap */}
+    <ScreenTransition style={[styles.screenContainer, { backgroundColor: Colors.palette.canvas }]}>
       <AmbientBackground
         scrollY={scrollY}
         activeAssetClass={selectedAllocation}
@@ -473,16 +419,37 @@ export default function OverviewScreen() {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={refreshMarketPrices}
-            tintColor={color.accent}
-            colors={[color.accent]}
+            tintColor={Colors.palette.champagneGold}
+            colors={[Colors.palette.champagneGold]}
           />
         }
       >
-        {/* 1. HERO NET WORTH CARD (WITH LIVE SCRUBBING) */}
-        <GlassCard level="base" style={styles.heroCard}>
+        {/* LIVE AI SYNC STRIP */}
+        <Pressable
+          onPress={() => {
+            triggerHaptic('selection');
+            router.push('/(tabs)/sync');
+          }}
+          style={styles.liveAiSyncStrip}
+        >
+          <View style={styles.aiSyncLeft}>
+            <View style={styles.aiSyncGlowDot} />
+            <Text style={styles.aiSyncTitle}>AIR-GAPPED AI INGESTION</Text>
+          </View>
+          <View style={styles.aiSyncRight}>
+            <Text style={styles.aiSyncSub}>0 BYTES EXPORTED</Text>
+            <Icon name="ChevronRight" size={12} color={Colors.palette.champagneGold} />
+          </View>
+        </Pressable>
+
+        {/* 1. HERO BULLION NET WORTH CARD */}
+        <GlassCard level="bullion" style={styles.heroCard}>
           <View style={styles.heroHeader}>
             <View style={styles.heroLabelRow}>
-              <Text style={[styles.heroLabel, { color: theme.textMuted }]}>Kekayaan bersih</Text>
+              <Text style={styles.heroLabel}>KEKAYAAN BERSIH</Text>
+              <View style={styles.athPill}>
+                <Text style={styles.athPillText}>ATH IDR</Text>
+              </View>
               {isScrubbing ? (
                 <View style={styles.scrubIndicatorPill}>
                   <Text style={styles.scrubIndicatorText}>{displayDeltaLabel}</Text>
@@ -490,7 +457,7 @@ export default function OverviewScreen() {
               ) : null}
             </View>
 
-            {/* Delta pill with true minus and arrows */}
+            {/* Delta pill with Sovereign Jade (Profit) / Terracotta Rose (Loss) */}
             <View
               style={[
                 styles.deltaBadge,
@@ -514,7 +481,7 @@ export default function OverviewScreen() {
               value={displayNetWorth}
               style={[
                 styles.heroValueText,
-                { color: theme.text, fontSize: isSmall ? 28 : width >= 414 ? 38 : 34 },
+                { fontSize: isSmall ? 28 : width >= 414 ? 38 : 34 },
               ]}
             />
           </View>
@@ -528,7 +495,7 @@ export default function OverviewScreen() {
               </View>
               <View style={styles.breakdownDivider} />
               <View style={styles.breakdownItem}>
-                <Text style={styles.breakdownItemLabel}>Liabilitas / Utang</Text>
+                <Text style={styles.breakdownItemLabel}>Liabilitas</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                   <Text style={styles.breakdownMinus}>-</Text>
                   <PrivacyValue value={totalLiabilities} style={styles.breakdownItemValDebt} />
@@ -549,14 +516,149 @@ export default function OverviewScreen() {
             style={styles.heroSparkline}
           />
 
-          {/* Timeframe Switcher with Liquid Glass Flowing Capsule */}
+          {/* Timeframe Switcher with Champagne Gold Liquid Capsule */}
           <LiquidTimeframeSelector
             activeTimeframe={activeTimeframe}
             onSelectTimeframe={setActiveTimeframe}
           />
+
+          {/* 1px Dashed Perforation Line Separator */}
+          <View style={styles.perforationLine} />
+
+          {/* Segmented Proportional Asset Allocation Bar */}
+          <View style={styles.allocationSection}>
+            <View style={styles.allocationHeaderRow}>
+              <Text style={styles.allocationSectionTitle}>ALOKASI ASET // PORTFOLIO RATIO</Text>
+              {selectedAllocation !== 'ALL' && (
+                <Pressable
+                  onPress={() => {
+                    triggerHaptic('selection');
+                    setSelectedAllocation('ALL');
+                  }}
+                  hitSlop={8}
+                >
+                  <Text style={styles.resetAllocationText}>Tampilkan semua</Text>
+                </Pressable>
+              )}
+            </View>
+
+            {totalNetWorth > 0 ? (
+              <View style={styles.allocationBarTrack}>
+                <Pressable
+                  onPress={() => {
+                    triggerHaptic('selection');
+                    setSelectedAllocation(selectedAllocation === 'CASH' ? 'ALL' : 'CASH');
+                  }}
+                  style={[
+                    styles.allocationSegment,
+                    {
+                      width: `${Math.max(4, cashPct)}%`,
+                      backgroundColor: Colors.palette.titaniumSilver,
+                      opacity: selectedAllocation === 'ALL' || selectedAllocation === 'CASH' ? 1 : 0.35,
+                      height: selectedAllocation === 'CASH' ? 10 : 7,
+                    },
+                  ]}
+                />
+                <Pressable
+                  onPress={() => {
+                    triggerHaptic('selection');
+                    setSelectedAllocation(selectedAllocation === 'STOCKS' ? 'ALL' : 'STOCKS');
+                  }}
+                  style={[
+                    styles.allocationSegment,
+                    {
+                      width: `${Math.max(4, stockPct)}%`,
+                      backgroundColor: Colors.palette.champagneGold,
+                      opacity: selectedAllocation === 'ALL' || selectedAllocation === 'STOCKS' ? 1 : 0.35,
+                      height: selectedAllocation === 'STOCKS' ? 10 : 7,
+                    },
+                  ]}
+                />
+                <Pressable
+                  onPress={() => {
+                    triggerHaptic('selection');
+                    setSelectedAllocation(selectedAllocation === 'CRYPTO' ? 'ALL' : 'CRYPTO');
+                  }}
+                  style={[
+                    styles.allocationSegment,
+                    {
+                      width: `${Math.max(4, cryptoPct)}%`,
+                      backgroundColor: Colors.palette.burnishedCopper,
+                      opacity: selectedAllocation === 'ALL' || selectedAllocation === 'CRYPTO' ? 1 : 0.35,
+                      height: selectedAllocation === 'CRYPTO' ? 10 : 7,
+                    },
+                  ]}
+                />
+              </View>
+            ) : (
+              <View style={styles.emptyAllocationTrack}>
+                <Text style={styles.emptyAllocationText}>Belum ada aset terdaftar</Text>
+              </View>
+            )}
+
+            {/* Allocation Legend Chips */}
+            <View style={styles.legendContainer}>
+              <Pressable
+                onPress={() => {
+                  triggerHaptic('selection');
+                  setSelectedAllocation(selectedAllocation === 'CASH' ? 'ALL' : 'CASH');
+                }}
+                style={[
+                  styles.legendChip,
+                  selectedAllocation === 'CASH' && styles.legendChipActive,
+                ]}
+              >
+                <View style={[styles.legendDot, { backgroundColor: Colors.palette.titaniumSilver }]} />
+                <View>
+                  <Text style={styles.legendLabel}>Kas {cashPct.toFixed(0)}%</Text>
+                  {selectedAllocation === 'CASH' && (
+                    <PrivacyValue value={totalCash} style={styles.legendValue} />
+                  )}
+                </View>
+              </Pressable>
+
+              <Pressable
+                onPress={() => {
+                  triggerHaptic('selection');
+                  setSelectedAllocation(selectedAllocation === 'STOCKS' ? 'ALL' : 'STOCKS');
+                }}
+                style={[
+                  styles.legendChip,
+                  selectedAllocation === 'STOCKS' && styles.legendChipActive,
+                ]}
+              >
+                <View style={[styles.legendDot, { backgroundColor: Colors.palette.champagneGold }]} />
+                <View>
+                  <Text style={styles.legendLabel}>Saham {stockPct.toFixed(0)}%</Text>
+                  {selectedAllocation === 'STOCKS' && (
+                    <PrivacyValue value={totalStocks} style={styles.legendValue} />
+                  )}
+                </View>
+              </Pressable>
+
+              <Pressable
+                onPress={() => {
+                  triggerHaptic('selection');
+                  setSelectedAllocation(selectedAllocation === 'CRYPTO' ? 'ALL' : 'CRYPTO');
+                }}
+                style={[
+                  styles.legendChip,
+                  selectedAllocation === 'CRYPTO' && styles.legendChipActive,
+                ]}
+              >
+                <View style={[styles.legendDot, { backgroundColor: Colors.palette.burnishedCopper }]} />
+                <View>
+                  <Text style={styles.legendLabel}>Kripto {cryptoPct.toFixed(0)}%</Text>
+                  {selectedAllocation === 'CRYPTO' && (
+                    <PrivacyValue value={totalCryptos} style={styles.legendValue} />
+                  )}
+                </View>
+              </Pressable>
+            </View>
+          </View>
         </GlassCard>
 
-        {/* QUICK FLUID LIQUID ACTIONS */}
+        {/* QUICK FLUID ACTION BAR */}
         <View style={styles.quickActionBar}>
           <LiquidButton
             title="Catat"
@@ -569,7 +671,7 @@ export default function OverviewScreen() {
             style={styles.quickActionLiquidBtn}
           />
           <LiquidButton
-            title="Masuk"
+            title="Mutasi"
             icon="ArrowDownLeft"
             variant="clear"
             size="sm"
@@ -616,18 +718,18 @@ export default function OverviewScreen() {
               <View
                 style={[
                   styles.dueAlertIconCircle,
-                  topDueAlert.isOverdue && { backgroundColor: 'rgba(239, 68, 68, 0.2)' },
+                  topDueAlert.isOverdue && { backgroundColor: 'rgba(225, 82, 65, 0.2)' },
                 ]}
               >
                 <Icon
                   name="Calendar"
                   size={15}
-                  color={topDueAlert.isOverdue ? '#EF4444' : '#F59E0B'}
+                  color={topDueAlert.isOverdue ? Colors.palette.terracottaRose : Colors.palette.champagneGold}
                 />
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, minWidth: 0 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={styles.dueAlertTitle}>
+                  <Text style={styles.dueAlertTitle} numberOfLines={1}>
                     {topDueAlert.isOverdue
                       ? `Tagihan ${topDueAlert.liability.name} Lewat Jatuh Tempo!`
                       : topDueAlert.isDueToday
@@ -637,257 +739,137 @@ export default function OverviewScreen() {
                   <View
                     style={[
                       styles.dueAlertBadge,
-                      topDueAlert.isOverdue && { backgroundColor: 'rgba(239, 68, 68, 0.16)', borderColor: 'rgba(239, 68, 68, 0.3)' },
+                      topDueAlert.isOverdue && { backgroundColor: 'rgba(225, 82, 65, 0.16)', borderColor: 'rgba(225, 82, 65, 0.3)' },
                     ]}
                   >
                     <Text
                       style={[
                         styles.dueAlertBadgeText,
-                        topDueAlert.isOverdue && { color: '#EF4444' },
+                        topDueAlert.isOverdue && { color: Colors.palette.terracottaRose },
                       ]}
                     >
                       {topDueAlert.isOverdue ? 'Jatuh Tempo' : `Tgl ${topDueAlert.dueDate}`}
                     </Text>
                   </View>
                 </View>
-                <Text style={styles.dueAlertSub}>
+                <Text style={styles.dueAlertSub} numberOfLines={1}>
                   Total tagihan: {formatIDR(topDueAlert.liability.outstandingAmount)} • Ketuk untuk bayar
                 </Text>
               </View>
             </View>
-            <Icon name="ChevronRight" size={15} color={color.textMuted} />
+            <Icon name="ChevronRight" size={15} color={Colors.palette.naturalTitanium} />
           </Pressable>
         )}
 
-        {/* 2. INTERACTIVE ASSET ALLOCATION CARD */}
-        <GlassCard level="base" style={styles.allocationCard}>
-          <View style={styles.allocationHeader}>
-            <Text style={[styles.sectionHeadline, { color: theme.text }]}>Alokasi aset</Text>
-            {selectedAllocation !== 'ALL' && (
-              <Pressable
-                onPress={() => {
-                  triggerHaptic('selection');
-                  setSelectedAllocation('ALL');
-                }}
-                hitSlop={8}
-              >
-                <Text style={styles.resetAllocationText}>Tampilkan semua</Text>
-              </Pressable>
-            )}
-          </View>
-
-          {/* Segmented Proportional Bar */}
-          {totalNetWorth > 0 ? (
-            <View style={styles.allocationBarTrack}>
-              {/* Cash segment (perak / slate) */}
-              <Pressable
-                onPress={() => {
-                  triggerHaptic('selection');
-                  setSelectedAllocation(selectedAllocation === 'CASH' ? 'ALL' : 'CASH');
-                }}
-                style={[
-                  styles.allocationSegment,
-                  {
-                    width: `${Math.max(3, cashPct)}%`,
-                    backgroundColor: color.asset.cash,
-                    opacity: selectedAllocation === 'ALL' || selectedAllocation === 'CASH' ? 1 : 0.4,
-                    height: selectedAllocation === 'CASH' ? 12 : 8,
-                  },
-                ]}
-              />
-
-              {/* Stock segment (sky) */}
-              <Pressable
-                onPress={() => {
-                  triggerHaptic('selection');
-                  setSelectedAllocation(selectedAllocation === 'STOCKS' ? 'ALL' : 'STOCKS');
-                }}
-                style={[
-                  styles.allocationSegment,
-                  {
-                    width: `${Math.max(3, stockPct)}%`,
-                    backgroundColor: color.asset.stock,
-                    opacity: selectedAllocation === 'ALL' || selectedAllocation === 'STOCKS' ? 1 : 0.4,
-                    height: selectedAllocation === 'STOCKS' ? 12 : 8,
-                  },
-                ]}
-              />
-
-              {/* Crypto segment (violet) */}
-              <Pressable
-                onPress={() => {
-                  triggerHaptic('selection');
-                  setSelectedAllocation(selectedAllocation === 'CRYPTO' ? 'ALL' : 'CRYPTO');
-                }}
-                style={[
-                  styles.allocationSegment,
-                  {
-                    width: `${Math.max(3, cryptoPct)}%`,
-                    backgroundColor: color.asset.crypto,
-                    opacity: selectedAllocation === 'ALL' || selectedAllocation === 'CRYPTO' ? 1 : 0.4,
-                    height: selectedAllocation === 'CRYPTO' ? 12 : 8,
-                  },
-                ]}
-              />
-            </View>
-          ) : (
-            <View style={styles.emptyAllocationTrack}>
-              <Text style={styles.emptyAllocationText}>Belum ada aset terdaftar</Text>
-            </View>
-          )}
-
-          {/* Allocation Legend with Amounts */}
-          <View style={styles.legendContainer}>
+        {/* 2. 2x2 BENTO ASSET GRID WITH CORNER INDICES 01 // TO 04 // */}
+        <View style={styles.bentoGridSection}>
+          <View style={styles.bentoSectionHeader}>
+            <Text style={styles.bentoSectionHeadline}>RINGKASAN BUKU BESAR // 2x2 BENTO</Text>
             <Pressable
               onPress={() => {
                 triggerHaptic('selection');
-                setSelectedAllocation(selectedAllocation === 'CASH' ? 'ALL' : 'CASH');
+                router.push('/(tabs)/accounts');
               }}
-              style={[
-                styles.legendChip,
-                selectedAllocation === 'CASH' && styles.legendChipActive,
-              ]}
+              hitSlop={8}
             >
-              <View style={[styles.legendDot, { backgroundColor: color.asset.cash }]} />
-              <View>
-                <Text style={styles.legendLabel}>Kas {cashPct.toFixed(0)}%</Text>
-                {selectedAllocation === 'CASH' && (
-                  <PrivacyValue value={totalCash} style={styles.legendValue} />
-                )}
-              </View>
-            </Pressable>
-
-            <Pressable
-              onPress={() => {
-                triggerHaptic('selection');
-                setSelectedAllocation(selectedAllocation === 'STOCKS' ? 'ALL' : 'STOCKS');
-              }}
-              style={[
-                styles.legendChip,
-                selectedAllocation === 'STOCKS' && styles.legendChipActive,
-              ]}
-            >
-              <View style={[styles.legendDot, { backgroundColor: color.asset.stock }]} />
-              <View>
-                <Text style={styles.legendLabel}>Saham {stockPct.toFixed(0)}%</Text>
-                {selectedAllocation === 'STOCKS' && (
-                  <PrivacyValue value={totalStocks} style={styles.legendValue} />
-                )}
-              </View>
-            </Pressable>
-
-            <Pressable
-              onPress={() => {
-                triggerHaptic('selection');
-                setSelectedAllocation(selectedAllocation === 'CRYPTO' ? 'ALL' : 'CRYPTO');
-              }}
-              style={[
-                styles.legendChip,
-                selectedAllocation === 'CRYPTO' && styles.legendChipActive,
-              ]}
-            >
-              <View style={[styles.legendDot, { backgroundColor: color.asset.crypto }]} />
-              <View>
-                <Text style={styles.legendLabel}>Kripto {cryptoPct.toFixed(0)}%</Text>
-                {selectedAllocation === 'CRYPTO' && (
-                  <PrivacyValue value={totalCryptos} style={styles.legendValue} />
-                )}
-              </View>
+              <Text style={styles.bentoSectionAction}>Kelola &rarr;</Text>
             </Pressable>
           </View>
-        </GlassCard>
 
-        {/* 3. ASYMMETRIC BENTO GRID */}
-        <View style={styles.bentoGrid}>
-          {/* Left Column: Active Investments (Double Height) */}
-          <GlassCard
-            level="base"
-            style={styles.bentoLeftCard}
-            onPress={() => {
-              triggerHaptic('selection');
-              router.push('/(tabs)/portfolio');
-            }}
-          >
-            <View style={styles.cardHeaderRow}>
-              <Text style={[styles.cardHeaderTitle, { color: theme.text }]}>Investasi aktif</Text>
-              <Icon name="ArrowUpRight" size={15} color={color.accent} />
-            </View>
-
-            <View style={styles.bentoValueBlock}>
-              <PrivacyValue value={totalInvestments} style={[styles.bentoLargeValue, { color: theme.text }]} />
-            </View>
-
-            <View style={styles.bentoHairline} />
-
-            <View style={styles.pnlSection}>
-              <Text style={styles.pnlLabel}>Laba belum terealisasi</Text>
-              <Text
-                style={[
-                  styles.pnlPercentText,
-                  isPnLProfit ? styles.textGain : styles.textLoss,
-                ]}
-              >
-                {formatChangePercent(totalUnrealizedPnLPercent)}
-              </Text>
-              <PrivacyValue
-                value={totalUnrealizedPnL}
-                prefix={isPnLProfit ? '▲ +' : '▼ −'}
-                style={[
-                  styles.pnlAmountText,
-                  isPnLProfit ? styles.textGain : styles.textLoss,
-                ]}
-              />
-            </View>
-          </GlassCard>
-
-          {/* Right Column: Stacked Cards */}
-          <View style={styles.bentoRightCol}>
-            {/* Top Right: Cash & RDN */}
+          <View style={styles.bentoGrid2x2}>
+            {/* Cell 01: Bank & Kas */}
             <GlassCard
               level="base"
-              style={styles.bentoRightCard}
+              style={styles.bentoCell}
               onPress={() => {
                 triggerHaptic('selection');
                 router.push('/(tabs)/accounts');
               }}
             >
-              <View style={styles.cardHeaderRow}>
-                <Text style={[styles.cardHeaderTitle, { color: theme.text }]}>Kas & RDN</Text>
-                <Icon name="ArrowUpRight" size={14} color={color.accent} />
+              <View style={styles.bentoCellHeader}>
+                <Text style={styles.bentoIndexTag}>01 //</Text>
+                <Icon name="Landmark" size={13} color={Colors.palette.titaniumSilver} />
               </View>
-              <PrivacyValue value={totalCash} style={[styles.bentoMidValue, { color: theme.text }]} />
-              <Text style={[styles.bentoSubtext, { color: theme.textMuted }]}>Saldo likuid</Text>
+              <Text style={styles.bentoCellTitle} numberOfLines={1}>BANK & KAS</Text>
+              <View style={styles.bentoValueWrapper}>
+                <PrivacyValue value={bankCash} style={styles.bentoCellValue} />
+              </View>
+              <Text style={styles.bentoCellSub} numberOfLines={1}>Saldo Likuid Utama</Text>
             </GlassCard>
 
-            {/* Bottom Right: Quick Actions */}
-            <GlassCard level="base" style={styles.bentoRightCard}>
-              <LiquidButton
-                title="Catat mutasi"
-                icon="Plus"
-                variant="azure"
-                size="sm"
-                onPress={() => {
-                  setMutationModalVisible(true);
-                }}
-                style={{ width: '100%', marginBottom: space.xs }}
-              />
-              <LiquidButton
-                title="Impor statement"
-                icon="UploadCloud"
-                variant="clear"
-                size="sm"
-                onPress={() => {
-                  router.push('/(tabs)/sync');
-                }}
-                style={{ width: '100%' }}
-              />
+            {/* Cell 02: Saham IDX */}
+            <GlassCard
+              level="base"
+              style={styles.bentoCell}
+              onPress={() => {
+                triggerHaptic('selection');
+                router.push('/(tabs)/portfolio');
+              }}
+            >
+              <View style={styles.bentoCellHeader}>
+                <Text style={styles.bentoIndexTag}>02 //</Text>
+                <Icon name="TrendingUp" size={13} color={Colors.palette.champagneGold} />
+              </View>
+              <Text style={styles.bentoCellTitle} numberOfLines={1}>SAHAM IDX</Text>
+              <View style={styles.bentoValueWrapper}>
+                <PrivacyValue value={totalStocks} style={styles.bentoCellValue} />
+              </View>
+              <Text
+                style={[
+                  styles.bentoCellSub,
+                  isPnLProfit ? styles.textGain : styles.textLoss,
+                ]}
+                numberOfLines={1}
+              >
+                {formatChangePercent(totalUnrealizedPnLPercent)} PnL
+              </Text>
+            </GlassCard>
+
+            {/* Cell 03: Kas RDN */}
+            <GlassCard
+              level="base"
+              style={styles.bentoCell}
+              onPress={() => {
+                triggerHaptic('selection');
+                router.push('/(tabs)/accounts');
+              }}
+            >
+              <View style={styles.bentoCellHeader}>
+                <Text style={styles.bentoIndexTag}>03 //</Text>
+                <Icon name="ShieldCheck" size={13} color={Colors.palette.sovereignJade} />
+              </View>
+              <Text style={styles.bentoCellTitle} numberOfLines={1}>KAS RDN</Text>
+              <View style={styles.bentoValueWrapper}>
+                <PrivacyValue value={rdnCash} style={styles.bentoCellValue} />
+              </View>
+              <Text style={styles.bentoCellSub} numberOfLines={1}>Dana Siap Beli</Text>
+            </GlassCard>
+
+            {/* Cell 04: Kripto & Web3 */}
+            <GlassCard
+              level="base"
+              style={styles.bentoCell}
+              onPress={() => {
+                triggerHaptic('selection');
+                router.push('/(tabs)/portfolio');
+              }}
+            >
+              <View style={styles.bentoCellHeader}>
+                <Text style={styles.bentoIndexTag}>04 //</Text>
+                <Icon name="Coins" size={13} color={Colors.palette.burnishedCopper} />
+              </View>
+              <Text style={styles.bentoCellTitle} numberOfLines={1}>KRIPTO & WEB3</Text>
+              <View style={styles.bentoValueWrapper}>
+                <PrivacyValue value={totalCryptos} style={styles.bentoCellValue} />
+              </View>
+              <Text style={styles.bentoCellSub} numberOfLines={1}>Multi-Chain Asset</Text>
             </GlassCard>
           </View>
         </View>
 
-        {/* 4. PERGERAKAN TERBESAR (SINGLE CARD WITH ROWS SEPARATED BY HAIRLINE) */}
+        {/* 3. PERGERAKAN TERBESAR (TOP MOVERS WITH QUARTZ CARD) */}
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionHeadline, { color: theme.text }]}>Pergerakan terbesar</Text>
+          <Text style={styles.sectionHeadline}>PERGERAKAN TERBESAR</Text>
           <Pressable
             onPress={() => {
               triggerHaptic('selection');
@@ -931,30 +913,30 @@ export default function OverviewScreen() {
                     }}
                     style={styles.moverRow}
                   >
-                    {/* Left: Ticker & Asset marker dot */}
                     <View style={styles.moverLeft}>
                       <View
                         style={[
                           styles.assetDot,
                           {
                             backgroundColor:
-                              mover.type === 'IDX' ? color.asset.stock : color.asset.crypto,
+                              mover.type === 'IDX'
+                                ? Colors.palette.champagneGold
+                                : Colors.palette.burnishedCopper,
                           },
                         ]}
                       />
-                      <View>
-                        <Text style={[styles.moverSymbol, { color: theme.text }]}>{mover.symbol}</Text>
-                        <Text style={[styles.moverName, { color: theme.textMuted }]} numberOfLines={1}>
+                      <View style={{ minWidth: 0, flexShrink: 1 }}>
+                        <Text style={styles.moverSymbol}>{mover.symbol}</Text>
+                        <Text style={styles.moverName} numberOfLines={1}>
                           {mover.name}
                         </Text>
                       </View>
                     </View>
 
-                    {/* Right: Tabular price & change */}
                     <View style={styles.moverRight}>
                       <PrivacyValue
                         value={mover.currentPrice}
-                        style={[styles.moverPrice, { color: theme.text }]}
+                        style={styles.moverPrice}
                       />
                       <Text
                         style={[
@@ -986,11 +968,51 @@ export default function OverviewScreen() {
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: color.obsidian,
+    backgroundColor: Colors.palette.canvas,
   },
   scrollContent: {
     paddingBottom: 110,
-    gap: space.lg,
+    gap: space.md,
+  },
+  liveAiSyncStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(20, 20, 18, 0.75)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.22)',
+  },
+  aiSyncLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  aiSyncGlowDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.palette.champagneGold,
+  },
+  aiSyncTitle: {
+    fontSize: 10,
+    fontFamily: font.mono,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    color: Colors.palette.champagneGold,
+  },
+  aiSyncRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  aiSyncSub: {
+    fontSize: 9.5,
+    fontFamily: font.mono,
+    color: Colors.palette.naturalTitanium,
+    letterSpacing: 0.4,
   },
   heroCard: {
     padding: space.lg,
@@ -1004,24 +1026,42 @@ const styles = StyleSheet.create({
   heroLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.sm,
+    gap: 6,
   },
   heroLabel: {
-    fontSize: 14,
-    color: color.textMuted,
-    fontWeight: '500',
+    fontSize: 11,
+    fontFamily: font.mono,
+    color: Colors.palette.naturalTitanium,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+  },
+  athPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 4,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.35)',
+  },
+  athPillText: {
+    fontSize: 9,
+    fontFamily: font.mono,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    color: Colors.palette.champagneGold,
   },
   scrubIndicatorPill: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: radius.pill,
-    backgroundColor: color.accentSoft,
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
     borderWidth: 1,
-    borderColor: color.accentRim,
+    borderColor: 'rgba(212, 175, 55, 0.30)',
   },
   scrubIndicatorText: {
-    fontSize: 11,
-    color: color.accent,
+    fontSize: 10,
+    fontFamily: font.mono,
+    color: Colors.palette.champagneGold,
     fontWeight: '600',
   },
   deltaBadge: {
@@ -1031,30 +1071,32 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   badgeGain: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    borderColor: 'rgba(16, 185, 129, 0.24)',
+    backgroundColor: 'rgba(46, 189, 133, 0.12)',
+    borderColor: 'rgba(46, 189, 133, 0.30)',
   },
   badgeLoss: {
-    backgroundColor: 'rgba(244, 63, 94, 0.12)',
-    borderColor: 'rgba(244, 63, 94, 0.24)',
+    backgroundColor: 'rgba(225, 82, 65, 0.12)',
+    borderColor: 'rgba(225, 82, 65, 0.30)',
   },
   deltaText: {
-    fontSize: 12,
+    fontSize: 11,
+    fontFamily: font.mono,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
   },
   textGain: {
-    color: color.gain,
+    color: Colors.palette.sovereignJade,
   },
   textLoss: {
-    color: color.loss,
+    color: Colors.palette.terracottaRose,
   },
   heroValueContainer: {
     marginVertical: space.xs,
   },
   heroValueText: {
-    fontWeight: '800',
-    color: color.text,
+    fontFamily: font.num,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
     letterSpacing: -0.8,
     fontVariant: ['tabular-nums'],
   },
@@ -1076,10 +1118,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     position: 'relative',
-    backgroundColor: color.glassFillInset,
+    backgroundColor: 'rgba(10, 10, 9, 0.70)',
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: color.hairline,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     padding: 3,
     marginTop: space.xs,
     height: 36,
@@ -1092,16 +1134,18 @@ const styles = StyleSheet.create({
     zIndex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#007AFF',
+    shadowColor: Colors.palette.champagneGold,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
-    shadowOpacity: 0.40,
+    shadowOpacity: 0.35,
     elevation: 4,
   },
   timeframeLiquidInner: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: radius.pill,
     borderWidth: 1.2,
+    backgroundColor: 'rgba(212, 175, 55, 0.16)',
+    borderColor: 'rgba(212, 175, 55, 0.45)',
     overflow: 'hidden',
   },
   timeframeLiquidNucleus: {
@@ -1112,21 +1156,14 @@ const styles = StyleSheet.create({
     right: 4,
     borderRadius: radius.pill,
   },
-  timeframeWaveShimmer: {
-    position: 'absolute',
-    width: 24,
-    height: '110%',
-    backgroundColor: 'rgba(255, 255, 255, 0.32)',
-    borderRadius: 12,
-  },
   timeframeSpecularGlint: {
     position: 'absolute',
-    top: 1.5,
-    left: '14%',
-    right: '14%',
+    top: 1,
+    left: '12%',
+    right: '12%',
     height: 1.5,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: 'rgba(212, 175, 55, 0.75)',
   },
   timeframeActiveDot: {
     position: 'absolute',
@@ -1134,6 +1171,8 @@ const styles = StyleSheet.create({
     width: 3.5,
     height: 3.5,
     borderRadius: 1.75,
+    backgroundColor: Colors.palette.champagneGold,
+    shadowColor: Colors.palette.champagneGold,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.9,
     shadowRadius: 3,
@@ -1148,58 +1187,67 @@ const styles = StyleSheet.create({
   },
   timeframeText: {
     fontSize: 11,
-    color: color.textMuted,
+    fontFamily: font.mono,
+    color: Colors.palette.naturalTitanium,
     fontWeight: '600',
     letterSpacing: -0.2,
   },
   activeTimeframeText: {
-    color: color.accent,
+    color: Colors.palette.champagneGold,
     fontWeight: '700',
   },
-
-  // Allocation Card
-  allocationCard: {
-    padding: space.lg,
+  perforationLine: {
+    height: 1,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.10)',
+    borderStyle: 'dashed',
+    marginVertical: space.md,
   },
-  allocationHeader: {
+  allocationSection: {
+    marginTop: space.xs,
+  },
+  allocationHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: space.md,
+    marginBottom: space.sm,
   },
-  sectionHeadline: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: color.text,
+  allocationSectionTitle: {
+    fontSize: 10,
+    fontFamily: font.mono,
+    fontWeight: '700',
+    color: Colors.palette.naturalTitanium,
+    letterSpacing: 0.6,
   },
   resetAllocationText: {
-    fontSize: 12,
-    color: color.accent,
+    fontSize: 11,
+    color: Colors.palette.champagneGold,
+    fontWeight: '600',
   },
   allocationBarTrack: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 12,
+    height: 10,
     borderRadius: radius.pill,
-    backgroundColor: color.glassFillInset,
+    backgroundColor: 'rgba(10, 10, 9, 0.70)',
     overflow: 'hidden',
     gap: 2,
-    marginBottom: space.md,
+    marginBottom: space.sm,
   },
   allocationSegment: {
     borderRadius: radius.pill,
   },
   emptyAllocationTrack: {
-    height: 28,
+    height: 24,
     borderRadius: radius.pill,
-    backgroundColor: color.glassFillInset,
+    backgroundColor: 'rgba(10, 10, 9, 0.60)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: space.md,
+    marginBottom: space.sm,
   },
   emptyAllocationText: {
-    fontSize: 12,
-    color: color.textMuted,
+    fontSize: 11,
+    color: Colors.palette.naturalTitanium,
   },
   legendContainer: {
     flexDirection: 'row',
@@ -1209,13 +1257,13 @@ const styles = StyleSheet.create({
   legendChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.xs + 2,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: radius.md,
+    gap: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+    borderRadius: radius.sm,
   },
   legendChipActive: {
-    backgroundColor: color.glassFillInset,
+    backgroundColor: 'rgba(245, 243, 239, 0.06)',
   },
   legendDot: {
     width: 6,
@@ -1223,108 +1271,107 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   legendLabel: {
-    fontSize: 12,
-    color: color.textMuted,
+    fontSize: 11,
+    fontFamily: font.mono,
+    color: Colors.palette.naturalTitanium,
     fontWeight: '500',
   },
   legendValue: {
-    fontSize: 12,
+    fontSize: 11,
+    fontFamily: font.num,
     fontWeight: '600',
-    color: color.text,
+    color: Colors.palette.alabasterWhite,
   },
-
-  // Bento Grid
-  bentoGrid: {
-    flexDirection: 'row',
-    gap: space.md,
+  bentoGridSection: {
+    gap: space.sm,
   },
-  bentoLeftCard: {
-    flex: 1.15,
-    padding: space.md,
-    justifyContent: 'space-between',
-  },
-  cardHeaderRow: {
+  bentoSectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 2,
   },
-  cardHeaderTitle: {
-    fontSize: 13,
-    color: color.textMuted,
-    fontWeight: '500',
-  },
-  bentoValueBlock: {
-    marginVertical: space.sm,
-  },
-  bentoLargeValue: {
-    fontSize: 20,
+  bentoSectionHeadline: {
+    fontSize: 10.5,
+    fontFamily: font.mono,
     fontWeight: '700',
-    color: color.text,
+    color: Colors.palette.naturalTitanium,
+    letterSpacing: 0.8,
   },
-  bentoHairline: {
-    height: 1,
-    backgroundColor: color.hairline,
-    marginVertical: space.xs,
-  },
-  pnlSection: {
-    marginTop: space.xs,
-  },
-  pnlLabel: {
+  bentoSectionAction: {
     fontSize: 11,
-    color: color.textMuted,
-    marginBottom: 2,
-  },
-  pnlPercentText: {
-    fontSize: 13,
+    color: Colors.palette.champagneGold,
     fontWeight: '600',
-    fontVariant: ['tabular-nums'],
   },
-  pnlAmountText: {
-    fontSize: 12,
-    fontWeight: '500',
-    fontVariant: ['tabular-nums'],
+  bentoGrid2x2: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: space.sm,
   },
-  bentoRightCol: {
-    flex: 1,
-    gap: space.md,
-  },
-  bentoRightCard: {
+  bentoCell: {
+    width: '48.5%',
+    minWidth: 0,
+    flexShrink: 1,
     padding: space.md,
-    justifyContent: 'center',
+    borderRadius: radius.lg,
   },
-  bentoMidValue: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: color.text,
-    marginVertical: 4,
-  },
-  bentoSubtext: {
-    fontSize: 11,
-    color: color.textMuted,
-  },
-  quickActionRow: {
+  bentoCellHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space.xs + 2,
-    paddingVertical: 5,
+    justifyContent: 'space-between',
+    marginBottom: 4,
   },
-  quickActionText: {
-    fontSize: 12,
-    color: color.text,
-    fontWeight: '500',
+  bentoIndexTag: {
+    fontSize: 10,
+    fontFamily: font.mono,
+    fontWeight: '700',
+    color: Colors.palette.darkPewter,
+    letterSpacing: 0.5,
   },
-
-  // Movers Section
+  bentoCellTitle: {
+    fontSize: 11,
+    fontFamily: font.ui,
+    fontWeight: '700',
+    color: Colors.palette.naturalTitanium,
+    letterSpacing: 0.3,
+    marginBottom: 4,
+  },
+  bentoValueWrapper: {
+    minWidth: 0,
+    flexShrink: 1,
+    overflow: 'hidden',
+  },
+  bentoCellValue: {
+    fontSize: 16,
+    fontFamily: font.num,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
+    fontVariant: ['tabular-nums'],
+  },
+  bentoCellSub: {
+    fontSize: 10,
+    fontFamily: font.ui,
+    color: Colors.palette.naturalTitanium,
+    marginTop: 3,
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: space.xs,
+    paddingHorizontal: 2,
+  },
+  sectionHeadline: {
+    fontSize: 11,
+    fontFamily: font.mono,
+    fontWeight: '700',
+    color: Colors.palette.naturalTitanium,
+    letterSpacing: 0.8,
   },
   seeAllText: {
-    fontSize: 13,
-    color: color.accent,
-    fontWeight: '500',
+    fontSize: 11,
+    color: Colors.palette.champagneGold,
+    fontWeight: '600',
   },
   moversCard: {
     borderRadius: radius.lg,
@@ -1338,7 +1385,7 @@ const styles = StyleSheet.create({
   },
   rowHairline: {
     height: 1,
-    backgroundColor: color.hairline,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     marginHorizontal: space.lg,
   },
   moverLeft: {
@@ -1346,6 +1393,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space.md,
     flex: 1,
+    minWidth: 0,
+    marginRight: 10,
   },
   assetDot: {
     width: 6,
@@ -1353,45 +1402,50 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   moverSymbol: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: color.text,
+    fontSize: 14,
+    fontFamily: font.mono,
+    fontWeight: '700',
+    color: Colors.palette.alabasterWhite,
   },
   moverName: {
-    fontSize: 12,
-    color: color.textMuted,
-    maxWidth: 160,
+    fontSize: 11,
+    fontFamily: font.ui,
+    color: Colors.palette.naturalTitanium,
   },
   moverRight: {
     alignItems: 'flex-end',
+    flexShrink: 0,
   },
   moverPrice: {
-    fontSize: 14,
+    fontSize: 13,
+    fontFamily: font.num,
     fontWeight: '600',
-    color: color.text,
+    color: Colors.palette.alabasterWhite,
     textAlign: 'right',
+    fontVariant: ['tabular-nums'],
   },
   moverChangeText: {
-    fontSize: 12,
+    fontSize: 11,
+    fontFamily: font.mono,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
     marginTop: 2,
   },
-
-  // Empty state
   emptyMoversCard: {
     padding: space.lg,
     alignItems: 'center',
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: 15,
+    fontFamily: font.ui,
     fontWeight: '600',
-    color: color.text,
+    color: Colors.palette.alabasterWhite,
     marginBottom: space.xs,
   },
   emptyDesc: {
-    fontSize: 13,
-    color: color.textMuted,
+    fontSize: 12,
+    fontFamily: font.ui,
+    color: Colors.palette.naturalTitanium,
     textAlign: 'center',
     lineHeight: 18,
     marginBottom: space.md,
@@ -1399,30 +1453,18 @@ const styles = StyleSheet.create({
   emptyActionRow: {
     flexDirection: 'row',
   },
-  primaryActionButton: {
-    backgroundColor: color.accent,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: radius.pill,
-    ...shadow.e1,
-  },
-  primaryActionButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: color.onAccent,
-  },
   netWorthBreakdownRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: space.xs,
     marginBottom: space.sm,
-    paddingVertical: 6,
+    paddingVertical: 5,
     paddingHorizontal: 12,
     borderRadius: radius.pill,
     backgroundColor: 'rgba(255, 255, 255, 0.04)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     alignSelf: 'center',
     gap: 12,
   },
@@ -1432,32 +1474,34 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   breakdownItemLabel: {
-    fontSize: 11,
+    fontSize: 10.5,
     fontFamily: font.ui,
-    color: color.textMuted,
+    color: Colors.palette.naturalTitanium,
   },
   breakdownItemValGross: {
     fontSize: 11,
     fontFamily: font.num,
     fontWeight: '700',
-    color: color.text,
+    color: Colors.palette.alabasterWhite,
+    fontVariant: ['tabular-nums'],
   },
   breakdownDivider: {
     width: 1,
-    height: 12,
+    height: 11,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   breakdownMinus: {
     fontSize: 11,
     fontFamily: font.num,
     fontWeight: '700',
-    color: '#F87171',
+    color: Colors.palette.terracottaRose,
   },
   breakdownItemValDebt: {
     fontSize: 11,
     fontFamily: font.num,
     fontWeight: '700',
-    color: '#F87171',
+    color: Colors.palette.terracottaRose,
+    fontVariant: ['tabular-nums'],
   },
   dueAlertCard: {
     flexDirection: 'row',
@@ -1465,14 +1509,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: space.md,
     borderRadius: radius.lg,
-    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    backgroundColor: 'rgba(212, 175, 55, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.25)',
-    marginBottom: space.md,
+    borderColor: 'rgba(212, 175, 55, 0.28)',
+    marginBottom: space.sm,
   },
   dueAlertCardOverdue: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    backgroundColor: 'rgba(225, 82, 65, 0.10)',
+    borderColor: 'rgba(225, 82, 65, 0.35)',
   },
   dueAlertLeft: {
     flexDirection: 'row',
@@ -1485,7 +1529,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(245, 158, 11, 0.16)',
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1493,25 +1537,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: font.uiBold,
     fontWeight: '700',
-    color: color.text,
+    color: Colors.palette.alabasterWhite,
   },
   dueAlertBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(245, 158, 11, 0.16)',
+    backgroundColor: 'rgba(212, 175, 55, 0.16)',
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: 'rgba(212, 175, 55, 0.35)',
   },
   dueAlertBadgeText: {
     fontSize: 9,
-    fontFamily: font.uiBold,
-    color: '#F59E0B',
+    fontFamily: font.mono,
+    fontWeight: '700',
+    color: Colors.palette.champagneGold,
   },
   dueAlertSub: {
     fontSize: 10,
     fontFamily: font.ui,
-    color: color.textMuted,
+    color: Colors.palette.naturalTitanium,
     marginTop: 2,
   },
 });

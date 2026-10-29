@@ -1,0 +1,183 @@
+/**
+ * OmniWealth — Perpetual Harmonic Convergence Loading Motion
+ * Brand Personality: Sovereign, Perpetual, Precise
+ * Timing: 2400ms seamless continuous loop on shared clock
+ */
+
+:root {
+  --p2m-duration: 2400ms;
+  --p2m-ease-breath: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  --p2m-ease-grav: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#omni-mark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: p2m-omni-gyro 2400ms cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+#nexus-core {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: p2m-nexus-respiration 2400ms cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+#arc-left {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: p2m-arc-left-grav 2400ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+#arc-right {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: p2m-arc-right-grav 2400ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+#arc-bottom {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: p2m-arc-bottom-grav 2400ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* 1. Root Group: Celestial Gyroscopic Hover (Period: 2400ms) */
+@keyframes p2m-omni-gyro {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+    /* token: --p2m-ease-breath */
+    animation-timing-function: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  }
+  50% {
+    transform: translateY(-2.5px) rotate(1.2deg);
+    /* token: --p2m-ease-breath */
+    animation-timing-function: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+/* 2. Magnetic Singularity: Central Nexus Respiration & Gold Corona (Period: 2400ms) */
+@keyframes p2m-nexus-respiration {
+  0% {
+    transform: scale(1.0);
+    opacity: 0.88;
+    filter: drop-shadow(0 0 0px rgba(212, 175, 55, 0));
+    /* token: --p2m-ease-breath */
+    animation-timing-function: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  }
+  50% {
+    transform: scale(1.085);
+    opacity: 1.0;
+    filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.65));
+    /* token: --p2m-ease-breath */
+    animation-timing-function: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  }
+  100% {
+    transform: scale(1.0);
+    opacity: 0.88;
+    filter: drop-shadow(0 0 0px rgba(212, 175, 55, 0));
+  }
+}
+
+/* 3. Pillar 1: Liquid Cash & Banking Arc (Phase: 0% / 0ms) */
+@keyframes p2m-arc-left-grav {
+  0% {
+    transform: translate(0px, 0px) scale(1.0);
+    opacity: 0.92;
+    /* token: --p2m-ease-grav */
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  25% {
+    transform: translate(3.5px, 0px) scale(0.985);
+    opacity: 1.0;
+    /* token: --p2m-ease-grav */
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  50% {
+    transform: translate(0px, 0px) scale(1.0);
+    opacity: 0.92;
+    /* token: --p2m-ease-grav */
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  75% {
+    transform: translate(-1.2px, 0px) scale(1.008);
+    opacity: 0.86;
+    /* token: --p2m-ease-grav */
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1.0);
+    opacity: 0.92;
+  }
+}
+
+/* 4. Pillar 2: Capital Markets & IDX Equities Arc (Phase: 33.3% / 800ms offset) */
+@keyframes p2m-arc-right-grav {
+  0% {
+    transform: translate(-0.6px, 0px) scale(1.004);
+    opacity: 0.88;
+    /* token: --p2m-ease-grav */
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  33.3% {
+    transform: translate(0px, 0px) scale(1.0);
+    opacity: 0.92;
+    /* token: --p2m-ease-grav */
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  58.3% {
+    transform: translate(-3.5px, 0px) scale(0.985);
+    opacity: 1.0;
+    /* token: --p2m-ease-grav */
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  83.3% {
+    transform: translate(0px, 0px) scale(1.0);
+    opacity: 0.92;
+    /* token: --p2m-ease-grav */
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  100% {
+    transform: translate(-0.6px, 0px) scale(1.004);
+    opacity: 0.88;
+  }
+}
+
+/* 5. Pillar 3: Web3 & Catalytic Yield Arc (Phase: 66.6% / 1600ms offset) */
+@keyframes p2m-arc-bottom-grav {
+  0% {
+    transform: translate(0px, -2.2px) scale(0.99);
+    opacity: 0.96;
+    /* token: --p2m-ease-grav */
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  16.6% {
+    transform: translate(0px, 0px) scale(1.0);
+    opacity: 0.92;
+    /* token: --p2m-ease-grav */
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  41.6% {
+    transform: translate(0px, 1.2px) scale(1.008);
+    opacity: 0.86;
+    /* token: --p2m-ease-grav */
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  66.6% {
+    transform: translate(0px, 0px) scale(1.0);
+    opacity: 0.92;
+    /* token: --p2m-ease-grav */
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  91.6% {
+    transform: translate(0px, -3.2px) scale(0.985);
+    opacity: 1.0;
+    /* token: --p2m-ease-grav */
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  100% {
+    transform: translate(0px, -2.2px) scale(0.99);
+    opacity: 0.96;
+  }
+}

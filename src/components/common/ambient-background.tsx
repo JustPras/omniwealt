@@ -1,10 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, useWindowDimensions, Animated, Easing, Image, Platform } from 'react-native';
+import { View, StyleSheet, useWindowDimensions, Animated, Easing, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme, isDarkTheme } from '../../theme/tokens';
-
-const wallpaperNight = require('../../../assets/wallpapers/wallpaper-night.jpg');
-const wallpaperDay = require('../../../assets/wallpapers/wallpaper-day.jpg');
+import { Colors } from '../../theme/colors';
 
 interface AmbientBackgroundProps {
   scrollY?: Animated.Value;
@@ -13,12 +10,11 @@ interface AmbientBackgroundProps {
 
 export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
   scrollY,
+  activeAssetClass,
 }) => {
   const { width, height } = useWindowDimensions();
-  const theme = useTheme();
-  const isDark = isDarkTheme(theme);
 
-  // Slow ambient floating animation for orbs per DESIGN.md Section 4.2
+  // Slow ambient floating animation for orbs per DESIGN_SYSTEM.md
   const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -73,6 +69,13 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
     outputRange: [0, 16],
   });
 
+  // Dynamic asset glow mapping
+  const primaryOrbColor = activeAssetClass === 'CRYPTO'
+    ? 'rgba(224, 122, 95, 0.12)' // Burnished copper
+    : activeAssetClass === 'CASH'
+    ? 'rgba(148, 163, 184, 0.10)' // Titanium silver
+    : 'rgba(212, 175, 55, 0.12)'; // Champagne gold
+
   return (
     <View
       style={[
@@ -81,30 +84,19 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
       ]}
       pointerEvents="none"
     >
-      {/* 1. Dynamic Wallpaper (Night vs Day Japanese Anime Scenery) */}
-      <Image
-        source={isDark ? wallpaperNight : wallpaperDay}
-        resizeMode="cover"
-        style={[
-          StyleSheet.absoluteFill,
-          styles.wallpaper,
-          Platform.OS === 'web' && ({
-            imageRendering: '-webkit-optimize-contrast',
-            filter: 'contrast(1.05) brightness(1.02)',
-          } as any),
-        ]}
-      />
+      {/* 1. Deep OLED Warm Carbon Canvas */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.palette.canvas }]} />
 
-      {/* 2. Orb 1 (Top-Left Accent Glow) */}
+      {/* 2. Top-Left Champagne Gold Ambient Glow Orb */}
       <Animated.View
         style={[
           styles.orb,
           {
-            top: -40,
-            left: -40,
-            width: 260,
-            height: 260,
-            borderRadius: 130,
+            top: -60,
+            left: -60,
+            width: 320,
+            height: 320,
+            borderRadius: 160,
             transform: [
               ...(parallaxY1 ? [{ translateY: parallaxY1 }] : []),
               { translateY: floatY1 },
@@ -114,7 +106,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
       >
         <LinearGradient
           colors={[
-            isDark ? 'rgba(0, 122, 255, 0.20)' : 'rgba(0, 122, 255, 0.10)',
+            primaryOrbColor,
             'transparent',
           ]}
           style={styles.gradientFill}
@@ -123,16 +115,16 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
         />
       </Animated.View>
 
-      {/* 3. Orb 2 (Mid-Right Soft Shimmer) */}
+      {/* 3. Mid-Right Titanium Smoked Glow Orb */}
       <Animated.View
         style={[
           styles.orb,
           {
             top: height * 0.35,
-            right: -60,
-            width: 280,
-            height: 280,
-            borderRadius: 140,
+            right: -80,
+            width: 340,
+            height: 340,
+            borderRadius: 170,
             transform: [
               ...(parallaxY2 ? [{ translateY: parallaxY2 }] : []),
               { translateY: floatY2 },
@@ -142,7 +134,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = React.memo(({
       >
         <LinearGradient
           colors={[
-            isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.18)',
+            'rgba(163, 158, 147, 0.06)',
             'transparent',
           ]}
           style={styles.gradientFill}
@@ -158,10 +150,6 @@ const styles = StyleSheet.create({
   container: {
     overflow: 'hidden',
     zIndex: 0,
-  },
-  wallpaper: {
-    width: '100%',
-    height: '100%',
   },
   orb: {
     position: 'absolute',

@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OmniWealth — Fluid Circular Draw-On Loading Motion (Pixel2Motion)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0A0A09;
+      --surface: #141412;
+      --border: rgba(245, 243, 239, 0.08);
+      --text-primary: #F5F3EF;
+      --text-secondary: #A39E93;
+      --text-tertiary: #6E685E;
+      --accent-gold: #D4AF37;
+      --accent-gold-bright: #F2CA50;
+      --accent-emerald: #2EBD85;
+      --speed-progress: 40%;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+      transition: background 300ms ease;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 2.5rem 1.5rem;
+    }
+
+    /* Top Brand Status Capsule */
+    .brand-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      text-align: center;
+    }
+
+    .status-capsule {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(20, 20, 18, 0.85);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 1px rgba(245, 243, 239, 0.08);
+      backdrop-filter: blur(12px);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px rgba(46, 189, 133, 0.8);
+      animation: pulse-beacon 1600ms ease-in-out infinite;
+    }
+
+    @keyframes pulse-beacon {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.35); opacity: 1; }
+    }
+
+    .status-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    .status-title span {
+      color: var(--accent-gold-bright);
+    }
+
+    .brand-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .brand-sub {
+      font-size: 13px;
+      color: var(--text-secondary);
+      max-width: 480px;
+    }
+
+    /* Hero Animation Stage */
+    .hero-container {
+      position: relative;
+      width: min(92vw, 360px);
+      height: min(92vw, 360px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 36px;
+      background: radial-gradient(circle at 35% 25%, #1C1C19 0%, #121210 50%, #0A0A09 100%);
+      border: 1px solid var(--border);
+      box-shadow:
+        0 24px 64px -12px rgba(0, 0, 0, 0.7),
+        inset 0 1px 1px rgba(245, 243, 239, 0.12);
+      padding: 2.5rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 200ms ease, box-shadow 200ms ease;
+    }
+
+    .hero-container:hover {
+      box-shadow:
+        0 28px 72px -10px rgba(0, 0, 0, 0.85),
+        0 0 32px rgba(212, 175, 55, 0.15),
+        inset 0 1px 1px rgba(245, 243, 239, 0.18);
+    }
+
+    /* Ambient Gold Halo */
+    .hero-ambient-glow {
+      position: absolute;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.22) 0%, transparent 70%);
+      filter: blur(34px);
+      pointer-events: none;
+      z-index: 0;
+      animation: ambient-respiration 2400ms ease-in-out infinite;
+    }
+
+    @keyframes ambient-respiration {
+      0%, 100% { transform: scale(0.9); opacity: 0.45; }
+      50% { transform: scale(1.15); opacity: 0.85; }
+    }
+
+    #logo-root {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1;
+      overflow: visible;
+    }
+
+    #logo-root svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+      filter: drop-shadow(0 12px 24px rgba(0,0,0,0.5));
+    }
+
+    /* Circular Draw-On Keyframes */
+    .draw-donut-circle {
+      stroke-dasharray: 336.15, 336.15;
+      stroke-dashoffset: 336.15;
+      animation: anim-donut 2400ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+
+    .draw-outer-left {
+      stroke-dasharray: 691.94, 691.94;
+      stroke-dashoffset: 691.94;
+      animation: anim-outer 2400ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    .draw-outer-right {
+      stroke-dasharray: 691.94, 691.94;
+      stroke-dashoffset: 691.94;
+      animation: anim-outer 2400ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    .draw-fade-group {
+      animation: anim-fade-cycle 2400ms ease-in-out infinite;
+    }
+
+    @keyframes anim-donut {
+      0% {
+        stroke-dashoffset: 336.15;
+      }
+      35% {
+        stroke-dashoffset: 0;
+      }
+      88% {
+        stroke-dashoffset: 0;
+      }
+      98%, 100% {
+        stroke-dashoffset: 336.15;
+      }
+    }
+
+    @keyframes anim-outer {
+      0%, 20% {
+        stroke-dashoffset: 691.94;
+      }
+      75% {
+        stroke-dashoffset: 0;
+      }
+      88% {
+        stroke-dashoffset: 0;
+      }
+      98%, 100% {
+        stroke-dashoffset: 691.94;
+      }
+    }
+
+    @keyframes anim-fade-cycle {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.02);
+      }
+      88% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      95% {
+        opacity: 0.15;
+        transform: scale(0.98);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* Atomic Motion Studies Section */
+    .studies-heading {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: -0.5rem;
+    }
+
+    .atomic-motions {
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-end;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .atom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .atom-stage {
+      width: 76px;
+      height: 76px;
+      display: grid;
+      place-items: center;
+      background: #141412;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: inset 0 1px 1px rgba(245, 243, 239, 0.05);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      padding: 14px;
+      transition: all 200ms ease;
+    }
+
+    .atom-stage:hover {
+      border-color: rgba(212, 175, 55, 0.35);
+      background: #1A1A17;
+      transform: translateY(-2px);
+    }
+
+    .atom-stage svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .atom-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    /* Controls Bar */
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      padding: 9px 20px;
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      background: #141412;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 180ms ease;
+      box-shadow: inset 0 1px 1px rgba(245, 243, 239, 0.05);
+    }
+
+    button:hover {
+      background: #1C1C19;
+      border-color: rgba(212, 175, 55, 0.4);
+      color: var(--accent-gold-bright);
+    }
+
+    button.primary {
+      color: #0A0A09;
+      background: linear-gradient(135deg, #F5E6B3 0%, #D4AF37 100%);
+      border-color: #D4AF37;
+      font-weight: 700;
+      box-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
+    }
+
+    button.primary:hover {
+      background: linear-gradient(135deg, #FFF0C2 0%, #E8CA65 100%);
+      box-shadow: 0 4px 16px rgba(212, 175, 55, 0.45);
+    }
+
+    .speed-control {
+      width: min(320px, 80vw);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 14px;
+      background: #141412;
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      color: var(--text-secondary);
+    }
+
+    .speed-caption,
+    .speed-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .speed-value {
+      min-width: 46px;
+      text-align: right;
+      color: var(--accent-gold-bright);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      min-width: 100px;
+      height: 24px;
+      appearance: none;
+      -webkit-appearance: none;
+      background: transparent;
+      cursor: grab;
+      accent-color: var(--accent-gold);
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 3px;
+      border-radius: 9999px;
+      background: linear-gradient(to right, var(--accent-gold) 0%, var(--accent-gold) var(--speed-progress), var(--border) var(--speed-progress), var(--border) 100%);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      margin-top: -6.5px;
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+      background: var(--accent-gold-bright);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.6);
+    }
+
+    /* Background Theme Quick Switcher */
+    .theme-switcher {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .theme-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.15);
+      transition: transform 150ms ease, border-color 150ms ease;
+    }
+
+    .theme-dot:hover {
+      transform: scale(1.15);
+      border-color: var(--accent-gold);
+    }
+
+    .theme-dot.carbon { background: #0A0A09; }
+    .theme-dot.smoked { background: #181816; }
+    .theme-dot.bullion { background: #1A1710; }
+
+    .footer {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-tertiary);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .p2m-chromeless .brand-header,
+    .p2m-chromeless .studies-heading,
+    .p2m-chromeless .atomic-motions,
+    .p2m-chromeless .controls,
+    .p2m-chromeless .theme-switcher,
+    .p2m-chromeless .footer {
+      display: none !important;
+    }
+
+    .p2m-chromeless .hero-container {
+      border: none;
+      box-shadow: none;
+      background: transparent;
+      padding: 0;
+      width: auto;
+      height: auto;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+        stroke-dashoffset: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Brand Header -->
+  <header class="brand-header">
+    <div class="status-capsule">
+      <span class="pulse-dot"></span>
+      <span class="status-title">LOCAL AI LEDGER // <span>FLUID CIRCULAR DRAW-ON LOADING</span></span>
+    </div>
+    <h1 class="brand-title">OmniWealth Logo Motion System</h1>
+    <p class="brand-sub">Original 360° Circular Sweep &amp; Symmetrical Arc Draw-On with Warm Titanium &amp; Champagne Gold</p>
+  </header>
+
+  <!-- Hero Main Stage -->
+  <div class="hero-container" id="heroWrapper" title="Click to restart or test responsiveness">
+    <div class="hero-ambient-glow"></div>
+    <main id="logo-root" aria-label="Animated OmniWealth Logo" data-p2m-duration="2400">
+      <div class="draw-fade-group" style="width: 100%; height: 100%;">
+        <svg viewBox="0 0 1024 1024" width="100%" height="100%">
+          <defs>
+            {/* Circular Mask 1: Center Donut */}
+            <mask id="heroDonutMask">
+              <circle
+                cx="511.5"
+                cy="511.5"
+                r="53.5"
+                fill="none"
+                stroke="#FFFFFF"
+                stroke-width="50"
+                stroke-linecap="round"
+                transform="rotate(-90 511.5 511.5)"
+                class="draw-donut-circle"
+              />
+            </mask>
+
+            {/* Circular Mask 2: Outer Ring Left Arc */}
+            <mask id="heroOuterMaskLeft">
+              <path
+                d="M 512 732.25 A 220.25 220.25 0 0 1 512 291.75"
+                fill="none"
+                stroke="#FFFFFF"
+                stroke-width="90"
+                stroke-linecap="round"
+                class="draw-outer-left"
+              />
+            </mask>
+
+            {/* Circular Mask 3: Outer Ring Right Arc */}
+            <mask id="heroOuterMaskRight">
+              <path
+                d="M 512 732.25 A 220.25 220.25 0 0 0 512 291.75"
+                fill="none"
+                stroke="#FFFFFF"
+                stroke-width="90"
+                stroke-linecap="round"
+                class="draw-outer-right"
+              />
+            </mask>
+          </defs>
+
+          {/* ACTOR 1: Core Gold Nexus Ring */}
+          <g mask="url(#heroDonutMask)">
+            <path
+              d="M 511.5 439.5 A 72 72 0 1 0 511.5 583.5 A 72 72 0 1 0 511.5 439.5 Z M 511.5 476.5 A 35 35 0 1 1 511.5 546.5 A 35 35 0 1 1 511.5 476.5 Z"
+              fill="#D4AF37"
+              fill-rule="evenodd"
+            />
+          </g>
+
+          {/* ACTOR 2: Left Half (Bottom Champagne Arc + Natural Titanium Left Arc) */}
+          <g mask="url(#heroOuterMaskLeft)">
+            <path
+              d="M 647.2 728.6 A 256 256 0 0 1 375.8 728.6 L 413.7 667.9 A 184.5 184.5 0 0 0 609.3 667.9 Z"
+              fill="#D4AF37"
+            />
+            <path
+              d="M 482 257.2 L 482 329.4 A 184.5 184.5 0 0 0 384.5 645.3 L 335.3 697.2 A 256 256 0 0 1 482 257.2 Z"
+              fill="#F5F3EF"
+            />
+          </g>
+
+          {/* ACTOR 3: Right Half (Bottom Champagne Arc + Titanium Right Arc) */}
+          <g mask="url(#heroOuterMaskRight)">
+            <path
+              d="M 647.2 728.6 A 256 256 0 0 1 375.8 728.6 L 413.7 667.9 A 184.5 184.5 0 0 0 609.3 667.9 Z"
+              fill="#D4AF37"
+            />
+            <path
+              d="M 541 329.4 L 541 257.2 A 256 256 0 0 1 687.7 697.2 L 638.5 645.3 A 184.5 184.5 0 0 0 541 329.4 Z"
+              fill="#A39E93"
+            />
+          </g>
+        </svg>
+      </div>
+    </main>
+  </div>
+
+  <!-- Atomic Motion Studies -->
+  <span class="studies-heading">ATOMIC MOTION STUDIES // 4 ORIGINAL PHASES</span>
+  <section class="atomic-motions" aria-label="Atomic motion studies">
+    <div class="atom" data-atom="donut">
+      <div class="atom-stage" title="Phase 1: Center Donut Circular Sweep"><div class="inner-slot-donut"></div></div>
+      <span class="atom-label">Donut Sweep</span>
+    </div>
+    <div class="atom" data-atom="outer">
+      <div class="atom-stage" title="Phase 2: Symmetrical Outer Arcs Sweep"><div class="inner-slot-outer"></div></div>
+      <span class="atom-label">Arcs Sweep</span>
+    </div>
+    <div class="atom" data-atom="halo">
+      <div class="atom-stage" title="Ambient Halo Respiration"><div class="inner-slot-halo"></div></div>
+      <span class="atom-label">Halo Pulse</span>
+    </div>
+    <div class="atom" data-atom="haptic">
+      <div class="atom-stage" title="Haptic Tap Response"><div class="inner-slot-haptic"></div></div>
+      <span class="atom-label">Tap Haptic</span>
+    </div>
+  </section>
+
+  <!-- Controls Bar -->
+  <div class="controls">
+    <button class="primary" id="btnReplay" type="button">Restart Animation</button>
+    <button id="btnSlow" type="button">Slow Motion (0.25x)</button>
+    <label class="speed-control" for="speedSlider">
+      <span class="speed-caption">Speed</span>
+      <input id="speedSlider" type="range" min="0.25" max="2.5" step="0.05" value="1.0" aria-label="Animation speed">
+      <span class="speed-value" id="speedValue">1.00x</span>
+    </label>
+    <div class="theme-switcher" title="Switch Background Canvas">
+      <div class="theme-dot carbon" data-theme="#0A0A09" title="Warm Carbon OLED"></div>
+      <div class="theme-dot smoked" data-theme="#181816" title="Smoked Obsidian"></div>
+      <div class="theme-dot bullion" data-theme="#1A1710" title="Bullion Vault"></div>
+    </div>
+  </div>
+
+  <p class="footer">Animasi draw-on sweep circular yang sama seperti sebelumnya • Warna Warm Titanium &amp; Champagne Gold</p>
+
+  <script>
+    let playbackRate = 1.0;
+    window.__p2mReady = false;
+
+    function heroAnimations() {
+      const root = document.getElementById("logo-root");
+      if (root.getAnimations) return root.getAnimations({ subtree: true });
+      return document.getAnimations().filter(animation => {
+        const target = animation.effect && animation.effect.target;
+        return target && root.contains(target);
+      });
+    }
+
+    function applyPlaybackRate() {
+      for (const animation of heroAnimations()) {
+        if (animation.updatePlaybackRate) animation.updatePlaybackRate(playbackRate);
+        else animation.playbackRate = playbackRate;
+      }
+    }
+
+    function formatSpeed(rate) {
+      return `${rate.toFixed(2)}x`;
+    }
+
+    function updateSpeedUI() {
+      const slider = document.getElementById("speedSlider");
+      const value = Number(slider.value);
+      const min = Number(slider.min);
+      const max = Number(slider.max);
+      const progress = ((value - min) / (max - min)) * 100;
+      document.getElementById("speedValue").textContent = formatSpeed(value);
+      slider.style.setProperty("--speed-progress", `${progress}%`);
+      const slow = value <= 0.26;
+      const btnSlow = document.getElementById("btnSlow");
+      btnSlow.textContent = slow ? "Normal (1.0x)" : "Slow Motion (0.25x)";
+      btnSlow.style.borderColor = slow ? "var(--accent-gold)" : "";
+      btnSlow.style.color = slow ? "var(--accent-gold-bright)" : "";
+    }
+
+    function setPlaybackRate(rate) {
+      const slider = document.getElementById("speedSlider");
+      const min = Number(slider.min);
+      const max = Number(slider.max);
+      playbackRate = Math.min(max, Math.max(min, Number(rate)));
+      slider.value = String(playbackRate);
+      updateSpeedUI();
+      applyPlaybackRate();
+    }
+
+    function replayMain() {
+      const root = document.getElementById("logo-root");
+      const clone = root.cloneNode(true);
+      root.parentNode.replaceChild(clone, root);
+      requestAnimationFrame(() => {
+        applyPlaybackRate();
+      });
+    }
+
+    function setupThemeSwitcher() {
+      document.querySelectorAll(".theme-dot").forEach(dot => {
+        dot.addEventListener("click", () => {
+          const bg = dot.dataset.theme;
+          document.body.style.background = bg;
+        });
+      });
+    }
+
+    function setupAtomVisuals() {
+      const svgMarkup = document.querySelector("#logo-root svg").outerHTML;
+      document.querySelectorAll(".atom-stage div").forEach(slot => {
+        slot.innerHTML = svgMarkup;
+        const svg = slot.querySelector("svg");
+        svg.style.width = "100%";
+        svg.style.height = "100%";
+      });
+
+      const hapticStage = document.querySelector('[data-atom="haptic"] .atom-stage');
+      hapticStage.addEventListener("mousedown", () => {
+        hapticStage.style.transform = "scale(0.88)";
+      });
+      ["mouseup", "mouseleave"].forEach(ev => {
+        hapticStage.addEventListener(ev, () => {
+          hapticStage.style.transform = "scale(1)";
+        });
+      });
+    }
+
+    function applyQaMode() {
+      const params = new URLSearchParams(location.search);
+      const seekMs = params.get("t");
+      const staticMode = params.get("static");
+      if (seekMs === null && staticMode === null) {
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          applyPlaybackRate();
+          window.__p2mReady = true;
+        }));
+        return;
+      }
+
+      document.documentElement.classList.add("p2m-chromeless");
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        for (const animation of heroAnimations()) {
+          if (staticMode !== null) {
+            try {
+              animation.finish();
+            } catch (err) {
+              animation.cancel();
+            }
+          } else {
+            animation.pause();
+            animation.currentTime = Number(seekMs);
+          }
+        }
+        window.__p2mReady = true;
+      }));
+    }
+
+    document.getElementById("btnReplay").addEventListener("click", replayMain);
+    document.getElementById("speedSlider").addEventListener("input", event => {
+      setPlaybackRate(event.target.value);
+    });
+    document.getElementById("btnSlow").addEventListener("click", () => {
+      const slow = Number(document.getElementById("speedSlider").value) <= 0.26;
+      setPlaybackRate(slow ? 1.0 : 0.25);
+    });
+
+    setupThemeSwitcher();
+    setupAtomVisuals();
+    setPlaybackRate(1.0);
+    applyQaMode();
+  </script>
+</body>
+</html>

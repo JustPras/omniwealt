@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>OmniWealth Private Wealth Dashboard</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            carbon: {
+              950: '#0a0a09',
+              900: '#0e0e0d',
+              850: '#131312',
+              800: '#1c1c1a',
+              750: '#22221f',
+              700: '#2b2a27',
+              600: '#3a3938'
+            },
+            champagne: {
+              DEFAULT: '#d4af37',
+              light: '#f3e5ab',
+              dim: '#aa8c2c',
+              tint: 'rgba(212, 175, 55, 0.12)'
+            },
+            jade: {
+              DEFAULT: '#2ebd85',
+              dark: '#1e7d58',
+              tint: 'rgba(46, 189, 133, 0.12)'
+            },
+            coral: {
+              DEFAULT: '#e15241',
+              tint: 'rgba(225, 82, 65, 0.12)'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Custom Styles -->
+<style data-purpose="typography">
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+    .font-mono-numbers {
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: -0.02em;
+    }
+  </style>
+<style data-purpose="layout">
+    /* Custom Scrollbar suppression for clean mobile aesthetic */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    
+    /* Ticket notch effect for Vault Slip */
+    .receipt-perforation {
+      position: relative;
+    }
+    .receipt-perforation::before, .receipt-perforation::after {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background-color: #0e0e0d;
+      border-radius: 50%;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 20;
+    }
+    .receipt-perforation::before {
+      left: -7px;
+    }
+    .receipt-perforation::after {
+      right: -7px;
+    }
+
+    /* Subtle glow utility */
+    .gold-glow {
+      box-shadow: 0 0 24px -4px rgba(212, 175, 55, 0.28);
+    }
+  </style>
+<!-- END: Custom Styles -->
+</head>
+<body class="bg-[#050505] flex items-center justify-center min-h-screen text-slate-100 p-0 sm:p-4">
+<!-- BEGIN: Mobile Viewport Container (Fixed 390x844 Frame) -->
+<div class="relative w-[390px] h-[844px] max-w-[390px] bg-carbon-900 border border-carbon-800 rounded-[44px] overflow-hidden flex flex-col shadow-2xl" id="device-screen">
+<!-- BEGIN: Animated Security Splash Screen Overlay -->
+<div class="absolute inset-0 z-50 bg-carbon-950 flex flex-col items-center justify-between p-8 transition-opacity duration-700 ease-out" id="splash-overlay">
+<!-- Top Branding Pill -->
+<div class="w-full flex items-center justify-between pt-3">
+<span class="font-mono text-[10px] text-zinc-500 tracking-widest uppercase">ENCLAVE // HARDWARE V2</span>
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-[10px] text-emerald-400 font-mono">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> AIR-GAPPED
+        </span>
+</div>
+<!-- Center Logo & Orbital Ring -->
+<div class="relative flex flex-col items-center justify-center my-auto">
+<div class="relative w-28 h-28 flex items-center justify-center">
+<!-- Orbital Spin Ring -->
+<div class="absolute inset-0 rounded-full border border-champagne/20 border-t-champagne animate-spin" style="animation-duration: 3s;"></div>
+<div class="absolute -inset-2 rounded-full border border-dashed border-zinc-800 animate-spin" style="animation-duration: 9s; animation-direction: reverse;"></div>
+<!-- Frosted Squircle Shield -->
+<div class="w-20 h-20 rounded-2xl bg-carbon-850/90 border border-champagne/40 backdrop-blur-md flex items-center justify-center shadow-lg gold-glow">
+<svg class="w-10 h-10 text-champagne" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24">
+<path d="M6 3h12l4 6-10 12L2 9z"></path>
+<path d="M11 3L8 9l4 12 4-12-3-6"></path>
+<path d="M2 9h20"></path>
+</svg>
+</div>
+</div>
+<h1 class="mt-6 text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
+          OMNIWEALTH <span class="text-champagne font-mono text-xs px-1.5 py-0.5 rounded bg-champagne-tint border border-champagne/30">PRIVATE</span>
+</h1>
+<p class="mt-1 font-mono text-[11px] text-zinc-400 uppercase tracking-widest">Sovereign Financial Ledger</p>
+</div>
+<!-- Bottom Progress Indicator -->
+<div class="w-full space-y-3 pb-4">
+<div class="w-full bg-carbon-800 h-1 rounded-full overflow-hidden border border-zinc-800">
+<div class="h-full bg-gradient-to-r from-champagne-dim via-champagne to-emerald-400 transition-all duration-300 w-0" id="splash-progress-bar"></div>
+</div>
+<div class="flex items-center justify-between font-mono text-[10px] text-zinc-400">
+<span id="splash-status-text">INITIALIZING SECURE ENCLAVE...</span>
+<span id="splash-percent-text">12%</span>
+</div>
+</div>
+<!-- Skip Tap Trigger -->
+<button aria-label="Skip splash screen" class="absolute inset-0 w-full h-full cursor-pointer opacity-0" onclick="dismissSplash()"></button>
+</div>
+<!-- END: Animated Security Splash Screen Overlay -->
+<!-- BEGIN: Global Header -->
+<header class="pt-4 px-4 pb-3 bg-carbon-900/95 backdrop-blur-md border-b border-carbon-800/80 z-30 shrink-0">
+<!-- Status Meta Bar -->
+<div class="flex items-center justify-between mb-2.5">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-carbon-800 border border-carbon-700/60 shadow-sm">
+<span class="w-2 h-2 rounded-full bg-jade animate-pulse"></span>
+<span class="font-mono text-[10px] font-semibold text-emerald-400 tracking-wider">LOCAL AI READY</span>
+</div>
+<div class="flex items-center gap-1.5">
+<!-- Mask Privacy Toggle -->
+<button class="w-8 h-8 rounded-full bg-carbon-800 hover:bg-carbon-750 border border-carbon-700/80 flex items-center justify-center transition active:scale-95" id="toggle-privacy-btn" onclick="togglePrivacyMask()" title="Toggle Private Numbers">
+<svg class="w-4 h-4 text-zinc-300" fill="none" id="eye-icon" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+<path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</button>
+<!-- Notification Bell -->
+<button class="relative w-8 h-8 rounded-full bg-carbon-800 border border-carbon-700/80 flex items-center justify-center active:scale-95 text-zinc-300 hover:text-white">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-champagne rounded-full ring-2 ring-carbon-900"></span>
+</button>
+<!-- User Monogram Avatar -->
+<div class="w-8 h-8 rounded-full bg-gradient-to-tr from-champagne-dim to-champagne text-carbon-950 font-bold text-xs flex items-center justify-center shadow-md">
+            AD
+          </div>
+</div>
+</div>
+<!-- App Header Title Subtext -->
+<div class="flex items-center justify-between">
+<div>
+<p class="font-mono text-[9px] uppercase tracking-wider text-zinc-400 font-medium">OMNIWEALTH PRIVATE</p>
+<h2 class="text-xl font-bold tracking-tight text-white flex items-center gap-1.5" id="header-view-title">
+            Dashboard
+          </h2>
+</div>
+<div class="text-right">
+<span class="font-mono text-[9px] uppercase tracking-wider text-zinc-400 block">ENCRYPTION</span>
+<span class="font-mono text-[10px] text-zinc-300 bg-carbon-800 px-2 py-0.5 rounded border border-carbon-700">AES-256 HSM</span>
+</div>
+</div>
+</header>
+<!-- END: Global Header -->
+<!-- BEGIN: Main Scrollable Content Area -->
+<main class="flex-1 overflow-y-auto no-scrollbar pb-24 relative">
+<!-- ========================================= -->
+<!-- VIEW 1: DASHBOARD -->
+<!-- ========================================= -->
+<section class="p-4 space-y-4 transition-all duration-200" id="view-dashboard">
+<!-- Hero Net Worth Slab Card -->
+<div class="p-4 rounded-2xl bg-gradient-to-b from-carbon-850 to-carbon-800 border border-carbon-700/80 shadow-lg relative overflow-hidden">
+<div class="flex items-center justify-between mb-1.5">
+<div class="flex items-center gap-1.5 text-zinc-400">
+<svg class="w-3.5 h-3.5 text-champagne" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="font-mono text-[10px] tracking-wider uppercase text-zinc-300 font-semibold">TOTAL TRUE NET WORTH</span>
+</div>
+<span class="font-mono text-[9px] px-2 py-0.5 rounded bg-carbon-900 border border-carbon-700 text-zinc-400">IDR • BI-FAST SYNC</span>
+</div>
+<div class="mt-2 mb-3">
+<div class="font-mono-numbers text-[27px] font-bold tracking-tight text-white leading-tight flex items-baseline gap-1">
+<span class="text-zinc-400 text-lg font-normal">Rp</span>
+<span data-balance="1.482.500.000">1.482.500.000</span>
+</div>
+</div>
+<!-- MTD Trend Badge -->
+<div class="flex items-center gap-2 mb-3.5">
+<div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 text-[11px] font-mono font-medium">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+</svg>
+<span data-balance="+Rp 24.850.000">+Rp 24.850.000</span>
+<span class="text-emerald-300/80">(+1.72% MTD)</span>
+</div>
+<span class="text-[10px] text-zinc-400 font-mono">vs penutupan IHSG</span>
+</div>
+<!-- Perforated Separation Line -->
+<div class="border-t border-dashed border-carbon-700 my-3"></div>
+<!-- Segmented Allocation Bar -->
+<div class="space-y-2">
+<div class="h-2 w-full rounded-full bg-carbon-950 overflow-hidden flex p-0.5 gap-0.5">
+<div class="h-full rounded-full bg-champagne" style="width: 28%"></div>
+<div class="h-full rounded-full bg-jade" style="width: 42%"></div>
+<div class="h-full rounded-full bg-amber-400" style="width: 18%"></div>
+<div class="h-full rounded-full bg-zinc-600" style="width: 12%"></div>
+</div>
+<div class="grid grid-cols-2 gap-y-1 gap-x-2 text-[10px] font-mono">
+<div class="flex items-center justify-between text-zinc-300">
+<span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-champagne"></span>Liquid Cash</span>
+<span class="font-semibold text-white">28%</span>
+</div>
+<div class="flex items-center justify-between text-zinc-300">
+<span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-jade"></span>IDX Stocks</span>
+<span class="font-semibold text-white">42%</span>
+</div>
+<div class="flex items-center justify-between text-zinc-300">
+<span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span>Bullion Gold</span>
+<span class="font-semibold text-white">18%</span>
+</div>
+<div class="flex items-center justify-between text-zinc-300">
+<span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-zinc-600"></span>Cold Vault</span>
+<span class="font-semibold text-white">12%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Dashboard Quick Actions -->
+<div class="grid grid-cols-2 gap-2.5">
+<button class="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-champagne text-carbon-950 font-semibold text-xs tracking-tight shadow-md hover:bg-champagne-light active:scale-98 transition" onclick="switchTab('vault')">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+</svg>
+<span>+ Log Asset</span>
+</button>
+<button class="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-carbon-800 border border-carbon-700 text-zinc-200 font-semibold text-xs tracking-tight hover:bg-carbon-750 active:scale-98 transition" onclick="switchTab('ingestion')">
+<svg class="w-4 h-4 text-champagne" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Import e-Statement</span>
+</button>
+</div>
+<!-- Bento Grid: Allocation Sectors -->
+<div>
+<div class="flex items-center justify-between mb-2 px-1">
+<span class="font-mono text-[10px] tracking-wider uppercase text-zinc-400">ALLOCATION SECTORS</span>
+<span class="font-mono text-[9px] text-champagne">REAL-TIME VALUATION</span>
+</div>
+<div class="grid grid-cols-2 gap-2.5">
+<!-- Bento 1: Kas & Bank -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-carbon-800 flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2">
+<span class="font-mono text-[10px] text-zinc-400">01 // KAS &amp; BANK</span>
+<span class="p-1 rounded-md bg-carbon-800 text-zinc-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+<div class="space-y-1">
+<div class="font-mono text-sm font-bold text-white leading-tight">
+                  Rp <span data-balance="415.000.000">415.000.000</span>
+</div>
+<div class="flex items-center justify-between text-[10px] font-mono text-zinc-400">
+<span>5 Accounts</span>
+<span class="text-champagne font-medium">BCA • MANDIRI</span>
+</div>
+</div>
+</div>
+<!-- Bento 2: Saham IDX -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-carbon-800 flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2">
+<span class="font-mono text-[10px] text-zinc-400">02 // SAHAM IDX</span>
+<span class="p-1 rounded-md bg-carbon-800 text-emerald-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+<div class="space-y-1">
+<div class="font-mono text-sm font-bold text-white leading-tight">
+                  Rp <span data-balance="622.650.000">622.650.000</span>
+</div>
+<div class="flex items-center justify-between text-[10px] font-mono">
+<span class="text-zinc-400">120 Lot</span>
+<span class="px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60">+18.4%</span>
+</div>
+</div>
+</div>
+<!-- Bento 3: RDN Sekuritas -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-carbon-800 flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2">
+<span class="font-mono text-[10px] text-zinc-400">03 // RDN SEKURITAS</span>
+<span class="p-1 rounded-md bg-carbon-800 text-amber-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+<div class="space-y-1">
+<div class="font-mono text-sm font-bold text-white leading-tight">
+                  Rp <span data-balance="148.250.000">148.250.000</span>
+</div>
+<div class="flex items-center justify-between text-[10px] font-mono text-zinc-400">
+<span>Idle Sweep</span>
+<span class="text-amber-400 font-medium">4.2% APY</span>
+</div>
+</div>
+</div>
+<!-- Bento 4: Crypto Vault -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-carbon-800 flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2">
+<span class="font-mono text-[10px] text-zinc-400">04 // ASET KRIPTO</span>
+<span class="p-1 rounded-md bg-carbon-800 text-purple-400">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</span>
+</div>
+<div class="space-y-1">
+<div class="font-mono text-sm font-bold text-white leading-tight">
+                  Rp <span data-balance="178.600.000">178.600.000</span>
+</div>
+<div class="flex items-center justify-between text-[10px] font-mono text-zinc-400">
+<span>Cold Vault</span>
+<span class="text-zinc-300 font-medium">BTC / ETH</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Physical Bullion Vault Item Card -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-carbon-750 relative overflow-hidden">
+<div class="flex items-center justify-between mb-2.5">
+<span class="flex items-center gap-1.5 font-mono text-[10px] uppercase text-zinc-300 font-semibold">
+<span class="w-2 h-2 rounded-full bg-champagne"></span> PHYSICAL GOLD &amp; BULLION
+            </span>
+<span class="px-2 py-0.5 rounded bg-carbon-900 border border-champagne/40 font-mono text-[9px] text-champagne">
+              CERTIFIED VAULT
+            </span>
+</div>
+<div class="flex items-center gap-3.5">
+<!-- Gold Ingot Graphic Representation -->
+<div class="w-14 h-16 rounded-lg bg-gradient-to-br from-amber-200 via-champagne to-amber-700 p-0.5 shadow-md flex flex-col justify-between text-carbon-950 font-mono p-1">
+<span class="text-[8px] font-extrabold uppercase">ANTAM</span>
+<span class="text-[9px] font-bold text-center">999.9</span>
+<span class="text-[7px] text-right font-semibold">250g</span>
+</div>
+<div class="flex-1 space-y-1">
+<div class="flex items-baseline justify-between">
+<h4 class="font-bold text-sm text-white">250g Fine Gold Bar</h4>
+<span class="font-mono text-xs font-bold text-champagne">
+                  Rp <span data-balance="318.000.000">318.000.000</span>
+</span>
+</div>
+<p class="font-mono text-[10px] text-zinc-400">Spot: Rp 1.272.000/g • SDB BCA Sudirman #204</p>
+<div class="flex items-center gap-2 pt-0.5">
+<span class="text-[10px] text-emerald-400 font-mono font-medium">+22.4% Unhedged</span>
+<span class="text-[9px] px-1.5 rounded bg-carbon-800 text-zinc-400 font-mono">INSURED 100%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Ledger Snapshot Status Banner -->
+<div class="p-2.5 rounded-lg bg-carbon-800/60 border border-carbon-700/60 flex items-center justify-between text-[10px] font-mono text-zinc-400">
+<span class="flex items-center gap-1.5">
+<svg class="w-3.5 h-3.5 text-jade" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+            Ledger snapshot encrypted on-device
+          </span>
+<span class="text-zinc-500">15:42 WIB</span>
+</div>
+</section>
+<!-- ========================================= -->
+<!-- VIEW 2: VAULT (Cash & RDN Accounts) -->
+<!-- ========================================= -->
+<section class="hidden p-4 space-y-4 transition-all duration-200" id="view-vault">
+<!-- Header Sub-Info -->
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-jade"></span>
+<span class="font-mono text-[10px] uppercase text-zinc-400">INSTITUTIONAL LEDGER</span>
+</div>
+<span class="font-mono text-[9px] text-zinc-400">REV // 09:42 WIB</span>
+</div>
+<!-- Available Liquidity Hero -->
+<div class="p-4 rounded-2xl bg-gradient-to-b from-carbon-850 to-carbon-800 border border-carbon-700 shadow-md">
+<div class="flex items-center justify-between mb-1">
+<span class="font-mono text-[10px] uppercase tracking-wider text-zinc-400">TOTAL AVAILABLE LIQUIDITY</span>
+<span class="px-2 py-0.5 rounded text-[9px] font-mono bg-carbon-900 border border-carbon-700 text-champagne">TIER-1 AUDITED</span>
+</div>
+<div class="flex items-baseline justify-between mt-2 mb-2">
+<div class="font-mono-numbers text-2xl font-bold text-white">
+              Rp <span data-balance="462.500.000">462.500.000</span>
+</div>
+<span class="font-mono text-[11px] text-emerald-400 font-semibold bg-emerald-950/70 border border-emerald-500/30 px-2 py-0.5 rounded">
+              +1.4% MoM
+            </span>
+</div>
+<p class="font-mono text-[10px] text-zinc-400 flex items-center gap-1 mb-3">
+<svg class="w-3 h-3 text-jade" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+            100% Capital Guaranteed • Immediate Settlement (T+0)
+          </p>
+<div class="grid grid-cols-2 gap-2 pt-2 border-t border-carbon-750">
+<div>
+<span class="font-mono text-[9px] uppercase text-zinc-500 block">AVAIL. TO TRADE</span>
+<span class="font-mono text-xs font-semibold text-zinc-200">
+                Rp <span data-balance="313.450.000">313.450.000</span>
+</span>
+</div>
+<div>
+<span class="font-mono text-[9px] uppercase text-zinc-500 block">SWEEP YIELD (EST.)</span>
+<span class="font-mono text-xs font-semibold text-champagne">
+                Rp <span data-balance="42.180">42.180</span> / hari
+              </span>
+</div>
+</div>
+</div>
+<!-- Filter Pills Bar -->
+<div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+<button class="vault-filter-chip px-3 py-1.5 rounded-full bg-champagne text-carbon-950 font-mono text-[11px] font-bold whitespace-nowrap" onclick="setFilter(this)">All (6)</button>
+<button class="vault-filter-chip px-3 py-1.5 rounded-full bg-carbon-800 border border-carbon-700 text-zinc-300 font-mono text-[11px] whitespace-nowrap" onclick="setFilter(this)">Banks (3)</button>
+<button class="vault-filter-chip px-3 py-1.5 rounded-full bg-carbon-800 border border-carbon-700 text-zinc-300 font-mono text-[11px] whitespace-nowrap" onclick="setFilter(this)">RDN Cash (2)</button>
+<button class="vault-filter-chip px-3 py-1.5 rounded-full bg-carbon-800 border border-carbon-700 text-zinc-300 font-mono text-[11px] whitespace-nowrap" onclick="setFilter(this)">E-Wallets (1)</button>
+<button class="vault-filter-chip px-3 py-1.5 rounded-full bg-carbon-800 border border-carbon-700 text-zinc-300 font-mono text-[11px] whitespace-nowrap" onclick="setFilter(this)">Liabilities (1)</button>
+</div>
+<!-- Accounts List -->
+<div class="space-y-2.5">
+<!-- Account 1: BCA -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-carbon-800 hover:border-carbon-700 transition">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-lg bg-carbon-800 border border-carbon-700 flex items-center justify-center font-mono font-bold text-xs text-blue-400">
+                  BCA
+                </div>
+<div>
+<h4 class="font-semibold text-xs text-white">BCA Prioritas Tahapan</h4>
+<p class="font-mono text-[10px] text-zinc-400">•••• 8821 • IDR</p>
+</div>
+</div>
+<div class="text-right">
+<span class="font-mono text-xs font-bold text-white block">
+                  Rp <span data-balance="215.450.000">215.450.000</span>
+</span>
+<span class="text-[9px] font-mono text-emerald-400">BI-FAST READY</span>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between pt-2 border-t border-carbon-800 text-[10px] font-mono">
+<span class="text-zinc-500">Verified 09:42 WIB</span>
+<div class="flex gap-2">
+<button class="px-2 py-0.5 rounded bg-carbon-800 hover:bg-carbon-750 text-zinc-300 border border-carbon-700">STATEMENT</button>
+<button class="px-2 py-0.5 rounded bg-carbon-800 hover:bg-carbon-750 text-champagne border border-champagne/40">TRANSFER</button>
+</div>
+</div>
+</div>
+<!-- Account 2: Mandiri Escrow -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-carbon-800 hover:border-carbon-700 transition">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-lg bg-carbon-800 border border-carbon-700 flex items-center justify-center font-mono font-bold text-xs text-amber-400">
+                  MDR
+                </div>
+<div>
+<h4 class="font-semibold text-xs text-white">Mandiri Wealth Escrow</h4>
+<p class="font-mono text-[10px] text-zinc-400">•••• 1042 • IDR</p>
+</div>
+</div>
+<div class="text-right">
+<span class="font-mono text-xs font-bold text-white block">
+                  Rp <span data-balance="105.050.000">105.050.000</span>
+</span>
+<span class="text-[9px] font-mono text-amber-400">3.8% p.a. DAILY SWEEP</span>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between pt-2 border-t border-carbon-800 text-[10px] font-mono">
+<span class="text-zinc-500">Priority Wealth Custody</span>
+<button class="px-2 py-0.5 rounded bg-carbon-800 hover:bg-carbon-750 text-zinc-300 border border-carbon-700">MANAGE SWEEP</button>
+</div>
+</div>
+<!-- Account 3: Stockbit RDN -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-carbon-800 hover:border-carbon-700 transition">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-lg bg-carbon-800 border border-carbon-700 flex items-center justify-center font-mono font-bold text-xs text-emerald-400">
+                  RDN
+                </div>
+<div>
+<h4 class="font-semibold text-xs text-white">Stockbit Sekuritas RDN</h4>
+<p class="font-mono text-[10px] text-zinc-400">•••• 5590 • Custody: BCA</p>
+</div>
+</div>
+<div class="text-right">
+<span class="font-mono text-xs font-bold text-white block">
+                  Rp <span data-balance="98.000.000">98.000.000</span>
+</span>
+<span class="text-[9px] font-mono text-emerald-400">T+0 READY • SETTLED</span>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between pt-2 border-t border-carbon-800 text-[10px] font-mono">
+<span class="text-zinc-500">KSEI PROTECTED</span>
+<button class="px-2 py-0.5 rounded bg-champagne text-carbon-950 font-bold">TOP UP</button>
+</div>
+</div>
+<!-- Account 4: GoPay/OVO -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-carbon-800 hover:border-carbon-700 transition">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-lg bg-carbon-800 border border-carbon-700 flex items-center justify-center font-mono font-bold text-xs text-teal-400">
+                  WAL
+                </div>
+<div>
+<h4 class="font-semibold text-xs text-white">GoPay &amp; OVO Aggregated</h4>
+<p class="font-mono text-[10px] text-zinc-400">0811 •••• 442 • Digital Liquidity</p>
+</div>
+</div>
+<div class="text-right">
+<span class="font-mono text-xs font-bold text-white block">
+                  Rp <span data-balance="4.000.000">4.000.000</span>
+</span>
+<span class="text-[9px] font-mono text-zinc-400">QRIS READY</span>
+</div>
+</div>
+</div>
+<!-- Liability: KPR BCA -->
+<div class="p-3.5 rounded-xl bg-coral-tint border border-coral/30 hover:border-coral/50 transition">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-lg bg-carbon-900 border border-coral/40 flex items-center justify-center font-mono font-bold text-xs text-coral">
+                  KPR
+                </div>
+<div>
+<h4 class="font-semibold text-xs text-white">KPR BCA Prioritas (Mortgage)</h4>
+<p class="font-mono text-[10px] text-zinc-400">•••• 9102 • Fixed 6.75%</p>
+</div>
+</div>
+<div class="text-right">
+<span class="font-mono text-xs font-bold text-coral block">
+                  -Rp <span data-balance="450.000.000">450.000.000</span>
+</span>
+<span class="text-[9px] font-mono text-coral font-bold bg-coral/20 px-1.5 py-0.5 rounded">DUE IN 12 DAYS</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Add Account CTA -->
+<button class="w-full py-3.5 rounded-xl bg-champagne text-carbon-950 font-bold text-xs tracking-tight flex items-center justify-center gap-2 shadow-lg active:scale-98 transition" onclick="triggerToast('Connecting Open Banking / Institutional API...')">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+</svg>
+<span>+ Add Account / Connect Bank</span>
+</button>
+</section>
+<!-- ========================================= -->
+<!-- VIEW 3: PORTFOLIO (Holdings & Vault) -->
+<!-- ========================================= -->
+<section class="hidden p-4 space-y-4 transition-all duration-200" id="view-portfolio">
+<!-- Market Status Bar -->
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="font-mono text-[10px] text-zinc-400">PORTFOLIO ENGINE</span>
+<span class="px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-500/40 text-[9px] font-mono text-emerald-400 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> IDX: OPEN
+            </span>
+</div>
+<span class="font-mono text-[10px] text-zinc-400">Q2 REBALANCE ACTIVE</span>
+</div>
+<!-- Segmented Capsule Toggle -->
+<div class="grid grid-cols-2 p-1 rounded-xl bg-carbon-850 border border-carbon-800">
+<button class="py-2 rounded-lg bg-carbon-750 text-white font-mono text-xs font-semibold shadow flex items-center justify-center gap-1.5 transition" id="port-tab-idx" onclick="switchPortfolioSubTab('idx')">
+<svg class="w-3.5 h-3.5 text-champagne" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>IDX Equities (Rp 680M)</span>
+</button>
+<button class="py-2 rounded-lg text-zinc-400 hover:text-white font-mono text-xs font-medium flex items-center justify-center gap-1.5 transition" id="port-tab-crypto" onclick="switchPortfolioSubTab('crypto')">
+<svg class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Crypto Vault (Rp 340M)</span>
+</button>
+</div>
+<!-- Portfolio Valuation Summary Card -->
+<div class="p-4 rounded-2xl bg-gradient-to-b from-carbon-850 to-carbon-800 border border-carbon-700 shadow-md">
+<span class="font-mono text-[10px] uppercase tracking-wider text-zinc-400 block mb-1">TOTAL AGGREGATED VALUATION</span>
+<div class="flex items-baseline justify-between mb-3">
+<div class="font-mono-numbers text-2xl font-bold text-white">
+              Rp <span data-balance="1.020.000.000">1.020.000.000</span>
+</div>
+<span class="font-mono text-[10px] text-emerald-400 font-bold bg-emerald-950/70 border border-emerald-500/30 px-2 py-0.5 rounded">
+              ↑ +14.2% YTD
+            </span>
+</div>
+<!-- 2-Col PnL Breakdown -->
+<div class="grid grid-cols-2 gap-2 pt-2 border-t border-carbon-750 font-mono">
+<div>
+<span class="text-[9px] text-zinc-500 uppercase block">UNREALIZED GAIN</span>
+<span class="text-xs font-bold text-emerald-400 block">
+                +Rp <span data-balance="145.200.000">145.200.000</span>
+</span>
+<span class="text-[9px] text-zinc-400">+16.6% Institutional ROI</span>
+</div>
+<div>
+<span class="text-[9px] text-zinc-500 uppercase block">TODAY'S P&amp;L</span>
+<span class="text-xs font-bold text-emerald-400 block">
+                +Rp <span data-balance="1.850.000">1.850.000</span>
+</span>
+<span class="text-[9px] text-zinc-400">+1.25% Net Mutasi</span>
+</div>
+</div>
+</div>
+<!-- Filter and Search -->
+<div class="space-y-2">
+<div class="flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar">
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-md bg-champagne text-carbon-950 font-mono text-[10px] font-bold">All (14)</button>
+<button class="px-2.5 py-1 rounded-md bg-carbon-800 border border-carbon-700 text-zinc-300 font-mono text-[10px]">Gainers (11)</button>
+<button class="px-2.5 py-1 rounded-md bg-carbon-800 border border-carbon-700 text-zinc-300 font-mono text-[10px]">Losers (3)</button>
+</div>
+<button class="px-2 py-1 rounded-md bg-carbon-800 border border-champagne/40 text-champagne font-mono text-[10px] flex items-center gap-1" onclick="triggerToast('Executing automated tax-loss harvest preview...')">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg> Rebalance
+            </button>
+</div>
+<div class="relative">
+<input class="w-full bg-carbon-850 border border-carbon-800 rounded-xl px-3 py-2 pl-8 text-xs font-mono text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-champagne" placeholder="Search ticker, ISIN, or ledger contract..." type="text"/>
+<svg class="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-3" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Holdings List -->
+<div class="space-y-2.5">
+<!-- Item 1: BBCA -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-carbon-800 hover:border-carbon-700 transition">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-lg bg-carbon-800 border border-carbon-700 flex flex-col items-center justify-center font-mono">
+<span class="font-bold text-[10px] text-white">BBCA</span>
+<span class="text-[8px] text-zinc-500">IJ</span>
+</div>
+<div>
+<h4 class="font-semibold text-xs text-white">Bank Central Asia Tbk</h4>
+<p class="font-mono text-[10px] text-zinc-400">25 Lot (2.500 Lbr) • Avg Rp 8.950</p>
+</div>
+</div>
+<div class="text-right">
+<span class="font-mono text-xs font-bold text-white block">
+                  Rp <span data-balance="24.625.000">24.625.000</span>
+</span>
+<span class="font-mono text-[10px] text-zinc-400">Rp 9.850 /lbr</span>
+</div>
+</div>
+<div class="mt-2.5 flex items-center justify-between pt-2 border-t border-carbon-800 font-mono text-[10px]">
+<span class="text-emerald-400 font-semibold">+Rp 2.250.000 (+10.6%)</span>
+<!-- Mini SVG Sparkline -->
+<svg class="w-20 h-4 text-emerald-400" fill="none" stroke="currentColor" viewbox="0 0 80 16">
+<path d="M0 12 L15 10 L30 13 L45 7 L60 9 L75 2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</div>
+</div>
+<!-- Item 2: BMRI -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-carbon-800 hover:border-carbon-700 transition">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-lg bg-carbon-800 border border-carbon-700 flex flex-col items-center justify-center font-mono">
+<span class="font-bold text-[10px] text-white">BMRI</span>
+<span class="text-[8px] text-zinc-500">IJ</span>
+</div>
+<div>
+<h4 class="font-semibold text-xs text-white">Bank Mandiri (Persero) Tbk</h4>
+<p class="font-mono text-[10px] text-zinc-400">40 Lot (4.000 Lbr) • Avg Rp 5.800</p>
+</div>
+</div>
+<div class="text-right">
+<span class="font-mono text-xs font-bold text-white block">
+                  Rp <span data-balance="26.400.000">26.400.000</span>
+</span>
+<span class="font-mono text-[10px] text-zinc-400">Rp 6.600 /lbr</span>
+</div>
+</div>
+<div class="mt-2.5 flex items-center justify-between pt-2 border-t border-carbon-800 font-mono text-[10px]">
+<span class="text-emerald-400 font-semibold">+Rp 3.200.000 (+13.8%)</span>
+<svg class="w-20 h-4 text-emerald-400" fill="none" stroke="currentColor" viewbox="0 0 80 16">
+<path d="M0 14 L20 11 L35 12 L50 6 L65 7 L75 1" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</div>
+</div>
+<!-- Item 3: BTC (Sovereign Cold Ledger) -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-carbon-800 hover:border-carbon-700 transition">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-lg bg-carbon-800 border border-carbon-700 flex flex-col items-center justify-center font-mono">
+<span class="font-bold text-[10px] text-amber-400">BTC</span>
+<span class="text-[8px] text-zinc-500">COLD</span>
+</div>
+<div>
+<h4 class="font-semibold text-xs text-white">Bitcoin Sovereign Reserve</h4>
+<p class="font-mono text-[10px] text-zinc-400">0.425 BTC • Hardware Ledger</p>
+</div>
+</div>
+<div class="text-right">
+<span class="font-mono text-xs font-bold text-white block">
+                  Rp <span data-balance="616.250.000">616.250.000</span>
+</span>
+<span class="font-mono text-[10px] text-zinc-400">Rp 1.450M /BTC</span>
+</div>
+</div>
+<div class="mt-2.5 flex items-center justify-between pt-2 border-t border-carbon-800 font-mono text-[10px]">
+<span class="text-emerald-400 font-semibold">+4.8% 24h • Multisig 3/5</span>
+<span class="px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-400 text-[9px]">AIRGAPPED</span>
+</div>
+</div>
+</div>
+<!-- Custody Seal Banner -->
+<div class="p-3 rounded-xl bg-carbon-900 border border-carbon-800 flex items-center gap-3">
+<div class="p-2 rounded-lg bg-carbon-800 text-champagne shrink-0">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div>
+<h5 class="text-xs font-semibold text-zinc-200">Insured Institutional Custody</h5>
+<p class="font-mono text-[10px] text-zinc-500">KSEI Custody Sub-Account • BitGo Trust Segregated</p>
+</div>
+</div>
+</section>
+<!-- ========================================= -->
+<!-- VIEW 4: INGESTION (AI Ingestion Hub) -->
+<!-- ========================================= -->
+<section class="hidden p-4 space-y-4 transition-all duration-200" id="view-ingestion">
+<!-- Engine Meta Header -->
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-jade"></span>
+<span class="font-mono text-[10px] uppercase text-zinc-300 font-semibold">ENGINE // V4.8</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-carbon-800 border border-carbon-700 font-mono text-[9px] text-emerald-400">
+            AIR-GAPPED V1.4
+          </span>
+</div>
+<div class="p-3 rounded-xl bg-carbon-850 border border-carbon-800">
+<h3 class="font-bold text-sm text-white mb-0.5">Automated Wealth Ingestion</h3>
+<p class="font-mono text-[10px] text-zinc-400">ON-DEVICE OCR • 0 BYTES EXPORTED • 100% SECURE</p>
+</div>
+<!-- Dual Dropzones (Bank & PDF) -->
+<div class="grid grid-cols-2 gap-2.5">
+<!-- Dropzone 1 -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-dashed border-carbon-700 flex flex-col justify-between items-center text-center space-y-2">
+<div class="w-10 h-10 rounded-full bg-carbon-800 border border-carbon-750 flex items-center justify-center text-champagne">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</div>
+<div>
+<span class="font-bold text-xs text-white block">Bank Mutation</span>
+<span class="font-mono text-[9px] text-zinc-400 block mt-0.5">BCA, Mandiri, BRI CSV &amp; e-Statement</span>
+</div>
+<button class="w-full py-1.5 rounded-lg bg-carbon-800 hover:bg-carbon-750 border border-carbon-700 font-mono text-[10px] text-zinc-200 font-semibold active:scale-95 transition" onclick="triggerToast('Uploaded BCA_Oct26_Mutation.csv')">
+              + Upload Mutasi
+            </button>
+</div>
+<!-- Dropzone 2 -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-dashed border-carbon-700 flex flex-col justify-between items-center text-center space-y-2">
+<div class="w-10 h-10 rounded-full bg-carbon-800 border border-carbon-750 flex items-center justify-center text-amber-400">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</div>
+<div>
+<span class="font-bold text-xs text-white block">Broker PDF</span>
+<span class="font-mono text-[9px] text-zinc-400 block mt-0.5">Stockbit, Bibit RDN Trade Confirmation</span>
+</div>
+<button class="w-full py-1.5 rounded-lg bg-champagne text-carbon-950 font-mono text-[10px] font-bold active:scale-95 transition" onclick="triggerToast('Uploaded Trade_Confirmation_20261024.pdf')">
+              + Ingest PDF
+            </button>
+</div>
+</div>
+<!-- PDF Password Field & Interactive Presets -->
+<div class="p-3.5 rounded-xl bg-carbon-850 border border-carbon-800 space-y-2.5">
+<div class="flex items-center justify-between">
+<label class="font-mono text-[10px] uppercase text-zinc-300 font-semibold flex items-center gap-1.5">
+<svg class="w-3.5 h-3.5 text-champagne" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+              PDF SECURITY DECRYPTION
+            </label>
+<span class="font-mono text-[9px] text-zinc-400">AUTO-FALLBACK</span>
+</div>
+<div class="relative">
+<input class="w-full bg-carbon-900 border border-carbon-700 rounded-lg px-3 py-2 text-xs font-mono text-zinc-100 tracking-widest focus:outline-none focus:border-champagne" id="pdf-password-input" placeholder="Enter DOB / PIN..." type="password" value="12081992"/>
+<button class="absolute right-2.5 top-2.5 font-mono text-[9px] text-zinc-400 hover:text-zinc-200" onclick="togglePasswordVisibility()">
+              SHOW
+            </button>
+</div>
+<!-- Quick Presets -->
+<div class="flex items-center gap-1.5 pt-1">
+<span class="font-mono text-[9px] text-zinc-400">PRESET:</span>
+<button class="px-2 py-0.5 rounded bg-carbon-800 hover:bg-carbon-750 border border-carbon-700 font-mono text-[9px] text-zinc-300" onclick="setPdfPreset('12081992')">BCA Default (DOB)</button>
+<button class="px-2 py-0.5 rounded bg-carbon-800 hover:bg-carbon-750 border border-carbon-700 font-mono text-[9px] text-zinc-300" onclick="setPdfPreset('984321')">Mandiri E-PIN</button>
+<button class="px-2 py-0.5 rounded bg-carbon-800 hover:bg-carbon-750 border border-carbon-700 font-mono text-[9px] text-zinc-300" onclick="setPdfPreset('STK88990')">Stockbit SID</button>
+</div>
+</div>
+<!-- Perforated Vault Slip Card (Authentic Receipt Look) -->
+<div class="receipt-perforation bg-carbon-850 rounded-xl border border-carbon-750 p-4 shadow-xl">
+<!-- Receipt Header -->
+<div class="flex items-center justify-between border-b border-dashed border-carbon-700 pb-2.5 mb-3 font-mono text-[10px]">
+<div>
+<span class="font-bold text-champagne block">VAULT SLIP AUDIT PREVIEW</span>
+<span class="text-zinc-500">BATCH #STK-20261020-0941</span>
+</div>
+<div class="text-right">
+<span class="text-zinc-300 block">24 OCT 2026</span>
+<span class="text-zinc-500">09:41:22 WIB</span>
+</div>
+</div>
+<!-- Parsed Items Table -->
+<div class="space-y-2 font-mono text-[11px]">
+<div class="flex items-center justify-between">
+<div>
+<span class="text-zinc-200 font-bold block">• BUY 5 LOT BBCA.JK</span>
+<span class="text-[9px] text-zinc-500">@ Rp 9.800 • IDX LEVY 0.15%</span>
+</div>
+<span class="text-coral font-bold text-right">
+                Net Rp 4.907.350 <br/><span class="text-[9px] text-zinc-500 font-normal">Debit</span>
+</span>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<span class="text-zinc-200 font-bold block">• SELL 10 LOT BMRI.JK</span>
+<span class="text-[9px] text-zinc-500">@ Rp 6.600 • WHT TAX INCL</span>
+</div>
+<span class="text-emerald-400 font-bold text-right">
+                Net Rp 6.583.500 <br/><span class="text-[9px] text-zinc-500 font-normal">Credit</span>
+</span>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<span class="text-zinc-200 font-bold block">• DIVIDEND BMRI.JK</span>
+<span class="text-[9px] text-zinc-500">INTERIM 2026/Q3 TAX-FREE</span>
+</div>
+<span class="text-emerald-400 font-bold text-right">
+                +Rp 450.000 <br/><span class="text-[9px] text-zinc-500 font-normal">Yield</span>
+</span>
+</div>
+</div>
+<!-- AI Confidence Stamp -->
+<div class="mt-4 pt-2.5 border-t border-dashed border-carbon-700 flex items-center justify-between font-mono text-[10px]">
+<span class="text-emerald-400 flex items-center gap-1 font-semibold">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+              AI CONFIDENCE: 99.6%
+            </span>
+<span class="text-zinc-500">SHA: 8c91a...f29</span>
+</div>
+</div>
+<!-- Commit CTA -->
+<button class="w-full py-3.5 rounded-xl bg-champagne text-carbon-950 font-bold text-xs tracking-tight shadow-xl flex items-center justify-center gap-2 active:scale-98 transition" id="commit-btn" onclick="commitSlip()">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span id="commit-btn-text">COMMIT TO LEDGER</span>
+</button>
+</section>
+</main>
+<!-- END: Main Scrollable Content Area -->
+<!-- BEGIN: Floating Bottom Navigation Capsule -->
+<nav class="absolute bottom-3 left-4 right-4 h-16 bg-carbon-850/90 backdrop-blur-lg border border-carbon-700/80 rounded-2xl flex items-center justify-around px-2 shadow-2xl z-40">
+<!-- Nav Item 1: Dashboard -->
+<button class="nav-tab active flex flex-col items-center justify-center w-16 h-12 rounded-xl transition text-champagne" onclick="switchTab('dashboard')">
+<svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="font-mono text-[9px] font-semibold tracking-tight">Dashboard</span>
+</button>
+<!-- Nav Item 2: Vault -->
+<button class="nav-tab flex flex-col items-center justify-center w-16 h-12 rounded-xl transition text-zinc-400 hover:text-zinc-200" onclick="switchTab('vault')">
+<svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="font-mono text-[9px] font-semibold tracking-tight">Vault</span>
+</button>
+<!-- Nav Item 3: Portfolio -->
+<button class="nav-tab flex flex-col items-center justify-center w-16 h-12 rounded-xl transition text-zinc-400 hover:text-zinc-200" onclick="switchTab('portfolio')">
+<svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="font-mono text-[9px] font-semibold tracking-tight">Portfolio</span>
+</button>
+<!-- Nav Item 4: Ingestion -->
+<button class="nav-tab flex flex-col items-center justify-center w-16 h-12 rounded-xl transition text-zinc-400 hover:text-zinc-200" onclick="switchTab('ingestion')">
+<svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="font-mono text-[9px] font-semibold tracking-tight">Ingestion</span>
+</button>
+</nav>
+<!-- END: Floating Bottom Navigation Capsule -->
+<!-- Interactive Notification Toast -->
+<div class="absolute top-16 left-4 right-4 bg-carbon-800 border border-champagne/40 text-white px-3.5 py-2.5 rounded-xl shadow-2xl z-50 flex items-center gap-2.5 font-mono text-[11px] transform -translate-y-24 opacity-0 transition-all duration-300 pointer-events-none" id="app-toast">
+<span class="w-2 h-2 rounded-full bg-champagne animate-ping"></span>
+<span class="truncate" id="toast-message">Hardware Ledger Synced</span>
+</div>
+</div>
+<!-- END: Mobile Viewport Container -->
+<!-- BEGIN: Interactive Logic Scripts -->
+<script data-purpose="app-controller">
+    // State management
+    let isPrivacyMasked = false;
+    let splashDismissed = false;
+
+    // 1. Splash Animation Steps
+    document.addEventListener("DOMContentLoaded", () => {
+      const progressBar = document.getElementById("splash-progress-bar");
+      const statusText = document.getElementById("splash-status-text");
+      const percentText = document.getElementById("splash-percent-text");
+
+      setTimeout(() => {
+        progressBar.style.width = "40%";
+        statusText.innerText = "HSM KEY SYNCED (SECURE ENCLAVE)...";
+        percentText.innerText = "40%";
+      }, 500);
+
+      setTimeout(() => {
+        progressBar.style.width = "85%";
+        statusText.innerText = "VALIDATING BI-FAST ZERO-KNOWLEDGE PROOF...";
+        percentText.innerText = "85%";
+      }, 1100);
+
+      setTimeout(() => {
+        progressBar.style.width = "100%";
+        statusText.innerText = "VAULT UNLOCKED • AIR-GAPPED READY";
+        percentText.innerText = "100%";
+      }, 1600);
+
+      // Auto dismiss after 1.9s
+      setTimeout(() => {
+        dismissSplash();
+      }, 1900);
+    });
+
+    function dismissSplash() {
+      if (splashDismissed) return;
+      splashDismissed = true;
+      const overlay = document.getElementById("splash-overlay");
+      overlay.classList.add("opacity-0", "pointer-events-none");
+      setTimeout(() => {
+        overlay.style.display = "none";
+      }, 700);
+    }
+
+    // 2. Tab View Switching
+    function switchTab(tabId) {
+      const tabs = ['dashboard', 'vault', 'portfolio', 'ingestion'];
+      const titleMap = {
+        'dashboard': 'Dashboard',
+        'vault': 'Cash & RDN Accounts',
+        'portfolio': 'Invested Portfolio & Vault',
+        'ingestion': 'AI Ingestion Hub'
+      };
+
+      // Hide all views
+      tabs.forEach(t => {
+        const view = document.getElementById(`view-${t}`);
+        if (view) view.classList.add('hidden');
+      });
+
+      // Show targeted view
+      const activeView = document.getElementById(`view-${tabId}`);
+      if (activeView) activeView.classList.remove('hidden');
+
+      // Update Header Title
+      const titleElement = document.getElementById('header-view-title');
+      if (titleElement) titleElement.innerText = titleMap[tabId] || 'OmniWealth';
+
+      // Update Nav pill active indicators
+      const navButtons = document.querySelectorAll('.nav-tab');
+      navButtons.forEach(btn => {
+        btn.classList.remove('text-champagne', 'active');
+        btn.classList.add('text-zinc-400');
+      });
+
+      // Map active state to clicked button
+      const indexMap = { 'dashboard': 0, 'vault': 1, 'portfolio': 2, 'ingestion': 3 };
+      const currentBtn = navButtons[indexMap[tabId]];
+      if (currentBtn) {
+        currentBtn.classList.remove('text-zinc-400');
+        currentBtn.classList.add('text-champagne', 'active');
+      }
+    }
+
+    // 3. Privacy Masking Toggle
+    function togglePrivacyMask() {
+      isPrivacyMasked = !isPrivacyMasked;
+      const eyeIcon = document.getElementById('eye-icon');
+      const balanceElements = document.querySelectorAll('[data-balance]');
+
+      balanceElements.forEach(el => {
+        if (isPrivacyMasked) {
+          el.setAttribute('data-original-val', el.innerText);
+          el.innerText = '••••••••';
+        } else {
+          const original = el.getAttribute('data-original-val');
+          if (original) el.innerText = original;
+        }
+      });
+
+      // Swap eye icon appearance
+      if (isPrivacyMasked) {
+        eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />`;
+        triggerToast("Privacy Mode Enabled: Balances Hidden");
+      } else {
+        eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+        triggerToast("Privacy Mode Disabled: Balances Visible");
+      }
+    }
+
+    // 4. Ingestion Hub Presets & Actions
+    function setPdfPreset(val) {
+      const input = document.getElementById('pdf-password-input');
+      if (input) {
+        input.value = val;
+        triggerToast(`Auto-filled: ${val}`);
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const input = document.getElementById('pdf-password-input');
+      if (input) {
+        input.type = input.type === 'password' ? 'text' : 'password';
+      }
+    }
+
+    function commitSlip() {
+      const btn = document.getElementById('commit-btn');
+      const text = document.getElementById('commit-btn-text');
+      
+      text.innerText = "SEALING BLOCK...";
+      btn.classList.add("opacity-80");
+
+      setTimeout(() => {
+        text.innerText = "✓ COMMITTED TO LEDGER";
+        btn.classList.remove("bg-champagne", "text-carbon-950");
+        btn.classList.add("bg-emerald-500", "text-carbon-950");
+        triggerToast("Transaction written to on-device block #892,104");
+      }, 700);
+
+      setTimeout(() => {
+        text.innerText = "COMMIT TO LEDGER";
+        btn.classList.remove("bg-emerald-500", "opacity-80");
+        btn.classList.add("bg-champagne");
+      }, 3000);
+    }
+
+    // 5. Portfolio Sub-Tab Toggle
+    function switchPortfolioSubTab(type) {
+      const idxBtn = document.getElementById('port-tab-idx');
+      const cryptoBtn = document.getElementById('port-tab-crypto');
+      if (type === 'idx') {
+        idxBtn.className = "py-2 rounded-lg bg-carbon-750 text-white font-mono text-xs font-semibold shadow flex items-center justify-center gap-1.5 transition";
+        cryptoBtn.className = "py-2 rounded-lg text-zinc-400 hover:text-white font-mono text-xs font-medium flex items-center justify-center gap-1.5 transition";
+      } else {
+        cryptoBtn.className = "py-2 rounded-lg bg-carbon-750 text-white font-mono text-xs font-semibold shadow flex items-center justify-center gap-1.5 transition";
+        idxBtn.className = "py-2 rounded-lg text-zinc-400 hover:text-white font-mono text-xs font-medium flex items-center justify-center gap-1.5 transition";
+      }
+    }
+
+    // 6. Filter Chips Highlighter
+    function setFilter(el) {
+      document.querySelectorAll('.vault-filter-chip').forEach(c => {
+        c.className = "vault-filter-chip px-3 py-1.5 rounded-full bg-carbon-800 border border-carbon-700 text-zinc-300 font-mono text-[11px] whitespace-nowrap";
+      });
+      el.className = "vault-filter-chip px-3 py-1.5 rounded-full bg-champagne text-carbon-950 font-mono text-[11px] font-bold whitespace-nowrap";
+    }
+
+    // 7. Toast Notifier
+    function triggerToast(msg) {
+      const toast = document.getElementById('app-toast');
+      const text = document.getElementById('toast-message');
+      text.innerText = msg;
+      toast.classList.remove('-translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-24', 'opacity-0');
+      }, 2400);
+    }
+  </script>
+<!-- END: Interactive Logic Scripts -->
+</body></html>

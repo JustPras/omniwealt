@@ -138,29 +138,19 @@ export const HeaderBar: React.FC = () => {
         style={styles.capsuleCard}
         contentStyle={styles.capsuleInner}
       >
-        {/* Left: Brand Logo + OmniWealth + LOCAL AI READY capsule badge */}
+        {/* Left: Brand Logo + OmniWealth + Private Wealth tag */}
         <View style={styles.leftBrandGroup}>
           <LogoIcon size={24} variant="adaptive" style={styles.brandLogoBadge} />
           <View style={styles.brandTitleCol}>
             <View style={styles.brandNameRow}>
               <Text style={[styles.brandTitle, { color: textColor }]}>OmniWealth</Text>
-              {/* Top Status Capsule: ● LOCAL AI READY */}
               <View style={styles.aiReadyCapsule}>
-                <Animated.View
-                  style={[
-                    styles.aiPulseDot,
-                    {
-                      transform: [{ scale: pulseAnim }],
-                      opacity: pulseOpacity,
-                    },
-                  ]}
-                />
-                <Text style={styles.aiReadyText}>LOCAL AI</Text>
+                <Text style={styles.aiReadyText}>PRIVATE</Text>
               </View>
             </View>
-            {/* Live Indicator Sub-text */}
+            {/* Live Timestamp Sub-text */}
             <View style={styles.liveSubRow}>
-              <Text style={styles.liveTimeText}>{formatTime(lastUpdated.toISOString())} • AIR-GAPPED</Text>
+              <Text style={styles.liveTimeText}>{formatTime(lastUpdated.toISOString())} • TERVERIFIKASI</Text>
             </View>
           </View>
         </View>
@@ -326,25 +316,24 @@ const styles = StyleSheet.create({
   aiReadyCapsule: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 1.5,
-    borderRadius: 999,
-    backgroundColor: 'rgba(46, 189, 133, 0.12)',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    backgroundColor: 'rgba(212, 175, 55, 0.10)',
     borderWidth: 1,
-    borderColor: 'rgba(46, 189, 133, 0.30)',
+    borderColor: 'rgba(212, 175, 55, 0.25)',
   },
   aiPulseDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.palette.sovereignJade,
+    backgroundColor: Colors.palette.champagneGold,
   },
   aiReadyText: {
     fontSize: 8.5,
     fontWeight: '700',
-    letterSpacing: 0.5,
-    color: Colors.palette.sovereignJade,
+    letterSpacing: 0.8,
+    color: Colors.palette.champagneGold,
   },
   liveSubRow: {
     flexDirection: 'row',

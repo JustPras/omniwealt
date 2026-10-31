@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#131312;}body{overscroll-behavior:none;color:#e5e2df;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "inverse-primary": "#735c00", "primary-container": "#d4af37", "inverse-surface": "#e5e2df", "primary-fixed-dim": "#e9c349", "surface-container-lowest": "#0e0e0d", "surface-container-low": "#1c1c1a", "error": "#ffb4ab", "primary": "#f2ca50", "tertiary-fixed": "#ffdad5", "surface-dim": "#131312", "secondary": "#57dea3", "on-primary-fixed-variant": "#574500", "tertiary": "#ffbfb5", "on-background": "#e5e2df", "on-tertiary-fixed": "#410000", "on-tertiary": "#690001", "on-secondary-container": "#003622", "surface-tint": "#e9c349", "on-secondary": "#003824", "on-primary-fixed": "#241a00", "surface-container-highest": "#353533", "on-error": "#690005", "on-surface": "#e5e2df", "on-secondary-fixed": "#002113", "surface-bright": "#3a3938", "surface-variant": "#353533", "error-container": "#93000a", "surface": "#131312", "tertiary-container": "#ff9687", "surface-container": "#20201e", "background": "#131312", "on-tertiary-fixed-variant": "#8d140d", "on-error-container": "#ffdad6", "outline-variant": "#4d4635", "secondary-fixed-dim": "#57dea3", "secondary-container": "#02ab75", "on-secondary-fixed-variant": "#005235", "outline": "#99907c", "on-primary-container": "#554300", "inverse-on-surface": "#31302f", "on-primary": "#3c2f00", "on-tertiary-container": "#8b120b", "primary-fixed": "#ffe088", "tertiary-fixed-dim": "#ffb4a8", "on-surface-variant": "#d0c5af", "secondary-fixed": "#77fbbd", "surface-container-high": "#2a2a29" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-lg": "1.5rem", "space-md": "1rem", "gutter-desktop": "1.5rem", "gutter": "1.25rem", "margin-desktop": "2.5rem", "space-xl": "2.5rem", "space-xs": "0.25rem", "margin-tablet": "1.75rem", "space-sm": "0.5rem", "margin": "1rem" }, "fontFamily": { "headline-lg": ["Plus Jakarta Sans"], "label-mono-xs": ["JetBrains Mono"], "label-mono-md": ["JetBrains Mono"], "headline-xl": ["Plus Jakarta Sans"], "headline-xl-mobile": ["Plus Jakarta Sans"], "label-mono-sm": ["JetBrains Mono"], "label-mono-lg": ["JetBrains Mono"], "body-lg": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "title-md": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"] }, "fontSize": { "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "label-mono-xs": ["10px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }], "label-mono-md": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "500" }], "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "600" }], "headline-xl-mobile": ["30px", { "lineHeight": "36px", "letterSpacing": "-0.025em", "fontWeight": "600" }], "label-mono-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "400" }], "label-mono-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "500" }], "body-lg": ["15px", { "lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "400" }], "body-md": ["13px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }], "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "400" }], "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.015em", "fontWeight": "600" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-body-md text-on-surface flex flex-col min-h-screen selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center space-x-space-sm"><div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-primary"><span class="material-symbols-outlined text-[18px]">diamond</span></div><div class="flex flex-col"><span class="font-label-mono-xs text-label-mono-xs text-outline uppercase tracking-wider">OMNIWEALTH PRIVATE</span><span class="font-title-md text-title-md text-on-surface">Vault</span></div></div><div class="flex items-center space-x-space-xs"><button aria-label="Notifications" class="w-11 h-11 flex items-center justify-center text-on-surface-variant hover:text-on-surface active:scale-95 transition-all"><span class="material-symbols-outlined text-[20px]">notifications</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-28 bg-surface"><div class="flex flex-col w-full px-margin pb-6 space-y-space-md select-none">
+<!-- Top Specular Glass Atmosphere -->
+<div class="relative w-full rounded-xl bg-surface-container-low p-space-md shadow-xl overflow-hidden backdrop-blur-2xl">
+<div class="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-primary/10 blur-2xl pointer-events-none"></div>
+<div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+<!-- Header Meta Row -->
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center space-x-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_8px_rgba(87,222,163,0.8)]"></span>
+<span class="font-label-mono-xs text-label-mono-xs text-outline tracking-widest uppercase">INSTITUTIONAL LEDGER</span>
+<div class="flex items-center space-x-1 px-1.5 py-0.5 rounded bg-surface-container-highest text-secondary">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="font-label-mono-xs text-label-mono-xs font-semibold">HSM SYNCED</span>
+</div>
+</div>
+<div class="flex items-center space-x-space-xs">
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant uppercase bg-surface-container px-2 py-0.5 rounded">IDR VAULT</span>
+<button aria-label="Toggle Privacy Mask" class="w-7 h-7 flex items-center justify-center rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface active:scale-95 transition-all" id="toggle-privacy">
+<span class="material-symbols-outlined text-[16px]" id="privacy-icon">visibility</span>
+</button>
+</div>
+</div>
+<!-- Main Title & Time -->
+<div class="flex items-baseline justify-between mb-space-md">
+<h1 class="font-headline-sm text-headline-sm text-on-surface tracking-tight">Cash &amp; RDN Accounts</h1>
+<span class="font-label-mono-xs text-label-mono-xs text-outline">REV // 09:42 WIB</span>
+</div>
+<!-- Hero Liquidity Card -->
+<div class="rounded-xl bg-surface-container p-space-md relative overflow-hidden shadow-lg">
+<div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-on-surface-variant/20 to-transparent"></div>
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-label-mono-xs text-label-mono-xs uppercase text-outline tracking-wider">TOTAL AVAILABLE LIQUIDITY</span>
+<span class="font-label-mono-xs text-label-mono-xs px-2 py-0.5 rounded bg-primary/10 text-primary uppercase font-medium">TIER-1 AUDITED</span>
+</div>
+<div class="flex items-baseline justify-between mb-1">
+<div class="font-label-mono-lg text-label-mono-lg font-semibold text-on-surface tracking-tight vault-amt" data-val="Rp 462.500.000">
+          Rp 462.500.000
+        </div>
+<div class="flex items-center space-x-1 text-secondary font-label-mono-xs text-label-mono-xs bg-secondary/10 px-1.5 py-0.5 rounded font-medium">
+<span class="material-symbols-outlined text-[13px]">trending_up</span>
+<span>+1.4% MoM</span>
+</div>
+</div>
+<div class="flex items-center space-x-1.5 text-on-surface-variant mb-space-md">
+<span class="material-symbols-outlined text-[14px] text-secondary" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-body-sm text-body-sm">100% Capital Guaranteed • Immediate Settlement (T+0)</span>
+</div>
+<!-- Sub Metric Bar -->
+<div class="grid grid-cols-2 gap-space-xs pt-space-xs bg-surface-container-lowest/60 rounded-lg p-2.5">
+<div>
+<span class="font-label-mono-xs text-label-mono-xs text-outline uppercase block mb-0.5">Avail. to Trade</span>
+<span class="font-label-mono-md text-label-mono-md text-on-surface font-medium vault-amt" data-val="Rp 313.450.000">Rp 313.450.000</span>
+</div>
+<div class="text-right">
+<span class="font-label-mono-xs text-label-mono-xs text-outline uppercase block mb-0.5">Sweep Yield (Est.)</span>
+<span class="font-label-mono-md text-label-mono-md text-primary font-medium vault-amt" data-val="Rp 42.180 / hari">Rp 42.180 / hari</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Filter Pills (Scrollable) -->
+<div class="flex items-center space-x-space-xs overflow-x-auto no-scrollbar py-0.5">
+<button class="filter-chip px-3 py-1.5 rounded-full font-label-mono-xs text-label-mono-xs uppercase font-medium bg-primary text-on-primary shadow-sm shrink-0" data-filter="all">
+      All (6)
+    </button>
+<button class="filter-chip px-3 py-1.5 rounded-full font-label-mono-xs text-label-mono-xs uppercase font-medium bg-surface-container-high text-on-surface-variant hover:text-on-surface shrink-0 transition-colors" data-filter="bank">
+      Banks (3)
+    </button>
+<button class="filter-chip px-3 py-1.5 rounded-full font-label-mono-xs text-label-mono-xs uppercase font-medium bg-surface-container-high text-on-surface-variant hover:text-on-surface shrink-0 transition-colors" data-filter="rdn">
+      RDN Cash (2)
+    </button>
+<button class="filter-chip px-3 py-1.5 rounded-full font-label-mono-xs text-label-mono-xs uppercase font-medium bg-surface-container-high text-on-surface-variant hover:text-on-surface shrink-0 transition-colors" data-filter="wallet">
+      E-Wallets (1)
+    </button>
+<button class="filter-chip px-3 py-1.5 rounded-full font-label-mono-xs text-label-mono-xs uppercase font-medium bg-surface-container-high text-on-surface-variant hover:text-on-surface shrink-0 transition-colors" data-filter="liab">
+      Liabilities (1)
+    </button>
+</div>
+<!-- Account Cards Stack -->
+<div class="space-y-space-xs" id="cards-container">
+<!-- 01 // BCA SAVINGS -->
+<div class="account-card group rounded-xl bg-surface-container-low p-space-md shadow-md transition-all hover:bg-surface-container relative overflow-hidden" data-category="bank">
+<div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-on-surface-variant/15 to-transparent"></div>
+<div class="flex items-start justify-between mb-space-xs">
+<div class="flex items-center space-x-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center font-label-mono-sm text-label-mono-sm font-semibold text-primary">
+            BCA
+          </div>
+<div>
+<div class="flex items-center space-x-1.5">
+<span class="font-title-md text-title-md text-on-surface">BCA Prioritas Tahapan</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+</div>
+<div class="font-label-mono-xs text-label-mono-xs text-outline">•••• 8821 • IDR</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-mono-md text-label-mono-md font-semibold text-on-surface vault-amt" data-val="Rp 215.450.000">Rp 215.450.000</div>
+<span class="font-label-mono-xs text-label-mono-xs text-secondary bg-secondary/10 px-1 py-0.5 rounded">BI-FAST READY</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs text-outline">
+<span class="font-label-mono-xs text-label-mono-xs">Verified 09:42 WIB</span>
+<div class="flex items-center space-x-space-xs">
+<button class="font-label-mono-xs text-label-mono-xs px-2.5 py-1 rounded bg-surface-container-high text-on-surface hover:text-primary transition-colors">
+            STATEMENT
+          </button>
+<button class="font-label-mono-xs text-label-mono-xs px-2.5 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-medium">
+            TRANSFER
+          </button>
+</div>
+</div>
+</div>
+<!-- 02 // MANDIRI WEALTH -->
+<div class="account-card group rounded-xl bg-surface-container-low p-space-md shadow-md transition-all hover:bg-surface-container relative overflow-hidden" data-category="bank">
+<div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-on-surface-variant/15 to-transparent"></div>
+<div class="flex items-start justify-between mb-space-xs">
+<div class="flex items-center space-x-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center font-label-mono-sm text-label-mono-sm font-semibold text-primary">
+            MDR
+          </div>
+<div>
+<div class="flex items-center space-x-1.5">
+<span class="font-title-md text-title-md text-on-surface">Mandiri Wealth Escrow</span>
+<span class="font-label-mono-xs text-label-mono-xs bg-primary/10 text-primary px-1.5 py-0.2 rounded font-medium">3.8% p.a.</span>
+</div>
+<div class="font-label-mono-xs text-label-mono-xs text-outline">•••• 1042 • IDR</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-mono-md text-label-mono-md font-semibold text-on-surface vault-amt" data-val="Rp 105.050.000">Rp 105.050.000</div>
+<span class="font-label-mono-xs text-label-mono-xs text-outline">DAILY SWEEP</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs text-outline">
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-[13px] text-primary">shield</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">Priority Wealth Custody</span>
+</div>
+<button class="font-label-mono-xs text-label-mono-xs px-2.5 py-1 rounded bg-surface-container-high text-on-surface hover:text-primary transition-colors">
+          MANAGE SWEEP
+        </button>
+</div>
+</div>
+<!-- 03 // STOCKBIT RDN BCA -->
+<div class="account-card group rounded-xl bg-surface-container-low p-space-md shadow-md transition-all hover:bg-surface-container relative overflow-hidden" data-category="rdn">
+<div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-on-surface-variant/15 to-transparent"></div>
+<div class="flex items-start justify-between mb-space-xs">
+<div class="flex items-center space-x-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center font-label-mono-sm text-label-mono-sm font-semibold text-secondary">
+            RDN
+          </div>
+<div>
+<div class="flex items-center space-x-1.5">
+<span class="font-title-md text-title-md text-on-surface">Stockbit Sekuritas RDN</span>
+<span class="font-label-mono-xs text-label-mono-xs bg-secondary/15 text-secondary px-1 py-0.5 rounded font-medium">T+0 READY</span>
+</div>
+<div class="font-label-mono-xs text-label-mono-xs text-outline">•••• 5590 • Custody: BCA</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-mono-md text-label-mono-md font-semibold text-on-surface vault-amt" data-val="Rp 98.000.000">Rp 98.000.000</div>
+<span class="font-label-mono-xs text-label-mono-xs text-secondary">SETTLED</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs text-outline">
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-[13px] text-secondary">verified_user</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">KSEI PROTECTED</span>
+</div>
+<button class="font-label-mono-xs text-label-mono-xs px-2.5 py-1 rounded bg-primary text-on-primary font-medium shadow-sm hover:opacity-95 transition-opacity">
+          TOP UP
+        </button>
+</div>
+</div>
+<!-- 04 // GOPAY & OVO WALLET -->
+<div class="account-card group rounded-xl bg-surface-container-low p-space-md shadow-md transition-all hover:bg-surface-container relative overflow-hidden" data-category="wallet">
+<div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-on-surface-variant/15 to-transparent"></div>
+<div class="flex items-start justify-between mb-space-xs">
+<div class="flex items-center space-x-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center font-label-mono-sm text-label-mono-sm font-semibold text-on-surface-variant">
+            WAL
+          </div>
+<div>
+<div class="flex items-center space-x-1.5">
+<span class="font-title-md text-title-md text-on-surface">GoPay &amp; OVO Aggregated</span>
+<span class="font-label-mono-xs text-label-mono-xs bg-surface-container-highest text-on-surface-variant px-1.5 py-0.2 rounded font-medium">QRIS READY</span>
+</div>
+<div class="font-label-mono-xs text-label-mono-xs text-outline">0811 •••• 442 • Digital Liquidity</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-mono-md text-label-mono-md font-semibold text-on-surface vault-amt" data-val="Rp 4.000.000">Rp 4.000.000</div>
+<span class="font-label-mono-xs text-label-mono-xs text-outline">AGGREGATED</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs text-outline">
+<span class="font-label-mono-xs text-label-mono-xs">Auto-Topup &gt; Rp 1.000.000</span>
+<button class="font-label-mono-xs text-label-mono-xs px-2.5 py-1 rounded bg-surface-container-high text-on-surface hover:text-primary transition-colors">
+          DISCONNECT
+        </button>
+</div>
+</div>
+<!-- 05 // LIABILITIES (KPR BCA) -->
+<div class="account-card group rounded-xl bg-surface-container-low p-space-md shadow-md transition-all hover:bg-surface-container relative overflow-hidden" data-category="liab">
+<div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-error/20 to-transparent"></div>
+<div class="flex items-start justify-between mb-space-xs">
+<div class="flex items-center space-x-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center font-label-mono-sm text-label-mono-sm font-semibold text-error">
+            KPR
+          </div>
+<div>
+<div class="flex items-center space-x-1.5">
+<span class="font-title-md text-title-md text-on-surface">KPR BCA Prioritas (Mortgage)</span>
+<span class="font-label-mono-xs text-label-mono-xs bg-error-container text-on-error-container px-1 py-0.5 rounded font-medium">DUE IN 12 DAYS</span>
+</div>
+<div class="font-label-mono-xs text-label-mono-xs text-outline">•••• 9102 • Fixed 6.75%</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-mono-md text-label-mono-md font-semibold text-error vault-amt" data-val="-Rp 450.000.000">-Rp 450.000.000</div>
+<span class="font-label-mono-xs text-label-mono-xs text-outline">OUTSTANDING</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs text-outline">
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-[13px] text-outline">schedule</span>
+<span class="font-label-mono-xs text-label-mono-xs text-on-surface-variant">Auto-Debit: 25th Every Month</span>
+</div>
+<button class="font-label-mono-xs text-label-mono-xs px-2.5 py-1 rounded bg-surface-container-high text-on-surface hover:text-primary transition-colors">
+          SCHEDULE
+        </button>
+</div>
+</div>
+</div>
+<!-- Security Seal -->
+<div class="rounded-xl bg-surface-container-lowest p-space-sm flex items-center justify-center space-x-2 text-outline shadow-inner">
+<span class="material-symbols-outlined text-[16px] text-primary" style="font-variation-settings: 'FILL' 1;">security</span>
+<span class="font-label-mono-xs text-label-mono-xs tracking-wider uppercase">ENCRYPTED WITH HARDWARE KEYSTONE • SECURE ENCLAVE (EAL6+)</span>
+</div>
+<!-- Primary Action Button -->
+<button class="w-full h-12 rounded-xl bg-primary text-on-primary font-title-md text-title-md flex items-center justify-center space-x-2 shadow-lg active:scale-[0.99] transition-all hover:bg-primary-fixed-dim">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+<span class="font-semibold">+ Add Account / Connect Bank</span>
+</button>
+</div>
+<script>
+  (function() {
+    let masked = false;
+    const privacyBtn = document.getElementById('toggle-privacy');
+    const privacyIcon = document.getElementById('privacy-icon');
+    const amounts = document.querySelectorAll('.vault-amt');
+
+    if (privacyBtn) {
+      privacyBtn.addEventListener('click', function() {
+        masked = !masked;
+        privacyIcon.textContent = masked ? 'visibility_off' : 'visibility';
+        amounts.forEach(el => {
+          if (masked) {
+            el.dataset.raw = el.textContent.trim();
+            el.textContent = '••••••••••';
+          } else {
+            el.textContent = el.dataset.val || el.dataset.raw || 'Rp 0';
+          }
+        });
+      });
+    }
+
+    const filterChips = document.querySelectorAll('.filter-chip');
+    const cards = document.querySelectorAll('.account-card');
+
+    filterChips.forEach(chip => {
+      chip.addEventListener('click', function() {
+        filterChips.forEach(c => {
+          c.classList.remove('bg-primary', 'text-on-primary', 'shadow-sm');
+          c.classList.add('bg-surface-container-high', 'text-on-surface-variant');
+        });
+        this.classList.add('bg-primary', 'text-on-primary', 'shadow-sm');
+        this.classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+
+        const filter = this.dataset.filter;
+        cards.forEach(card => {
+          if (filter === 'all' || card.dataset.category === filter) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+  })();
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe pointer-events-none flex justify-center" data-active-classes="text-primary relative after:content-[''] after:absolute after:bottom-1 after:w-1 after:h-1 after:rounded-full after:bg-primary"><div class="pointer-events-auto w-[calc(100%-2rem)] max-w-[358px] mb-space-sm h-16 rounded-full bg-surface-container-low/85 backdrop-blur-2xl px-space-sm flex items-center justify-between shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)]"><a class="flex flex-col items-center justify-center w-16 h-12 text-on-surface-variant hover:text-on-surface transition-all select-none" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[22px]">dashboard</span><span class="font-label-mono-xs text-label-mono-xs mt-0.5 tracking-tight">Dashboard</span></a><a aria-current="page" class="flex flex-col items-center justify-center w-16 h-12 transition-all select-none text-primary relative after:content-[''] after:absolute after:bottom-1 after:w-1 after:h-1 after:rounded-full after:bg-primary" data-path="vault" href="#"><span class="material-symbols-outlined text-[22px]">lock</span><span class="font-label-mono-xs text-label-mono-xs mt-0.5 tracking-tight">Vault</span></a><a class="flex flex-col items-center justify-center w-16 h-12 text-on-surface-variant hover:text-on-surface transition-all select-none" data-path="portfolio" href="#"><span class="material-symbols-outlined text-[22px]">candlestick_chart</span><span class="font-label-mono-xs text-label-mono-xs mt-0.5 tracking-tight">Portfolio</span></a><a class="flex flex-col items-center justify-center w-16 h-12 text-on-surface-variant hover:text-on-surface transition-all select-none" data-path="ingestion" href="#"><span class="material-symbols-outlined text-[22px]">document_scanner</span><span class="font-label-mono-xs text-label-mono-xs mt-0.5 tracking-tight">Ingestion</span></a></div></nav></body></html>

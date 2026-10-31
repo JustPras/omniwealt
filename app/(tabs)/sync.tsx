@@ -245,21 +245,21 @@ export default function SyncScreen() {
         {/* 1. TOP SUBHEADER / SECTION INTRO */}
         <View style={styles.syncHeaderBlock}>
           <View style={styles.syncSubHeaderRow}>
-            <Text style={styles.syncSubHeaderLabel}>INGESTION ENGINE // V4.8</Text>
+            <Text style={styles.syncSubHeaderLabel}>REKONSILIASI KEUANGAN</Text>
             <View style={styles.airGappedPill}>
               <View style={styles.airGappedDot} />
-              <Text style={styles.airGappedText}>AIR-GAPPED</Text>
+              <Text style={styles.airGappedText}>LOKAL PRIVAT</Text>
             </View>
           </View>
-          <Text style={styles.syncTitle}>AUTOMATED WEALTH INGESTION</Text>
-          <Text style={styles.syncSubtitle}>AI Bank Mutation &amp; Broker PDF Statement Reader</Text>
+          <Text style={styles.syncTitle}>SINKRONISASI BUKU BESAR</Text>
+          <Text style={styles.syncSubtitle}>Ekstraksi Mutasi Bank &amp; e-Statement Sekuritas</Text>
         </View>
 
         {/* 2. INSTITUTIONAL PRIVACY MICRO-BAR */}
         <View style={styles.privacyMicroBar}>
           <Icon name="Lock" size={15} color={Colors.palette.sovereignJade} />
           <Text style={styles.privacyMicroBarText} numberOfLines={1}>
-            ON-DEVICE OCR &amp; PARSER  •  0 BYTES EXPORTED  •  100% AIR-GAPPED
+            Pemrosesan Lokal di Perangkat  •  Enkripsi Mandiri Tanpa Ekspor Cloud
           </Text>
         </View>
 
@@ -270,14 +270,14 @@ export default function SyncScreen() {
             <View style={styles.dropzoneSpecularWash} />
             <View style={styles.dropzoneCardContent}>
               <View style={styles.dropzoneTopRow}>
-                <Text style={styles.dropzoneIndexLabel}>01 // SOURCE</Text>
+                <Text style={styles.dropzoneIndexLabel}>REKENING BANK</Text>
                 <View style={styles.dropzoneBadge}>
                   <View style={styles.dropzoneBadgeDot} />
-                  <Text style={styles.dropzoneBadgeText}>LOCAL LLM</Text>
+                  <Text style={styles.dropzoneBadgeText}>PARSER OTOMATIS</Text>
                 </View>
               </View>
-              <Text style={styles.dropzoneHeadline}>Bank Mutation AI</Text>
-              <Text style={styles.dropzoneDesc}>BCA, Mandiri, BRI CSV &amp; Scans</Text>
+              <Text style={styles.dropzoneHeadline}>Mutasi Rekening Bank</Text>
+              <Text style={styles.dropzoneDesc}>BCA, Mandiri, BRI, Bank Jago (CSV &amp; PDF)</Text>
             </View>
 
             <Pressable
@@ -288,7 +288,7 @@ export default function SyncScreen() {
               style={styles.uploadMutationBtn}
             >
               <Icon name="PlusCircle" size={15} color={Colors.palette.champagneGold} />
-              <Text style={styles.uploadMutationBtnText}>+ Upload Mutation</Text>
+              <Text style={styles.uploadMutationBtnText}>+ Impor Mutasi Bank</Text>
             </Pressable>
           </View>
 
@@ -297,13 +297,13 @@ export default function SyncScreen() {
             <View style={styles.dropzoneSpecularWashGold} />
             <View style={styles.dropzoneCardContent}>
               <View style={styles.dropzoneTopRow}>
-                <Text style={styles.dropzoneIndexLabel}>02 // BROKER</Text>
+                <Text style={styles.dropzoneIndexLabel}>SEKURITAS IDX</Text>
                 <View style={styles.dropzoneBadge}>
-                  <Text style={styles.dropzoneBadgeText}>IDX PARSER</Text>
+                  <Text style={styles.dropzoneBadgeText}>KSEI / RDN</Text>
                 </View>
               </View>
-              <Text style={styles.dropzoneHeadline}>Async Broker PDF</Text>
-              <Text style={styles.dropzoneDesc}>IDX Trade Confirms, Stockbit, Bibit</Text>
+              <Text style={styles.dropzoneHeadline}>Trade Confirm Broker</Text>
+              <Text style={styles.dropzoneDesc}>Stockbit, IPOT, Mirae, Bibit (PDF e-Statement)</Text>
             </View>
 
             <Pressable
@@ -528,7 +528,7 @@ export default function SyncScreen() {
         {/* ACTIVE EXTRACTION LOADER (PIXEL2MOTION) */}
         {isExtracting && (
           <GlassCard level="bullion" style={{ padding: space.xl, alignItems: 'center', justifyContent: 'center' }}>
-            <LogoLoader size={60} label="AIR-GAPPED AI INGESTION IN PROGRESS..." />
+            <LogoLoader size={60} label="MEMPROSES REKONSILIASI TRANSAKSI..." />
           </GlassCard>
         )}
 

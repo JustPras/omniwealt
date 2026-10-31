@@ -424,32 +424,29 @@ export default function OverviewScreen() {
           />
         }
       >
-        {/* LIVE AI SYNC STRIP */}
+        {/* SOVEREIGN RECONCILIATION STRIP */}
         <Pressable
           onPress={() => {
             triggerHaptic('selection');
             router.push('/(tabs)/sync');
           }}
-          style={styles.liveAiSyncStrip}
+          style={styles.ledgerSyncBar}
         >
-          <View style={styles.aiSyncLeft}>
-            <View style={styles.aiSyncGlowDot} />
-            <Text style={styles.aiSyncTitle}>AIR-GAPPED AI INGESTION</Text>
+          <View style={styles.syncLeftGroup}>
+            <View style={styles.syncStatusDot} />
+            <Text style={styles.syncTitleText}>Buku Besar Rekonsiliasi Otomatis</Text>
           </View>
-          <View style={styles.aiSyncRight}>
-            <Text style={styles.aiSyncSub}>0 BYTES EXPORTED</Text>
-            <Icon name="ChevronRight" size={12} color={Colors.palette.champagneGold} />
+          <View style={styles.syncRightGroup}>
+            <Text style={styles.syncSubText}>Impor e-Statement</Text>
+            <Icon name="ChevronRight" size={12} color={Colors.palette.naturalTitanium} />
           </View>
         </Pressable>
 
-        {/* 1. HERO BULLION NET WORTH CARD */}
-        <GlassCard level="bullion" style={styles.heroCard}>
+        {/* 1. HERO BALANCE SHEET TAPE */}
+        <GlassCard level="base" style={styles.heroCard}>
           <View style={styles.heroHeader}>
             <View style={styles.heroLabelRow}>
-              <Text style={styles.heroLabel}>KEKAYAAN BERSIH</Text>
-              <View style={styles.athPill}>
-                <Text style={styles.athPillText}>ATH IDR</Text>
-              </View>
+              <Text style={styles.heroLabel}>AKTIVA BERSIH (TRUE NET WORTH)</Text>
               {isScrubbing ? (
                 <View style={styles.scrubIndicatorPill}>
                   <Text style={styles.scrubIndicatorText}>{displayDeltaLabel}</Text>
@@ -481,21 +478,21 @@ export default function OverviewScreen() {
               value={displayNetWorth}
               style={[
                 styles.heroValueText,
-                { fontSize: isSmall ? 28 : width >= 414 ? 38 : 34 },
+                { fontSize: isSmall ? 26 : width >= 414 ? 36 : 32 },
               ]}
             />
           </View>
 
-          {/* True Net Worth Breakdown Sub-Row */}
+          {/* True Net Worth Balance Equation Tape */}
           {totalLiabilities > 0 && !isScrubbing && (
             <View style={styles.netWorthBreakdownRow}>
               <View style={styles.breakdownItem}>
-                <Text style={styles.breakdownItemLabel}>Total Aset</Text>
+                <Text style={styles.breakdownItemLabel}>Total Aset Bruto</Text>
                 <PrivacyValue value={totalGrossAssets} style={styles.breakdownItemValGross} />
               </View>
               <View style={styles.breakdownDivider} />
               <View style={styles.breakdownItem}>
-                <Text style={styles.breakdownItemLabel}>Liabilitas</Text>
+                <Text style={styles.breakdownItemLabel}>Liabilitas & Utang</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                   <Text style={styles.breakdownMinus}>-</Text>
                   <PrivacyValue value={totalLiabilities} style={styles.breakdownItemValDebt} />
@@ -658,48 +655,40 @@ export default function OverviewScreen() {
           </View>
         </GlassCard>
 
-        {/* QUICK FLUID ACTION BAR */}
+        {/* QUIET ESSENTIAL ACTION BAR */}
         <View style={styles.quickActionBar}>
-          <LiquidButton
-            title="Catat"
-            icon="Plus"
-            variant="azure"
-            size="sm"
+          <Pressable
             onPress={() => {
+              triggerHaptic('medium');
               setMutationModalVisible(true);
             }}
-            style={styles.quickActionLiquidBtn}
-          />
-          <LiquidButton
-            title="Mutasi"
-            icon="ArrowDownLeft"
-            variant="clear"
-            size="sm"
+            style={styles.quickPrimaryBtn}
+          >
+            <Icon name="Plus" size={14} color="#0A0A09" />
+            <Text style={styles.quickPrimaryBtnText}>Catat Mutasi</Text>
+          </Pressable>
+
+          <Pressable
             onPress={() => {
-              setMutationModalVisible(true);
-            }}
-            style={styles.quickActionLiquidBtn}
-          />
-          <LiquidButton
-            title="Transfer"
-            icon="Repeat"
-            variant="clear"
-            size="sm"
-            onPress={() => {
-              router.push('/(tabs)/accounts');
-            }}
-            style={styles.quickActionLiquidBtn}
-          />
-          <LiquidButton
-            title="Impor"
-            icon="Sparkles"
-            variant="obsidian"
-            size="sm"
-            onPress={() => {
+              triggerHaptic('selection');
               router.push('/(tabs)/sync');
             }}
-            style={styles.quickActionLiquidBtn}
-          />
+            style={styles.quickSecondaryBtn}
+          >
+            <Icon name="FileText" size={13} color={Colors.palette.alabasterWhite} />
+            <Text style={styles.quickSecondaryBtnText}>Impor Statement</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              triggerHaptic('selection');
+              router.push('/(tabs)/accounts');
+            }}
+            style={styles.quickSecondaryBtn}
+          >
+            <Icon name="Landmark" size={13} color={Colors.palette.alabasterWhite} />
+            <Text style={styles.quickSecondaryBtnText}>Kelola Akun</Text>
+          </Pressable>
         </View>
 
         {/* UPCOMING DUE DATE ALERT CARD */}
@@ -718,12 +707,12 @@ export default function OverviewScreen() {
               <View
                 style={[
                   styles.dueAlertIconCircle,
-                  topDueAlert.isOverdue && { backgroundColor: 'rgba(225, 82, 65, 0.2)' },
+                  topDueAlert.isOverdue && { backgroundColor: 'rgba(225, 82, 65, 0.16)' },
                 ]}
               >
                 <Icon
                   name="Calendar"
-                  size={15}
+                  size={14}
                   color={topDueAlert.isOverdue ? Colors.palette.terracottaRose : Colors.palette.champagneGold}
                 />
               </View>
@@ -731,15 +720,15 @@ export default function OverviewScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Text style={styles.dueAlertTitle} numberOfLines={1}>
                     {topDueAlert.isOverdue
-                      ? `Tagihan ${topDueAlert.liability.name} Lewat Jatuh Tempo!`
+                      ? `Tagihan ${topDueAlert.liability.name} Lewat Jatuh Tempo`
                       : topDueAlert.isDueToday
-                      ? `Tagihan ${topDueAlert.liability.name} Jatuh Tempo Hari Ini!`
+                      ? `Tagihan ${topDueAlert.liability.name} Jatuh Tempo Hari Ini`
                       : `Tagihan ${topDueAlert.liability.name} Jatuh Tempo dlm ${topDueAlert.daysLeft} Hari`}
                   </Text>
                   <View
                     style={[
                       styles.dueAlertBadge,
-                      topDueAlert.isOverdue && { backgroundColor: 'rgba(225, 82, 65, 0.16)', borderColor: 'rgba(225, 82, 65, 0.3)' },
+                      topDueAlert.isOverdue && { backgroundColor: 'rgba(225, 82, 65, 0.14)', borderColor: 'rgba(225, 82, 65, 0.28)' },
                     ]}
                   >
                     <Text
@@ -757,14 +746,14 @@ export default function OverviewScreen() {
                 </Text>
               </View>
             </View>
-            <Icon name="ChevronRight" size={15} color={Colors.palette.naturalTitanium} />
+            <Icon name="ChevronRight" size={14} color={Colors.palette.naturalTitanium} />
           </Pressable>
         )}
 
-        {/* 2. 2x2 BENTO ASSET GRID WITH CORNER INDICES 01 // TO 04 // */}
-        <View style={styles.bentoGridSection}>
-          <View style={styles.bentoSectionHeader}>
-            <Text style={styles.bentoSectionHeadline}>RINGKASAN BUKU BESAR // 2x2 BENTO</Text>
+        {/* 2. RINGKASAN PORTOFOLIO // INSTITUTIONAL DIVIDED LEDGER */}
+        <View style={styles.ledgerSection}>
+          <View style={styles.ledgerSectionHeader}>
+            <Text style={styles.ledgerSectionHeadline}>RINGKASAN BUKU BESAR</Text>
             <Pressable
               onPress={() => {
                 triggerHaptic('selection');
@@ -772,99 +761,91 @@ export default function OverviewScreen() {
               }}
               hitSlop={8}
             >
-              <Text style={styles.bentoSectionAction}>Kelola &rarr;</Text>
+              <Text style={styles.ledgerSectionAction}>Detail buku kas &rarr;</Text>
             </Pressable>
           </View>
 
-          <View style={styles.bentoGrid2x2}>
-            {/* Cell 01: Bank & Kas */}
-            <GlassCard
-              level="base"
-              style={styles.bentoCell}
+          {/* Monolithic Divided Ledger Card (No icons in boxes, label over value, right-aligned numbers) */}
+          <GlassCard level="base" noPadding style={styles.institutionalLedgerCard}>
+            {/* Row 1: Bank & Kas */}
+            <Pressable
               onPress={() => {
                 triggerHaptic('selection');
                 router.push('/(tabs)/accounts');
               }}
+              style={styles.ledgerRow}
             >
-              <View style={styles.bentoCellHeader}>
-                <Text style={styles.bentoIndexTag}>01 //</Text>
-                <Icon name="Landmark" size={13} color={Colors.palette.titaniumSilver} />
+              <View style={styles.ledgerRowLeft}>
+                <Text style={styles.ledgerRowTitle}>Kas & Rekening Giro</Text>
+                <Text style={styles.ledgerRowMeta}>Bank BCA, Mandiri • 5 Akun</Text>
               </View>
-              <Text style={styles.bentoCellTitle} numberOfLines={1}>BANK & KAS</Text>
-              <View style={styles.bentoValueWrapper}>
-                <PrivacyValue value={bankCash} style={styles.bentoCellValue} />
+              <View style={styles.ledgerRowRight}>
+                <PrivacyValue value={bankCash} style={styles.ledgerRowValue} />
+                <Text style={styles.ledgerRowSub}>Saldo Likuid Utama</Text>
               </View>
-              <Text style={styles.bentoCellSub} numberOfLines={1}>Saldo Likuid Utama</Text>
-            </GlassCard>
+            </Pressable>
 
-            {/* Cell 02: Saham IDX */}
-            <GlassCard
-              level="base"
-              style={styles.bentoCell}
+            {/* Row 2: Saham IDX */}
+            <Pressable
               onPress={() => {
                 triggerHaptic('selection');
                 router.push('/(tabs)/portfolio');
               }}
+              style={styles.ledgerRow}
             >
-              <View style={styles.bentoCellHeader}>
-                <Text style={styles.bentoIndexTag}>02 //</Text>
-                <Icon name="TrendingUp" size={13} color={Colors.palette.champagneGold} />
+              <View style={styles.ledgerRowLeft}>
+                <Text style={styles.ledgerRowTitle}>Efek Saham KSEI</Text>
+                <Text style={styles.ledgerRowMeta}>120 Lot • IHSG Listed</Text>
               </View>
-              <Text style={styles.bentoCellTitle} numberOfLines={1}>SAHAM IDX</Text>
-              <View style={styles.bentoValueWrapper}>
-                <PrivacyValue value={totalStocks} style={styles.bentoCellValue} />
+              <View style={styles.ledgerRowRight}>
+                <PrivacyValue value={totalStocks} style={styles.ledgerRowValue} />
+                <Text
+                  style={[
+                    styles.ledgerRowSub,
+                    isPnLProfit ? styles.textGain : styles.textLoss,
+                  ]}
+                >
+                  {formatChangePercent(totalUnrealizedPnLPercent)} PnL
+                </Text>
               </View>
-              <Text
-                style={[
-                  styles.bentoCellSub,
-                  isPnLProfit ? styles.textGain : styles.textLoss,
-                ]}
-                numberOfLines={1}
-              >
-                {formatChangePercent(totalUnrealizedPnLPercent)} PnL
-              </Text>
-            </GlassCard>
+            </Pressable>
 
-            {/* Cell 03: Kas RDN */}
-            <GlassCard
-              level="base"
-              style={styles.bentoCell}
+            {/* Row 3: Kas RDN */}
+            <Pressable
               onPress={() => {
                 triggerHaptic('selection');
                 router.push('/(tabs)/accounts');
               }}
+              style={styles.ledgerRow}
             >
-              <View style={styles.bentoCellHeader}>
-                <Text style={styles.bentoIndexTag}>03 //</Text>
-                <Icon name="ShieldCheck" size={13} color={Colors.palette.sovereignJade} />
+              <View style={styles.ledgerRowLeft}>
+                <Text style={styles.ledgerRowTitle}>Saldo Kas RDN</Text>
+                <Text style={styles.ledgerRowMeta}>Dana Siap Beli Sekuritas</Text>
               </View>
-              <Text style={styles.bentoCellTitle} numberOfLines={1}>KAS RDN</Text>
-              <View style={styles.bentoValueWrapper}>
-                <PrivacyValue value={rdnCash} style={styles.bentoCellValue} />
+              <View style={styles.ledgerRowRight}>
+                <PrivacyValue value={rdnCash} style={styles.ledgerRowValue} />
+                <Text style={styles.ledgerRowSub}>Siap Investasi</Text>
               </View>
-              <Text style={styles.bentoCellSub} numberOfLines={1}>Dana Siap Beli</Text>
-            </GlassCard>
+            </Pressable>
 
-            {/* Cell 04: Kripto & Web3 */}
-            <GlassCard
-              level="base"
-              style={styles.bentoCell}
+            {/* Row 4: Kripto & Web3 */}
+            <Pressable
               onPress={() => {
                 triggerHaptic('selection');
                 router.push('/(tabs)/portfolio');
               }}
+              style={[styles.ledgerRow, styles.ledgerRowLast]}
             >
-              <View style={styles.bentoCellHeader}>
-                <Text style={styles.bentoIndexTag}>04 //</Text>
-                <Icon name="Coins" size={13} color={Colors.palette.burnishedCopper} />
+              <View style={styles.ledgerRowLeft}>
+                <Text style={styles.ledgerRowTitle}>Aset Kripto Terverifikasi</Text>
+                <Text style={styles.ledgerRowMeta}>BTC, ETH • Cold Storage</Text>
               </View>
-              <Text style={styles.bentoCellTitle} numberOfLines={1}>KRIPTO & WEB3</Text>
-              <View style={styles.bentoValueWrapper}>
-                <PrivacyValue value={totalCryptos} style={styles.bentoCellValue} />
+              <View style={styles.ledgerRowRight}>
+                <PrivacyValue value={totalCryptos} style={styles.ledgerRowValue} />
+                <Text style={styles.ledgerRowSub}>Multi-Chain Vault</Text>
               </View>
-              <Text style={styles.bentoCellSub} numberOfLines={1}>Multi-Chain Asset</Text>
-            </GlassCard>
-          </View>
+            </Pressable>
+          </GlassCard>
         </View>
 
         {/* 3. PERGERAKAN TERBESAR (TOP MOVERS WITH QUARTZ CARD) */}
@@ -1121,45 +1102,43 @@ const styles = StyleSheet.create({
     paddingBottom: 110,
     gap: space.md,
   },
-  liveAiSyncStrip: {
+  ledgerSyncBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: radius.pill,
-    backgroundColor: 'rgba(20, 20, 18, 0.75)',
+    paddingVertical: 8,
+    borderRadius: radius.md,
+    backgroundColor: '#121214',
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.22)',
+    borderColor: '#1e1e22',
   },
-  aiSyncLeft: {
+  syncLeftGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
+    gap: 8,
   },
-  aiSyncGlowDot: {
+  syncStatusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.palette.champagneGold,
+    backgroundColor: Colors.palette.sovereignJade,
   },
-  aiSyncTitle: {
-    fontSize: 10,
-    fontFamily: font.mono,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    color: Colors.palette.champagneGold,
+  syncTitleText: {
+    fontSize: 11,
+    fontFamily: font.ui,
+    fontWeight: '600',
+    color: Colors.palette.alabasterWhite,
   },
-  aiSyncRight: {
+  syncRightGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  aiSyncSub: {
-    fontSize: 9.5,
-    fontFamily: font.mono,
+  syncSubText: {
+    fontSize: 11,
+    fontFamily: font.ui,
     color: Colors.palette.naturalTitanium,
-    letterSpacing: 0.4,
   },
   heroCard: {
     padding: space.lg,
@@ -1250,12 +1229,44 @@ const styles = StyleSheet.create({
   quickActionBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: space.xs + 2,
     marginTop: -space.xs,
   },
-  quickActionLiquidBtn: {
+  quickPrimaryBtn: {
+    flex: 1.2,
+    minHeight: 44,
+    borderRadius: radius.md,
+    backgroundColor: Colors.palette.alabasterWhite,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+  },
+  quickPrimaryBtnText: {
+    fontSize: 12,
+    fontFamily: font.ui,
+    fontWeight: '700',
+    color: '#0A0A09',
+  },
+  quickSecondaryBtn: {
     flex: 1,
+    minHeight: 44,
+    borderRadius: radius.md,
+    backgroundColor: '#141416',
+    borderWidth: 1,
+    borderColor: '#222226',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+  },
+  quickSecondaryBtnText: {
+    fontSize: 11.5,
+    fontFamily: font.ui,
+    fontWeight: '600',
+    color: Colors.palette.alabasterWhite,
   },
   heroSparkline: {
     marginTop: space.xs,
@@ -1429,77 +1440,80 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.palette.alabasterWhite,
   },
-  bentoGridSection: {
-    gap: space.sm,
+  ledgerSection: {
+    gap: space.xs,
   },
-  bentoSectionHeader: {
+  ledgerSectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 2,
+    marginBottom: 4,
   },
-  bentoSectionHeadline: {
+  ledgerSectionHeadline: {
     fontSize: 10.5,
     fontFamily: font.mono,
     fontWeight: '700',
     color: Colors.palette.naturalTitanium,
     letterSpacing: 0.8,
   },
-  bentoSectionAction: {
+  ledgerSectionAction: {
     fontSize: 11,
     color: Colors.palette.champagneGold,
     fontWeight: '600',
   },
-  bentoGrid2x2: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: space.sm,
-  },
-  bentoCell: {
-    width: '48.5%',
-    minWidth: 0,
-    flexShrink: 1,
-    padding: space.md,
+  institutionalLedgerCard: {
     borderRadius: radius.lg,
+    backgroundColor: '#121214',
+    borderWidth: 1,
+    borderColor: '#1e1e22',
+    overflow: 'hidden',
   },
-  bentoCellHeader: {
+  ledgerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    paddingVertical: 14,
+    paddingHorizontal: space.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1e1e22',
   },
-  bentoIndexTag: {
-    fontSize: 10,
-    fontFamily: font.mono,
-    fontWeight: '700',
-    color: Colors.palette.darkPewter,
-    letterSpacing: 0.5,
+  ledgerRowLast: {
+    borderBottomWidth: 0,
   },
-  bentoCellTitle: {
-    fontSize: 11,
-    fontFamily: font.ui,
-    fontWeight: '700',
-    color: Colors.palette.naturalTitanium,
-    letterSpacing: 0.3,
-    marginBottom: 4,
-  },
-  bentoValueWrapper: {
+  ledgerRowLeft: {
+    flex: 1,
     minWidth: 0,
-    flexShrink: 1,
-    overflow: 'hidden',
   },
-  bentoCellValue: {
-    fontSize: 16,
+  ledgerRowTitle: {
+    fontSize: 13,
+    fontFamily: font.ui,
+    fontWeight: '600',
+    color: Colors.palette.alabasterWhite,
+  },
+  ledgerRowMeta: {
+    fontSize: 10.5,
+    fontFamily: font.ui,
+    color: Colors.palette.naturalTitanium,
+    marginTop: 2,
+  },
+  ledgerRowRight: {
+    alignItems: 'flex-end',
+    flexShrink: 0,
+    marginLeft: 12,
+  },
+  ledgerRowValue: {
+    fontSize: 14,
     fontFamily: font.num,
     fontWeight: '700',
     color: Colors.palette.alabasterWhite,
     fontVariant: ['tabular-nums'],
   },
-  bentoCellSub: {
-    fontSize: 10,
-    fontFamily: font.ui,
+  ledgerRowSub: {
+    fontSize: 10.5,
+    fontFamily: font.mono,
     color: Colors.palette.naturalTitanium,
-    marginTop: 3,
+    marginTop: 2,
   },
   sectionHeader: {
     flexDirection: 'row',

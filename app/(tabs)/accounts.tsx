@@ -768,7 +768,7 @@ export default function AccountsScreen() {
         <View style={styles.securitySealStrip}>
           <Icon name="Lock" size={16} color={Colors.palette.champagneGold} />
           <Text style={styles.securitySealText}>
-            ENCRYPTED WITH HARDWARE KEYSTONE • SECURE ENCLAVE
+            PENYIMPANAN AMAN TERDESENTRALISASI • PRIVASI LOKAL
           </Text>
         </View>
 

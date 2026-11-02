@@ -75,32 +75,58 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   const isBullion = level === 'bullion';
 
   // Warm Titanium & Champagne gradients per DESIGN_SYSTEM.md
-  const cardGradientColors = isBullion
-    ? Colors.quartzGlass.bullionGradient
-    : Colors.quartzGlass.cardGradient;
+  const cardGradientColors = isDark
+    ? isBullion
+      ? Colors.quartzGlass.bullionGradient
+      : Colors.quartzGlass.cardGradient
+    : isBullion
+    ? ['#FFFDF5', '#FEF3C7', '#FFFBEB']
+    : ['#FFFFFF', '#FAFAF9', '#F4F4F5'];
 
-  const borderColor = isBullion
-    ? Colors.quartzGlass.borderBullion
+  const borderColor = isDark
+    ? isBullion
+      ? Colors.quartzGlass.borderBullion
+      : isInset
+      ? theme.hairline
+      : Colors.quartzGlass.borderQuartz
+    : isBullion
+    ? 'rgba(212, 175, 55, 0.40)'
     : isInset
-    ? theme.hairline
-    : Colors.quartzGlass.borderQuartz;
+    ? '#E4E4E7'
+    : '#E4E4E7';
 
   const resolvedShadow = isInset
     ? undefined
+    : isDark
+    ? isBullion
+      ? {
+          shadowColor: Colors.palette.champagneGold,
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.18,
+          shadowRadius: 20,
+          elevation: 6,
+        }
+      : {
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: isRaised ? 12 : 8 },
+          shadowOpacity: 0.45,
+          shadowRadius: isRaised ? 24 : 16,
+          elevation: isRaised ? 7 : 4,
+        }
     : isBullion
     ? {
         shadowColor: Colors.palette.champagneGold,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.18,
-        shadowRadius: 20,
-        elevation: 6,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.12,
+        shadowRadius: 14,
+        elevation: 3,
       }
     : {
         shadowColor: '#000000',
-        shadowOffset: { width: 0, height: isRaised ? 12 : 8 },
-        shadowOpacity: 0.45,
-        shadowRadius: isRaised ? 24 : 16,
-        elevation: isRaised ? 7 : 4,
+        shadowOffset: { width: 0, height: isRaised ? 6 : 4 },
+        shadowOpacity: isRaised ? 0.08 : 0.05,
+        shadowRadius: isRaised ? 14 : 8,
+        elevation: isRaised ? 3 : 2,
       };
 
   const ContainerComponent = isPressable ? AnimatedPressable : View;
@@ -115,11 +141,17 @@ export const GlassCard: React.FC<GlassCardProps> = ({
         {
           borderRadius: resolvedRadius,
           borderColor,
-          backgroundColor: isBullion
-            ? 'rgba(20, 20, 18, 0.85)'
+          backgroundColor: isDark
+            ? isBullion
+              ? 'rgba(20, 20, 18, 0.85)'
+              : isInset
+              ? 'rgba(10, 10, 9, 0.60)'
+              : 'rgba(20, 20, 18, 0.72)'
+            : isBullion
+            ? '#FFFDF5'
             : isInset
-            ? 'rgba(10, 10, 9, 0.60)'
-            : 'rgba(20, 20, 18, 0.72)',
+            ? '#F4F4F6'
+            : '#FFFFFF',
         },
         resolvedShadow,
         isPressable && {
@@ -139,9 +171,13 @@ export const GlassCard: React.FC<GlassCardProps> = ({
                   borderRadius: resolvedRadius,
                   // @ts-ignore - Web-specific backdrop-filter
                   backdropFilter: 'blur(16px) saturate(180%)',
-                  backgroundColor: isBullion
-                    ? 'rgba(212, 175, 55, 0.04)'
-                    : 'rgba(245, 243, 239, 0.02)',
+                  backgroundColor: isDark
+                    ? isBullion
+                      ? 'rgba(212, 175, 55, 0.04)'
+                      : 'rgba(245, 243, 239, 0.02)'
+                    : isBullion
+                    ? '#FFFDF5'
+                    : '#FFFFFF',
                 },
               ]}
             />
@@ -150,17 +186,21 @@ export const GlassCard: React.FC<GlassCardProps> = ({
               style={[
                 StyleSheet.absoluteFill,
                 {
-                  backgroundColor: isBullion
-                    ? 'rgba(24, 23, 19, 0.92)'
-                    : 'rgba(20, 20, 18, 0.88)',
+                  backgroundColor: isDark
+                    ? isBullion
+                      ? 'rgba(24, 23, 19, 0.92)'
+                      : 'rgba(20, 20, 18, 0.88)'
+                    : isBullion
+                    ? '#FFFDF5'
+                    : '#FFFFFF',
                   borderRadius: resolvedRadius,
                 },
               ]}
             />
           ) : (
             <BlurView
-              intensity={20}
-              tint="dark"
+              intensity={isDark ? 20 : 15}
+              tint={isDark ? 'dark' : 'light'}
               style={[StyleSheet.absoluteFill, { borderRadius: resolvedRadius }]}
             />
           )}
@@ -177,9 +217,13 @@ export const GlassCard: React.FC<GlassCardProps> = ({
           <View style={styles.topMeniscusContainer} pointerEvents="none">
             <LinearGradient
               colors={
-                isBullion
-                  ? ['rgba(212, 175, 55, 0.65)', 'rgba(212, 175, 55, 0.0)']
-                  : ['rgba(255, 255, 255, 0.35)', 'rgba(255, 255, 255, 0.0)']
+                isDark
+                  ? isBullion
+                    ? ['rgba(212, 175, 55, 0.65)', 'rgba(212, 175, 55, 0.0)']
+                    : ['rgba(255, 255, 255, 0.35)', 'rgba(255, 255, 255, 0.0)']
+                  : isBullion
+                  ? ['rgba(212, 175, 55, 0.45)', 'rgba(255, 255, 255, 0.0)']
+                  : ['rgba(255, 255, 255, 0.85)', 'rgba(255, 255, 255, 0.0)']
               }
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}

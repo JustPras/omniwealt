@@ -111,8 +111,12 @@ const TabBarButton: React.FC<TabBarButtonProps> = React.memo(
     const iconName: IconName = TAB_ICONS[route.name] || 'LayoutDashboard';
 
     const labelColor = isFocused
-      ? Colors.palette.champagneGold
-      : Colors.palette.naturalTitanium;
+      ? isDark
+        ? Colors.palette.champagneGold
+        : '#B45309'
+      : isDark
+      ? Colors.palette.naturalTitanium
+      : '#71717A';
 
     return (
       <Pressable
@@ -162,7 +166,7 @@ const TabBarBackground = React.memo(({ theme, isDark }: { theme: Theme; isDark: 
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: 'rgba(20, 20, 18, 0.82)',
+            backgroundColor: isDark ? 'rgba(20, 20, 18, 0.82)' : 'rgba(255, 255, 255, 0.92)',
             // @ts-ignore
             backdropFilter: 'blur(20px) saturate(190%)',
           },
@@ -176,14 +180,14 @@ const TabBarBackground = React.memo(({ theme, isDark }: { theme: Theme; isDark: 
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: 'rgba(20, 20, 18, 0.92)',
+            backgroundColor: isDark ? 'rgba(20, 20, 18, 0.92)' : '#FFFFFF',
             borderRadius: radius.pill,
           },
         ]}
       />
     );
   }
-  return <BlurView intensity={25} tint="dark" style={StyleSheet.absoluteFill} />;
+  return <BlurView intensity={isDark ? 25 : 35} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />;
 });
 
 // Liquid Glass Continuous Tab Bar Component with Champagne Gold Wave Animation
@@ -287,6 +291,14 @@ const LiquidGlassTabBar: React.FC<BottomTabBarProps> = ({
     <View
       style={[
         styles.tabBarContainer,
+        !isDark && {
+          borderColor: '#E4E4E7',
+          shadowColor: '#000000',
+          shadowOpacity: 0.12,
+          shadowRadius: 18,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 5,
+        },
         {
           bottom: Math.max(insets.bottom + 6, 14),
           left: isSmallScreen ? 10 : 14,

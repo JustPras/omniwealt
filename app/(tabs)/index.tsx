@@ -61,7 +61,8 @@ const TimeframeButton: React.FC<{
   tf: Timeframe;
   isActive: boolean;
   onPress: () => void;
-}> = React.memo(({ tf, isActive, onPress }) => {
+  isDark?: boolean;
+}> = React.memo(({ tf, isActive, onPress, isDark = false }) => {
   const pressScale = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = useCallback(() => {
@@ -96,7 +97,8 @@ const TimeframeButton: React.FC<{
         <Text
           style={[
             styles.timeframeText,
-            isActive && styles.activeTimeframeText,
+            !isDark && { color: '#71717A' },
+            isActive && (isDark ? styles.activeTimeframeText : { color: '#B45309', fontWeight: '700' }),
           ]}
         >
           {tf}
@@ -113,6 +115,8 @@ interface LiquidTimeframeSelectorProps {
 
 const LiquidTimeframeSelector: React.FC<LiquidTimeframeSelectorProps> = React.memo(
   ({ activeTimeframe, onSelectTimeframe }) => {
+    const theme = useTheme();
+    const isDark = isDarkTheme(theme);
     const [rowWidth, setRowWidth] = useState(0);
 
     const tfIndex = TIMEFRAMES.indexOf(activeTimeframe);
@@ -202,7 +206,13 @@ const LiquidTimeframeSelector: React.FC<LiquidTimeframeSelectorProps> = React.me
 
     return (
       <View
-        style={styles.timeframeRow}
+        style={[
+          styles.timeframeRow,
+          !isDark && {
+            backgroundColor: '#F4F4F6',
+            borderColor: '#E4E4E7',
+          },
+        ]}
         onLayout={(e) => {
           const w = e.nativeEvent.layout.width;
           if (w > 0 && Math.abs(w - rowWidth) > 1) {
@@ -223,7 +233,20 @@ const LiquidTimeframeSelector: React.FC<LiquidTimeframeSelectorProps> = React.me
               },
             ]}
           >
-            <View style={styles.timeframeLiquidInner}>
+            <View
+              style={[
+                styles.timeframeLiquidInner,
+                !isDark && {
+                  backgroundColor: '#FFFFFF',
+                  borderColor: 'rgba(212, 175, 55, 0.45)',
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.10,
+                  shadowRadius: 4,
+                  elevation: 2,
+                },
+              ]}
+            >
               <View style={styles.timeframeLiquidNucleus} />
               <View style={styles.timeframeSpecularGlint} />
             </View>
@@ -239,6 +262,7 @@ const LiquidTimeframeSelector: React.FC<LiquidTimeframeSelectorProps> = React.me
               key={tf}
               tf={tf}
               isActive={isActive}
+              isDark={isDark}
               onPress={() => {
                 triggerHaptic('selection');
                 onSelectTimeframe(tf);
@@ -255,6 +279,7 @@ export default function OverviewScreen() {
   const { width } = useWindowDimensions();
   const isSmall = width < 375;
   const theme = useTheme();
+  const isDark = isDarkTheme(theme);
 
   const {
     accounts,
@@ -430,15 +455,28 @@ export default function OverviewScreen() {
             triggerHaptic('selection');
             router.push('/(tabs)/sync');
           }}
-          style={styles.ledgerSyncBar}
+          style={[
+            styles.ledgerSyncBar,
+            !isDark && {
+              backgroundColor: '#FFFFFF',
+              borderColor: '#E4E4E7',
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.06,
+              shadowRadius: 10,
+              elevation: 2,
+            },
+          ]}
         >
           <View style={styles.syncLeftGroup}>
             <View style={styles.syncStatusDot} />
-            <Text style={styles.syncTitleText}>Buku Besar Rekonsiliasi Otomatis</Text>
+            <Text style={[styles.syncTitleText, !isDark && { color: '#09090B' }]}>
+              Buku Kas Terkonsolidasi • Sinkron
+            </Text>
           </View>
           <View style={styles.syncRightGroup}>
-            <Text style={styles.syncSubText}>Impor e-Statement</Text>
-            <Icon name="ChevronRight" size={12} color={Colors.palette.naturalTitanium} />
+            <Text style={[styles.syncSubText, !isDark && { color: '#71717A' }]}>Impor e-Statement</Text>
+            <Icon name="ChevronRight" size={12} color={!isDark ? '#71717A' : Colors.palette.naturalTitanium} />
           </View>
         </Pressable>
 
@@ -446,7 +484,9 @@ export default function OverviewScreen() {
         <GlassCard level="base" style={styles.heroCard}>
           <View style={styles.heroHeader}>
             <View style={styles.heroLabelRow}>
-              <Text style={styles.heroLabel}>AKTIVA BERSIH (TRUE NET WORTH)</Text>
+              <Text style={[styles.heroLabel, !isDark && { color: '#71717A' }]}>
+                AKTIVA BERSIH (TRUE NET WORTH)
+              </Text>
               {isScrubbing ? (
                 <View style={styles.scrubIndicatorPill}>
                   <Text style={styles.scrubIndicatorText}>{displayDeltaLabel}</Text>
@@ -478,6 +518,7 @@ export default function OverviewScreen() {
               value={displayNetWorth}
               style={[
                 styles.heroValueText,
+                !isDark && { color: '#09090B' },
                 { fontSize: isSmall ? 26 : width >= 414 ? 36 : 32 },
               ]}
             />
@@ -485,14 +526,30 @@ export default function OverviewScreen() {
 
           {/* True Net Worth Balance Equation Tape */}
           {totalLiabilities > 0 && !isScrubbing && (
-            <View style={styles.netWorthBreakdownRow}>
+            <View
+              style={[
+                styles.netWorthBreakdownRow,
+                !isDark && {
+                  backgroundColor: '#F4F4F6',
+                  borderColor: '#E4E4E7',
+                },
+              ]}
+            >
               <View style={styles.breakdownItem}>
-                <Text style={styles.breakdownItemLabel}>Total Aset Bruto</Text>
-                <PrivacyValue value={totalGrossAssets} style={styles.breakdownItemValGross} />
+                <Text style={[styles.breakdownItemLabel, !isDark && { color: '#71717A' }]}>Total Aset Bruto</Text>
+                <PrivacyValue
+                  value={totalGrossAssets}
+                  style={[styles.breakdownItemValGross, !isDark && { color: '#09090B' }]}
+                />
               </View>
-              <View style={styles.breakdownDivider} />
+              <View
+                style={[
+                  styles.breakdownDivider,
+                  !isDark && { backgroundColor: '#D4D4D8' },
+                ]}
+              />
               <View style={styles.breakdownItem}>
-                <Text style={styles.breakdownItemLabel}>Liabilitas & Utang</Text>
+                <Text style={[styles.breakdownItemLabel, !isDark && { color: '#71717A' }]}>Liabilitas &amp; Utang</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
                   <Text style={styles.breakdownMinus}>-</Text>
                   <PrivacyValue value={totalLiabilities} style={styles.breakdownItemValDebt} />
@@ -520,12 +577,14 @@ export default function OverviewScreen() {
           />
 
           {/* 1px Dashed Perforation Line Separator */}
-          <View style={styles.perforationLine} />
+          <View style={[styles.perforationLine, !isDark && { borderTopColor: '#E4E4E7' }]} />
 
           {/* Segmented Proportional Asset Allocation Bar */}
           <View style={styles.allocationSection}>
             <View style={styles.allocationHeaderRow}>
-              <Text style={styles.allocationSectionTitle}>ALOKASI ASET // PORTFOLIO RATIO</Text>
+              <Text style={[styles.allocationSectionTitle, !isDark && { color: '#71717A' }]}>
+                ALOKASI ASET // PORTFOLIO RATIO
+              </Text>
               {selectedAllocation !== 'ALL' && (
                 <Pressable
                   onPress={() => {
@@ -540,7 +599,7 @@ export default function OverviewScreen() {
             </View>
 
             {totalNetWorth > 0 ? (
-              <View style={styles.allocationBarTrack}>
+              <View style={[styles.allocationBarTrack, !isDark && { backgroundColor: '#ECECEE' }]}>
                 <Pressable
                   onPress={() => {
                     triggerHaptic('selection');
@@ -602,14 +661,17 @@ export default function OverviewScreen() {
                 }}
                 style={[
                   styles.legendChip,
-                  selectedAllocation === 'CASH' && styles.legendChipActive,
+                  selectedAllocation === 'CASH' && [styles.legendChipActive, !isDark && { backgroundColor: 'rgba(0, 0, 0, 0.06)' }],
                 ]}
               >
                 <View style={[styles.legendDot, { backgroundColor: Colors.palette.titaniumSilver }]} />
                 <View>
-                  <Text style={styles.legendLabel}>Kas {cashPct.toFixed(0)}%</Text>
+                  <Text style={[styles.legendLabel, !isDark && { color: '#71717A' }]}>Kas {cashPct.toFixed(0)}%</Text>
                   {selectedAllocation === 'CASH' && (
-                    <PrivacyValue value={totalCash} style={styles.legendValue} />
+                    <PrivacyValue
+                      value={totalCash}
+                      style={[styles.legendValue, !isDark && { color: '#09090B' }]}
+                    />
                   )}
                 </View>
               </Pressable>
@@ -621,14 +683,17 @@ export default function OverviewScreen() {
                 }}
                 style={[
                   styles.legendChip,
-                  selectedAllocation === 'STOCKS' && styles.legendChipActive,
+                  selectedAllocation === 'STOCKS' && [styles.legendChipActive, !isDark && { backgroundColor: 'rgba(0, 0, 0, 0.06)' }],
                 ]}
               >
                 <View style={[styles.legendDot, { backgroundColor: Colors.palette.champagneGold }]} />
                 <View>
-                  <Text style={styles.legendLabel}>Saham {stockPct.toFixed(0)}%</Text>
+                  <Text style={[styles.legendLabel, !isDark && { color: '#71717A' }]}>Saham {stockPct.toFixed(0)}%</Text>
                   {selectedAllocation === 'STOCKS' && (
-                    <PrivacyValue value={totalStocks} style={styles.legendValue} />
+                    <PrivacyValue
+                      value={totalStocks}
+                      style={[styles.legendValue, !isDark && { color: '#09090B' }]}
+                    />
                   )}
                 </View>
               </Pressable>
@@ -640,14 +705,17 @@ export default function OverviewScreen() {
                 }}
                 style={[
                   styles.legendChip,
-                  selectedAllocation === 'CRYPTO' && styles.legendChipActive,
+                  selectedAllocation === 'CRYPTO' && [styles.legendChipActive, !isDark && { backgroundColor: 'rgba(0, 0, 0, 0.06)' }],
                 ]}
               >
                 <View style={[styles.legendDot, { backgroundColor: Colors.palette.burnishedCopper }]} />
                 <View>
-                  <Text style={styles.legendLabel}>Kripto {cryptoPct.toFixed(0)}%</Text>
+                  <Text style={[styles.legendLabel, !isDark && { color: '#71717A' }]}>Kripto {cryptoPct.toFixed(0)}%</Text>
                   {selectedAllocation === 'CRYPTO' && (
-                    <PrivacyValue value={totalCryptos} style={styles.legendValue} />
+                    <PrivacyValue
+                      value={totalCryptos}
+                      style={[styles.legendValue, !isDark && { color: '#09090B' }]}
+                    />
                   )}
                 </View>
               </Pressable>
@@ -662,10 +730,22 @@ export default function OverviewScreen() {
               triggerHaptic('medium');
               setMutationModalVisible(true);
             }}
-            style={styles.quickPrimaryBtn}
+            style={[
+              styles.quickPrimaryBtn,
+              !isDark && {
+                backgroundColor: '#09090B',
+              },
+            ]}
           >
-            <Icon name="Plus" size={14} color="#0A0A09" />
-            <Text style={styles.quickPrimaryBtnText}>Catat Mutasi</Text>
+            <Icon name="Plus" size={14} color={!isDark ? '#FFFFFF' : '#0A0A09'} />
+            <Text
+              style={[
+                styles.quickPrimaryBtnText,
+                !isDark && { color: '#FFFFFF' },
+              ]}
+            >
+              Catat Mutasi
+            </Text>
           </Pressable>
 
           <Pressable
@@ -673,10 +753,28 @@ export default function OverviewScreen() {
               triggerHaptic('selection');
               router.push('/(tabs)/sync');
             }}
-            style={styles.quickSecondaryBtn}
+            style={[
+              styles.quickSecondaryBtn,
+              !isDark && {
+                backgroundColor: '#FFFFFF',
+                borderColor: '#E4E4E7',
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 6,
+                elevation: 1,
+              },
+            ]}
           >
-            <Icon name="FileText" size={13} color={Colors.palette.alabasterWhite} />
-            <Text style={styles.quickSecondaryBtnText}>Impor Statement</Text>
+            <Icon name="FileText" size={13} color={!isDark ? '#09090B' : Colors.palette.alabasterWhite} />
+            <Text
+              style={[
+                styles.quickSecondaryBtnText,
+                !isDark && { color: '#09090B' },
+              ]}
+            >
+              Impor Statement
+            </Text>
           </Pressable>
 
           <Pressable
@@ -684,10 +782,28 @@ export default function OverviewScreen() {
               triggerHaptic('selection');
               router.push('/(tabs)/accounts');
             }}
-            style={styles.quickSecondaryBtn}
+            style={[
+              styles.quickSecondaryBtn,
+              !isDark && {
+                backgroundColor: '#FFFFFF',
+                borderColor: '#E4E4E7',
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 6,
+                elevation: 1,
+              },
+            ]}
           >
-            <Icon name="Landmark" size={13} color={Colors.palette.alabasterWhite} />
-            <Text style={styles.quickSecondaryBtnText}>Kelola Akun</Text>
+            <Icon name="Landmark" size={13} color={!isDark ? '#09090B' : Colors.palette.alabasterWhite} />
+            <Text
+              style={[
+                styles.quickSecondaryBtnText,
+                !isDark && { color: '#09090B' },
+              ]}
+            >
+              Kelola Akun
+            </Text>
           </Pressable>
         </View>
 
@@ -700,7 +816,16 @@ export default function OverviewScreen() {
             }}
             style={[
               styles.dueAlertCard,
-              topDueAlert.isOverdue && styles.dueAlertCardOverdue,
+              !isDark && {
+                backgroundColor: '#FFFBEB',
+                borderColor: 'rgba(212, 175, 55, 0.35)',
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.05,
+                shadowRadius: 8,
+                elevation: 2,
+              },
+              topDueAlert.isOverdue && (isDark ? styles.dueAlertCardOverdue : { backgroundColor: '#FEF2F2', borderColor: 'rgba(225, 82, 65, 0.35)' }),
             ]}
           >
             <View style={styles.dueAlertLeft}>
@@ -708,17 +833,24 @@ export default function OverviewScreen() {
                 style={[
                   styles.dueAlertIconCircle,
                   topDueAlert.isOverdue && { backgroundColor: 'rgba(225, 82, 65, 0.16)' },
+                  !isDark && !topDueAlert.isOverdue && { backgroundColor: '#FEF3C7' },
                 ]}
               >
                 <Icon
                   name="Calendar"
                   size={14}
-                  color={topDueAlert.isOverdue ? Colors.palette.terracottaRose : Colors.palette.champagneGold}
+                  color={topDueAlert.isOverdue ? Colors.palette.terracottaRose : (isDark ? Colors.palette.champagneGold : '#B45309')}
                 />
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={styles.dueAlertTitle} numberOfLines={1}>
+                  <Text
+                    style={[
+                      styles.dueAlertTitle,
+                      !isDark && { color: '#09090B' },
+                    ]}
+                    numberOfLines={1}
+                  >
                     {topDueAlert.isOverdue
                       ? `Tagihan ${topDueAlert.liability.name} Lewat Jatuh Tempo`
                       : topDueAlert.isDueToday
@@ -729,24 +861,32 @@ export default function OverviewScreen() {
                     style={[
                       styles.dueAlertBadge,
                       topDueAlert.isOverdue && { backgroundColor: 'rgba(225, 82, 65, 0.14)', borderColor: 'rgba(225, 82, 65, 0.28)' },
+                      !isDark && !topDueAlert.isOverdue && { backgroundColor: '#FEF3C7', borderColor: 'rgba(212, 175, 55, 0.40)' },
                     ]}
                   >
                     <Text
                       style={[
                         styles.dueAlertBadgeText,
                         topDueAlert.isOverdue && { color: Colors.palette.terracottaRose },
+                        !isDark && !topDueAlert.isOverdue && { color: '#92400E' },
                       ]}
                     >
                       {topDueAlert.isOverdue ? 'Jatuh Tempo' : `Tgl ${topDueAlert.dueDate}`}
                     </Text>
                   </View>
                 </View>
-                <Text style={styles.dueAlertSub} numberOfLines={1}>
+                <Text
+                  style={[
+                    styles.dueAlertSub,
+                    !isDark && { color: '#71717A' },
+                  ]}
+                  numberOfLines={1}
+                >
                   Total tagihan: {formatIDR(topDueAlert.liability.outstandingAmount)} • Ketuk untuk bayar
                 </Text>
               </View>
             </View>
-            <Icon name="ChevronRight" size={14} color={Colors.palette.naturalTitanium} />
+            <Icon name="ChevronRight" size={14} color={!isDark ? '#71717A' : Colors.palette.naturalTitanium} />
           </Pressable>
         )}
 
@@ -766,22 +906,40 @@ export default function OverviewScreen() {
           </View>
 
           {/* Monolithic Divided Ledger Card (No icons in boxes, label over value, right-aligned numbers) */}
-          <GlassCard level="base" noPadding style={styles.institutionalLedgerCard}>
+          <GlassCard
+            level="base"
+            noPadding
+            style={[
+              styles.institutionalLedgerCard,
+              !isDark && {
+                backgroundColor: '#FFFFFF',
+                borderColor: '#E4E4E7',
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.06,
+                shadowRadius: 10,
+                elevation: 2,
+              },
+            ]}
+          >
             {/* Row 1: Bank & Kas */}
             <Pressable
               onPress={() => {
                 triggerHaptic('selection');
                 router.push('/(tabs)/accounts');
               }}
-              style={styles.ledgerRow}
+              style={[styles.ledgerRow, !isDark && { borderBottomColor: '#F4F4F5' }]}
             >
               <View style={styles.ledgerRowLeft}>
-                <Text style={styles.ledgerRowTitle}>Kas & Rekening Giro</Text>
-                <Text style={styles.ledgerRowMeta}>Bank BCA, Mandiri • 5 Akun</Text>
+                <Text style={[styles.ledgerRowTitle, !isDark && { color: '#09090B' }]}>Kas & Rekening Giro</Text>
+                <Text style={[styles.ledgerRowMeta, !isDark && { color: '#71717A' }]}>Bank BCA, Mandiri • 5 Akun</Text>
               </View>
               <View style={styles.ledgerRowRight}>
-                <PrivacyValue value={bankCash} style={styles.ledgerRowValue} />
-                <Text style={styles.ledgerRowSub}>Saldo Likuid Utama</Text>
+                <PrivacyValue
+                  value={bankCash}
+                  style={[styles.ledgerRowValue, !isDark && { color: '#09090B' }]}
+                />
+                <Text style={[styles.ledgerRowSub, !isDark && { color: '#71717A' }]}>Saldo Likuid Utama</Text>
               </View>
             </Pressable>
 
@@ -791,14 +949,17 @@ export default function OverviewScreen() {
                 triggerHaptic('selection');
                 router.push('/(tabs)/portfolio');
               }}
-              style={styles.ledgerRow}
+              style={[styles.ledgerRow, !isDark && { borderBottomColor: '#F4F4F5' }]}
             >
               <View style={styles.ledgerRowLeft}>
-                <Text style={styles.ledgerRowTitle}>Efek Saham KSEI</Text>
-                <Text style={styles.ledgerRowMeta}>120 Lot • IHSG Listed</Text>
+                <Text style={[styles.ledgerRowTitle, !isDark && { color: '#09090B' }]}>Efek Saham KSEI</Text>
+                <Text style={[styles.ledgerRowMeta, !isDark && { color: '#71717A' }]}>120 Lot • IHSG Listed</Text>
               </View>
               <View style={styles.ledgerRowRight}>
-                <PrivacyValue value={totalStocks} style={styles.ledgerRowValue} />
+                <PrivacyValue
+                  value={totalStocks}
+                  style={[styles.ledgerRowValue, !isDark && { color: '#09090B' }]}
+                />
                 <Text
                   style={[
                     styles.ledgerRowSub,
@@ -816,15 +977,18 @@ export default function OverviewScreen() {
                 triggerHaptic('selection');
                 router.push('/(tabs)/accounts');
               }}
-              style={styles.ledgerRow}
+              style={[styles.ledgerRow, !isDark && { borderBottomColor: '#F4F4F5' }]}
             >
               <View style={styles.ledgerRowLeft}>
-                <Text style={styles.ledgerRowTitle}>Saldo Kas RDN</Text>
-                <Text style={styles.ledgerRowMeta}>Dana Siap Beli Sekuritas</Text>
+                <Text style={[styles.ledgerRowTitle, !isDark && { color: '#09090B' }]}>Saldo Kas RDN</Text>
+                <Text style={[styles.ledgerRowMeta, !isDark && { color: '#71717A' }]}>Dana Siap Beli Sekuritas</Text>
               </View>
               <View style={styles.ledgerRowRight}>
-                <PrivacyValue value={rdnCash} style={styles.ledgerRowValue} />
-                <Text style={styles.ledgerRowSub}>Siap Investasi</Text>
+                <PrivacyValue
+                  value={rdnCash}
+                  style={[styles.ledgerRowValue, !isDark && { color: '#09090B' }]}
+                />
+                <Text style={[styles.ledgerRowSub, !isDark && { color: '#71717A' }]}>Siap Investasi</Text>
               </View>
             </Pressable>
 
@@ -837,12 +1001,15 @@ export default function OverviewScreen() {
               style={[styles.ledgerRow, styles.ledgerRowLast]}
             >
               <View style={styles.ledgerRowLeft}>
-                <Text style={styles.ledgerRowTitle}>Aset Kripto Terverifikasi</Text>
-                <Text style={styles.ledgerRowMeta}>BTC, ETH • Cold Storage</Text>
+                <Text style={[styles.ledgerRowTitle, !isDark && { color: '#09090B' }]}>Aset Kripto Terverifikasi</Text>
+                <Text style={[styles.ledgerRowMeta, !isDark && { color: '#71717A' }]}>BTC, ETH • Cold Storage</Text>
               </View>
               <View style={styles.ledgerRowRight}>
-                <PrivacyValue value={totalCryptos} style={styles.ledgerRowValue} />
-                <Text style={styles.ledgerRowSub}>Multi-Chain Vault</Text>
+                <PrivacyValue
+                  value={totalCryptos}
+                  style={[styles.ledgerRowValue, !isDark && { color: '#09090B' }]}
+                />
+                <Text style={[styles.ledgerRowSub, !isDark && { color: '#71717A' }]}>Multi-Chain Vault</Text>
               </View>
             </Pressable>
           </GlassCard>
@@ -864,8 +1031,8 @@ export default function OverviewScreen() {
 
         {allMovers.length === 0 ? (
           <GlassCard level="base" style={styles.emptyMoversCard}>
-            <Text style={styles.emptyTitle}>Mulai pantau aset Anda</Text>
-            <Text style={styles.emptyDesc}>
+            <Text style={[styles.emptyTitle, !isDark && { color: '#09090B' }]}>Mulai pantau aset Anda</Text>
+            <Text style={[styles.emptyDesc, !isDark && { color: '#71717A' }]}>
               Hubungkan rekening bank, reksa dana, saham IDX, atau kripto untuk melihat pergerakan harga live.
             </Text>
             <View style={styles.emptyActionRow}>
@@ -907,8 +1074,8 @@ export default function OverviewScreen() {
                         ]}
                       />
                       <View style={{ minWidth: 0, flexShrink: 1 }}>
-                        <Text style={styles.moverSymbol}>{mover.symbol}</Text>
-                        <Text style={styles.moverName} numberOfLines={1}>
+                        <Text style={[styles.moverSymbol, !isDark && { color: '#09090B' }]}>{mover.symbol}</Text>
+                        <Text style={[styles.moverName, !isDark && { color: '#71717A' }]} numberOfLines={1}>
                           {mover.name}
                         </Text>
                       </View>
@@ -917,7 +1084,7 @@ export default function OverviewScreen() {
                     <View style={styles.moverRight}>
                       <PrivacyValue
                         value={mover.currentPrice}
-                        style={styles.moverPrice}
+                        style={[styles.moverPrice, !isDark && { color: '#09090B' }]}
                       />
                       <Text
                         style={[
@@ -929,7 +1096,7 @@ export default function OverviewScreen() {
                       </Text>
                     </View>
                   </Pressable>
-                  {!isLast && <View style={styles.rowHairline} />}
+                  {!isLast && <View style={[styles.rowHairline, !isDark && { backgroundColor: '#F4F4F5' }]} />}
                 </View>
               );
             })}
@@ -937,26 +1104,55 @@ export default function OverviewScreen() {
         )}
 
         {/* ALTERNATIVE HOLDINGS ROW: PHYSICAL GOLD & BULLION */}
-        <View style={styles.physicalGoldCard}>
+        <View
+          style={[
+            styles.physicalGoldCard,
+            !isDark && {
+              backgroundColor: '#FFFFFF',
+              borderColor: 'rgba(212, 175, 55, 0.35)',
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.06,
+              shadowRadius: 10,
+              elevation: 2,
+            },
+          ]}
+        >
           <View style={styles.goldCardLeft}>
-            <View style={styles.goldIconCircle}>
-              <Icon name="Sparkles" size={20} color={Colors.palette.champagneGold} />
+            <View
+              style={[
+                styles.goldIconCircle,
+                !isDark && { backgroundColor: '#FEF3C7' },
+              ]}
+            >
+              <Icon name="Sparkles" size={20} color={!isDark ? '#B45309' : Colors.palette.champagneGold} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                <Text style={styles.goldCardTitle}>PHYSICAL GOLD &amp; BULLION</Text>
-                <View style={styles.goldWeightBadge}>
-                  <Text style={styles.goldWeightText}>250g Antam</Text>
+                <Text style={[styles.goldCardTitle, !isDark && { color: '#B45309' }]}>PHYSICAL GOLD &amp; BULLION</Text>
+                <View
+                  style={[
+                    styles.goldWeightBadge,
+                    !isDark && { backgroundColor: '#FEF3C7' },
+                  ]}
+                >
+                  <Text style={[styles.goldWeightText, !isDark && { color: '#92400E' }]}>250g Antam</Text>
                 </View>
               </View>
-              <Text style={styles.goldCardSub} numberOfLines={1}>
+              <Text
+                style={[
+                  styles.goldCardSub,
+                  !isDark && { color: '#71717A' },
+                ]}
+                numberOfLines={1}
+              >
                 Safe Deposit Box #204 • Bank Mandiri Thamrin
               </Text>
             </View>
           </View>
 
           <View style={styles.goldCardRight}>
-            <Text style={styles.goldCardAmount}>Rp 342.500.000</Text>
+            <Text style={[styles.goldCardAmount, !isDark && { color: '#09090B' }]}>Rp 342.500.000</Text>
             <Text style={styles.goldCardRoi}>+14.2% YTD</Text>
           </View>
         </View>
@@ -979,10 +1175,28 @@ export default function OverviewScreen() {
               triggerHaptic('medium');
               router.push('/(tabs)/sync');
             }}
-            style={styles.primaryActionBtnTitanium}
+            style={[
+              styles.primaryActionBtnTitanium,
+              !isDark && {
+                backgroundColor: '#FFFFFF',
+                borderColor: '#E4E4E7',
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.06,
+                shadowRadius: 10,
+                elevation: 2,
+              },
+            ]}
           >
-            <Icon name="FileText" size={18} color={Colors.palette.champagneGold} />
-            <Text style={styles.primaryActionTextTitanium}>Import e-Statement</Text>
+            <Icon name="FileText" size={18} color={!isDark ? '#B45309' : Colors.palette.champagneGold} />
+            <Text
+              style={[
+                styles.primaryActionTextTitanium,
+                !isDark && { color: '#09090B' },
+              ]}
+            >
+              Import e-Statement
+            </Text>
           </Pressable>
         </View>
       </Animated.ScrollView>

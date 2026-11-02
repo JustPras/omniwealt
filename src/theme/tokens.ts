@@ -8,51 +8,69 @@ export { Colors };
 export const themes = {
   light: {
     id: 'light',
-    canvas: Colors.palette.canvas, // OLED Warm Carbon
-    text: Colors.palette.alabasterWhite, // #F5F3EF
-    textMuted: Colors.palette.naturalTitanium, // #A39E93
-    textFaint: Colors.palette.darkPewter, // #57534E
-    textSecondary: Colors.palette.naturalTitanium,
+    canvas: Colors.palette.canvas, // OLED Warm Carbon #0A0A09 (stays dark canvas)
+    canvasText: Colors.palette.alabasterWhite, // #F5F3EF
+    canvasTextMuted: Colors.palette.naturalTitanium, // #A39E93
+    card: '#FFFFFF',
+    cardElevated: '#F4F4F6',
+    cardText: '#09090B',
+    cardTextMuted: '#52525B',
+    cardTextFaint: '#71717A',
+    cardBorder: '#E4E4E7',
+    cardDivider: '#F4F4F5',
+    text: '#09090B',
+    textMuted: '#52525B',
+    textFaint: '#71717A',
+    textSecondary: '#52525B',
     tint: Colors.palette.champagneGold, // #D4AF37
-    tintText: Colors.palette.champagneGoldLight,
-    onTint: '#0A0A09',
+    tintText: Colors.palette.champagneGoldDark,
+    onTint: '#FFFFFF',
     glass: {
-      frost: 'rgba(245, 243, 239, 0.05)',
-      lens: 'rgba(245, 243, 239, 0.02)',
-      inset: 'rgba(20, 20, 18, 0.75)',
-      tint: 'rgba(212, 175, 55, 0.25)',
+      frost: '#FFFFFF',
+      lens: '#F8F8FA',
+      inset: '#F4F4F6',
+      tint: 'rgba(212, 175, 55, 0.15)',
     },
     rim: {
-      hi: 'rgba(212, 175, 55, 0.45)',
-      mid: 'rgba(255, 255, 255, 0.16)',
-      lo: 'rgba(255, 255, 255, 0.05)',
+      hi: 'rgba(212, 175, 55, 0.50)',
+      mid: 'rgba(0, 0, 0, 0.08)',
+      lo: 'rgba(0, 0, 0, 0.04)',
     },
-    hairline: 'rgba(255, 255, 255, 0.08)',
-    dividerDashed: 'rgba(255, 255, 255, 0.10)',
-    gain: Colors.palette.sovereignJade, // #2EBD85
-    loss: Colors.palette.terracottaRose, // #E15241
+    hairline: '#E4E4E7',
+    dividerDashed: '#E4E4E7',
+    gain: '#16A34A', // Emerald green
+    loss: '#DC2626', // Crimson red
     asset: {
-      cash: Colors.palette.titaniumSilver, // #94A3B8
-      stock: Colors.palette.champagneGold, // #D4AF37
-      crypto: Colors.palette.burnishedCopper, // #E07A5F
-      rdn: Colors.palette.sovereignJade, // #2EBD85
+      cash: '#64748B',
+      stock: Colors.palette.champagneGold,
+      crypto: '#C2410C',
+      rdn: '#16A34A',
     },
-    dockIcon: Colors.palette.alabasterWhite,
+    dockIcon: '#09090B',
     liquidGlass: {
       blur: 3,
-      specularGloss: 0.85,
-      rim: 0.85,
-      tint: 0.03,
+      specularGloss: 0.90,
+      rim: 0.90,
+      tint: 0.04,
     },
     lights: [
-      { color: Colors.palette.champagneGold, alpha: 0.12, at: 'topLeft' },
-      { color: '#FFFFFF', alpha: 0.06, at: 'bottomRight' },
+      { color: Colors.palette.champagneGold, alpha: 0.10, at: 'topLeft' },
+      { color: '#000000', alpha: 0.04, at: 'bottomRight' },
     ],
-    elev: { e1: 0.08, e2: 0.14 },
+    elev: { e1: 0.06, e2: 0.12 },
   },
   dark: {
     id: 'dark',
     canvas: Colors.palette.canvas, // OLED Warm Carbon #0A0A09
+    canvasText: Colors.palette.alabasterWhite,
+    canvasTextMuted: Colors.palette.naturalTitanium,
+    card: '#141412',
+    cardElevated: '#20201D',
+    cardText: Colors.palette.alabasterWhite,
+    cardTextMuted: Colors.palette.naturalTitanium,
+    cardTextFaint: Colors.palette.darkPewter,
+    cardBorder: 'rgba(255, 255, 255, 0.12)',
+    cardDivider: '#1e1e22',
     text: Colors.palette.alabasterWhite, // #F5F3EF
     textMuted: Colors.palette.naturalTitanium, // #A39E93
     textFaint: Colors.palette.darkPewter, // #57534E
@@ -110,16 +128,16 @@ export interface ThemeContextType {
 const THEME_STORAGE_KEY = '@omniwealth_theme_mode';
 
 const ThemeContext = createContext<ThemeContextType>({
-  themeMode: 'dark',
-  theme: themes.dark,
-  isDark: true,
+  themeMode: 'light',
+  theme: themes.light,
+  isDark: false,
   toggleTheme: () => {},
   setThemeMode: () => {},
 });
 
 export const AppThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const systemScheme = useColorScheme();
-  const [themeMode, setThemeModeState] = useState<ThemeMode>('dark');
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('light');
 
   useEffect(() => {
     AsyncStorage.getItem(THEME_STORAGE_KEY)
@@ -144,7 +162,7 @@ export const AppThemeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
   }, []);
 
-  const isDark = themeMode === 'system' ? systemScheme !== 'light' : themeMode === 'dark';
+  const isDark = themeMode === 'system' ? systemScheme === 'dark' : themeMode === 'dark';
   const theme = isDark ? themes.dark : themes.light;
 
   return React.createElement(
@@ -163,23 +181,29 @@ export const useTheme = (): Theme => {
   if (ctx && ctx.theme) {
     return ctx.theme;
   }
-  return themes.dark;
+  return themes.light;
 };
 
 export const useThemeController = (): ThemeContextType => {
   return useContext(ThemeContext);
 };
 
-// Default active theme based on dark/light
-const activeTheme = themes.dark;
+// Default active theme based on light
+const activeTheme = themes.light;
 
 export const color = {
   obsidian: Colors.palette.canvas,
   canvas: Colors.palette.canvas,
+  canvasText: Colors.palette.alabasterWhite,
+  canvasTextMuted: Colors.palette.naturalTitanium,
+  card: activeTheme.card,
+  cardElevated: activeTheme.cardElevated,
+  cardBorder: activeTheme.cardBorder,
+  cardDivider: activeTheme.cardDivider,
   elevated: Colors.palette.elevated,
-  text: Colors.palette.alabasterWhite,
-  textMuted: Colors.palette.naturalTitanium,
-  textFaint: Colors.palette.darkPewter,
+  text: activeTheme.text,
+  textMuted: activeTheme.textMuted,
+  textFaint: activeTheme.textFaint,
 
   tint: Colors.palette.champagneGold,
   tintText: activeTheme.tintText,
@@ -189,14 +213,14 @@ export const color = {
   champagne: Colors.palette.champagneGold,
   champagneLight: Colors.palette.champagneGoldLight,
   champagneDark: Colors.palette.champagneGoldDark,
-  jade: Colors.palette.sovereignJade,
-  terracotta: Colors.palette.terracottaRose,
+  jade: activeTheme.gain,
+  terracotta: activeTheme.loss,
   titanium: Colors.palette.naturalTitanium,
   basalt: Colors.palette.elevated,
 
   appleBg: Colors.palette.canvas,
-  appleInk: Colors.palette.alabasterWhite,
-  appleMuted: Colors.palette.naturalTitanium,
+  appleInk: activeTheme.text,
+  appleMuted: activeTheme.textMuted,
   appleBlue: Colors.palette.champagneGold,
 
   // Accent mappings

@@ -126,7 +126,7 @@ export const HeaderBar: React.FC = () => {
     }).start();
   };
 
-  const textColor = Colors.palette.alabasterWhite;
+  const textColor = isDark ? Colors.palette.alabasterWhite : '#09090B';
 
   return (
     <View style={[styles.outerWrapper, { paddingTop: Math.max(insets.top + 4, 12) }]}>
@@ -144,13 +144,35 @@ export const HeaderBar: React.FC = () => {
           <View style={styles.brandTitleCol}>
             <View style={styles.brandNameRow}>
               <Text style={[styles.brandTitle, { color: textColor }]}>OmniWealth</Text>
-              <View style={styles.aiReadyCapsule}>
-                <Text style={styles.aiReadyText}>PRIVATE</Text>
+              <View
+                style={[
+                  styles.aiReadyCapsule,
+                  !isDark && {
+                    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+                    borderColor: 'rgba(212, 175, 55, 0.35)',
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.aiReadyText,
+                    !isDark && { color: '#B45309' },
+                  ]}
+                >
+                  PRIVATE
+                </Text>
               </View>
             </View>
             {/* Live Timestamp Sub-text */}
             <View style={styles.liveSubRow}>
-              <Text style={styles.liveTimeText}>{formatTime(lastUpdated.toISOString())} • TERVERIFIKASI</Text>
+              <Text
+                style={[
+                  styles.liveTimeText,
+                  !isDark && { color: '#71717A' },
+                ]}
+              >
+                {formatTime(lastUpdated.toISOString())} • TERVERIFIKASI
+              </Text>
             </View>
           </View>
         </View>
@@ -188,8 +210,8 @@ export const HeaderBar: React.FC = () => {
                 styles.circularGlassButton,
                 {
                   transform: [{ scale: themeScale }],
-                  backgroundColor: 'rgba(245, 243, 239, 0.05)',
-                  borderColor: 'rgba(255, 255, 255, 0.12)',
+                  backgroundColor: isDark ? 'rgba(245, 243, 239, 0.05)' : '#F4F4F6',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : '#E4E4E7',
                 },
               ]}
             >
@@ -220,8 +242,8 @@ export const HeaderBar: React.FC = () => {
                 isRefreshing && styles.refreshingButton,
                 {
                   transform: [{ scale: refreshScale }],
-                  backgroundColor: 'rgba(245, 243, 239, 0.05)',
-                  borderColor: 'rgba(255, 255, 255, 0.12)',
+                  backgroundColor: isDark ? 'rgba(245, 243, 239, 0.05)' : '#F4F4F6',
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : '#E4E4E7',
                 },
               ]}
             >
@@ -229,7 +251,7 @@ export const HeaderBar: React.FC = () => {
                 <Icon
                   name="RefreshCw"
                   size={14}
-                  color={isRefreshing ? Colors.palette.champagneGold : Colors.palette.naturalTitanium}
+                  color={isRefreshing ? Colors.palette.champagneGold : (isDark ? Colors.palette.naturalTitanium : '#71717A')}
                 />
               </Animated.View>
             </Animated.View>
@@ -253,15 +275,23 @@ export const HeaderBar: React.FC = () => {
                 privacyMode && styles.activeEyeButton,
                 {
                   transform: [{ scale: eyeScale }],
-                  backgroundColor: privacyMode ? 'rgba(212, 175, 55, 0.15)' : 'rgba(245, 243, 239, 0.05)',
-                  borderColor: privacyMode ? 'rgba(212, 175, 55, 0.45)' : 'rgba(255, 255, 255, 0.12)',
+                  backgroundColor: privacyMode
+                    ? 'rgba(212, 175, 55, 0.15)'
+                    : isDark
+                    ? 'rgba(245, 243, 239, 0.05)'
+                    : '#F4F4F6',
+                  borderColor: privacyMode
+                    ? 'rgba(212, 175, 55, 0.45)'
+                    : isDark
+                    ? 'rgba(255, 255, 255, 0.12)'
+                    : '#E4E4E7',
                 },
               ]}
             >
               {privacyMode ? (
                 <Icon name="EyeOff" size={14} color={Colors.palette.champagneGold} />
               ) : (
-                <Icon name="Eye" size={14} color={Colors.palette.naturalTitanium} />
+                <Icon name="Eye" size={14} color={isDark ? Colors.palette.naturalTitanium : '#71717A'} />
               )}
             </Animated.View>
           </Pressable>

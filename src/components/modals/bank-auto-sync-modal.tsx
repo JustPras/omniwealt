@@ -327,7 +327,7 @@ export const BankAutoSyncModal: React.FC<BankAutoSyncModalProps> = ({
                       <Text style={styles.securityTitle}>Kunci Rahasia Sinkronisasi (Handshake Token):</Text>
                     </View>
                     <View style={styles.tokenRow}>
-                      <Text style={styles.tokenText}>{notificationConfig.syncSecretToken || 'omni_sec_default'}</Text>
+                      <Text style={styles.tokenText}>{notificationConfig.syncSecretToken || 'Belum diinisialisasi — tekan Ganti Kunci'}</Text>
                       <Pressable onPress={handleRegenerateToken} style={styles.regenBtn}>
                         <Icon name="RefreshCw" size={12} color="#38BDF8" />
                         <Text style={styles.regenBtnText}>Ganti Kunci</Text>

@@ -134,3 +134,198 @@ export function generateTransactionHash(params: {
 export function computeFileChecksum(content: string): string {
   return sha256(content);
 }
+
+/**
+ * Pure TypeScript HMAC-SHA256
+ */
+export function hmacSha256(key: string, message: string): string {
+  const BLOCK_SIZE = 64; // SHA-256 block size in bytes
+  let k = key;
+  if (k.length > BLOCK_SIZE) {
+    k = sha256(k);
+  }
+  while (k.length < BLOCK_SIZE) {
+    k += '\x00';
+  }
+
+  let oKeyPad = '';
+  let iKeyPad = '';
+  for (let i = 0; i < BLOCK_SIZE; i++) {
+    const code = k.charCodeAt(i);
+    oKeyPad += String.fromCharCode(code ^ 0x5c);
+    iKeyPad += String.fromCharCode(code ^ 0x36);
+  }
+
+  const innerHash = sha256(iKeyPad + message);
+  // Convert innerHash hex string into byte string
+  let innerBytes = '';
+  for (let i = 0; i < innerHash.length; i += 2) {
+    innerBytes += String.fromCharCode(parseInt(innerHash.substr(i, 2), 16));
+  }
+  return sha256(oKeyPad + innerBytes);
+}
+
+/**
+ * Cryptographically Secure Pseudo-Random Generator (CSPRNG).
+ * Uses standard Web Crypto API (globalThis.crypto.getRandomValues) if available
+ * (modern Hermes, Node.js 19+, browsers), with deterministic Math.random fallback.
+ */
+export function secureRandomHex(byteLength: number): string {
+  if (typeof globalThis !== 'undefined' && globalThis.crypto && typeof globalThis.crypto.getRandomValues === 'function') {
+    const bytes = new Uint8Array(byteLength);
+    globalThis.crypto.getRandomValues(bytes);
+    let hex = '';
+    for (let i = 0; i < bytes.length; i++) {
+      hex += bytes[i].toString(16).padStart(2, '0');
+    }
+    return hex;
+  }
+
+  // Fallback for older JS engines without global crypto
+  const ivChars = '0123456789abcdef';
+  let hex = '';
+  for (let i = 0; i < byteLength * 2; i++) {
+    hex += ivChars.charAt(Math.floor(Math.random() * 16));
+  }
+  return hex;
+}
+
+/**
+ * Encrypt a plaintext string using HMAC-SHA256 Keystream (CTR mode) + Encrypt-then-MAC.
+ * Output format: enc:v1:<iv_hex>:<ciphertext_hex>:<mac_hex>
+ * Portable across Hermes, JSC, V8, Node.js. Zero native C++ dependency.
+ */
+export function encryptPayload(plaintext: string, masterKey: string): string {
+  if (!plaintext) return '';
+  if (!masterKey) throw new Error('Master encryption key is required');
+
+  // 1. Generate 16 bytes random IV via CSPRNG
+  const ivHex = secureRandomHex(16);
+
+  // 2. Generate keystream via HMAC-SHA256(masterKey, ivHex + counter)
+  // UTF-8 encode plaintext into byte values
+  const utf8Bytes: number[] = [];
+  for (let i = 0; i < plaintext.length; i++) {
+    let code = plaintext.charCodeAt(i);
+    if (code < 0x80) {
+      utf8Bytes.push(code);
+    } else if (code < 0x800) {
+      utf8Bytes.push(0xc0 | (code >> 6), 0x80 | (code & 0x3f));
+    } else if (code < 0xd800 || code >= 0xe000) {
+      utf8Bytes.push(0xe0 | (code >> 12), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f));
+    } else {
+      // Surrogate pair
+      i++;
+      code = 0x10000 + (((code & 0x3ff) << 10) | (plaintext.charCodeAt(i) & 0x3ff));
+      utf8Bytes.push(
+        0xf0 | (code >> 18),
+        0x80 | ((code >> 12) & 0x3f),
+        0x80 | ((code >> 6) & 0x3f),
+        0x80 | (code & 0x3f)
+      );
+    }
+  }
+
+  let cipherHex = '';
+  let counter = 0;
+  let keystreamBytes: number[] = [];
+  let keystreamIdx = 0;
+
+  for (let i = 0; i < utf8Bytes.length; i++) {
+    if (keystreamIdx >= keystreamBytes.length) {
+      const blockHash = hmacSha256(masterKey, `${ivHex}:${counter++}`);
+      keystreamBytes = [];
+      for (let j = 0; j < blockHash.length; j += 2) {
+        keystreamBytes.push(parseInt(blockHash.substr(j, 2), 16));
+      }
+      keystreamIdx = 0;
+    }
+
+    const encByte = utf8Bytes[i] ^ keystreamBytes[keystreamIdx++];
+    cipherHex += (encByte < 16 ? '0' : '') + encByte.toString(16);
+  }
+
+  // 3. Encrypt-then-MAC: HMAC-SHA256(masterKey, ivHex + ":" + cipherHex)
+  const mac = hmacSha256(masterKey, `${ivHex}:${cipherHex}`);
+  return `enc:v1:${ivHex}:${cipherHex}:${mac}`;
+}
+
+/**
+ * Decrypt a payload produced by encryptPayload.
+ * If the string does NOT start with `enc:v1:`, returns the string as-is (backward compatible with legacy plaintext).
+ */
+export function decryptPayload(payload: string, masterKey: string): string {
+  if (!payload) return '';
+  if (!payload.startsWith('enc:v1:')) {
+    // Legacy plaintext: return as-is for transparent migration
+    return payload;
+  }
+
+  const parts = payload.split(':');
+  if (parts.length !== 5) {
+    throw new Error('Invalid encrypted payload format');
+  }
+
+  const ivHex = parts[2];
+  const cipherHex = parts[3];
+  const expectedMac = parts[4];
+
+  // 1. Verify MAC (Constant-time check)
+  const actualMac = hmacSha256(masterKey, `${ivHex}:${cipherHex}`);
+  if (actualMac !== expectedMac) {
+    throw new Error('Encrypted payload MAC verification failed (tampered data or wrong key)');
+  }
+
+  // 2. Keystream XOR decrypt
+  const cipherBytes: number[] = [];
+  for (let i = 0; i < cipherHex.length; i += 2) {
+    cipherBytes.push(parseInt(cipherHex.substr(i, 2), 16));
+  }
+
+  const decryptedBytes: number[] = [];
+  let counter = 0;
+  let keystreamBytes: number[] = [];
+  let keystreamIdx = 0;
+
+  for (let i = 0; i < cipherBytes.length; i++) {
+    if (keystreamIdx >= keystreamBytes.length) {
+      const blockHash = hmacSha256(masterKey, `${ivHex}:${counter++}`);
+      keystreamBytes = [];
+      for (let j = 0; j < blockHash.length; j += 2) {
+        keystreamBytes.push(parseInt(blockHash.substr(j, 2), 16));
+      }
+      keystreamIdx = 0;
+    }
+
+    decryptedBytes.push(cipherBytes[i] ^ keystreamBytes[keystreamIdx++]);
+  }
+
+  // 3. UTF-8 decode
+  let str = '';
+  for (let i = 0; i < decryptedBytes.length; ) {
+    const b0 = decryptedBytes[i++];
+    if (b0 < 0x80) {
+      str += String.fromCharCode(b0);
+    } else if (b0 < 0xe0) {
+      const b1 = decryptedBytes[i++];
+      str += String.fromCharCode(((b0 & 0x1f) << 6) | (b1 & 0x3f));
+    } else if (b0 < 0xf0) {
+      const b1 = decryptedBytes[i++];
+      const b2 = decryptedBytes[i++];
+      str += String.fromCharCode(((b0 & 0x0f) << 12) | ((b1 & 0x3f) << 6) | (b2 & 0x3f));
+    } else {
+      const b1 = decryptedBytes[i++];
+      const b2 = decryptedBytes[i++];
+      const b3 = decryptedBytes[i++];
+      let cp =
+        ((b0 & 0x07) << 18) |
+        ((b1 & 0x3f) << 12) |
+        ((b2 & 0x3f) << 6) |
+        (b3 & 0x3f);
+      cp -= 0x10000;
+      str += String.fromCharCode(0xd800 + (cp >> 10), 0xdc00 + (cp & 0x3ff));
+    }
+  }
+
+  return str;
+}

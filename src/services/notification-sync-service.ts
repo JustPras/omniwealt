@@ -5,6 +5,22 @@ import {
   CapturedNotificationLog,
 } from '../types';
 import { AIParserService } from './ai-parser';
+import { secureRandomHex } from '../utils/crypto';
+
+/**
+ * Generate a cryptographically secure nonce for anti-replay deep link protection.
+ * Base32-like, URL-safe, derives from CSPRNG. Backed by Web Crypto when available.
+ */
+export function generateNonce(): string {
+  const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+  const randomHex = secureRandomHex(16);
+  let nonce = '';
+  for (let i = 0; i < 16; i++) {
+    const byte = parseInt(randomHex.substring(i * 2, i * 2 + 2), 16);
+    nonce += chars.charAt(byte % chars.length);
+  }
+  return `n_${nonce}`;
+}
 
 export const MONITORED_BANK_APPS: MonitoredBankApp[] = [
   {
@@ -353,11 +369,18 @@ class NotificationSyncServiceImpl {
 
   /**
    * Deep Link Generator for MacroDroid / Tasker
-   * Format: omniwealth://notification?text={url_encoded_text}&app={app_id}
+   * Format: omniwealth://notification?token={token}&text={url_encoded_text}&app={app_id}&ts={now}&nonce={random}
+   * `ts` + `nonce` enable anti-replay validation on the receiving side.
    */
   getDeepLinkUrl(sampleText = '{notification_text}', appId = '{package_name}', secretToken?: string): string {
+    const ts = Date.now().toString();
+    const nonce = generateNonce();
     const tokenPart = secretToken ? `token=${encodeURIComponent(secretToken)}&` : '';
-    return `omniwealth://notification?${tokenPart}text=${encodeURIComponent(sampleText)}&app=${encodeURIComponent(appId)}`;
+    return (
+      `omniwealth://notification?${tokenPart}` +
+      `text=${encodeURIComponent(sampleText)}&app=${encodeURIComponent(appId)}` +
+      `&ts=${ts}&nonce=${nonce}`
+    );
   }
 
   /**
@@ -365,7 +388,7 @@ class NotificationSyncServiceImpl {
    */
   getMacroDroidGuide(secretToken?: string) {
     const tokenParam = secretToken ? `token=${secretToken}&` : '';
-    const template = `omniwealth://notification?${tokenParam}text=[notif_text]&app=[package_name]`;
+    const template = `omniwealth://notification?${tokenParam}text=[notif_text]&app=[package_name]&ts=[time_ms]&nonce=[random]`;
     return {
       title: 'Setup Auto-Sync Android via MacroDroid (Gratis & Tanpa Root)',
       deepLinkTemplate: template,
@@ -373,7 +396,7 @@ class NotificationSyncServiceImpl {
         'Unduh aplikasi "MacroDroid" gratis dari Google Play Store.',
         'Buka MacroDroid > Buat Macro Baru (Add Macro).',
         'Pilih TRIGGER: "Notification" > "Notification Received" > Centang aplikasi m-Banking Anda (BCA, Mandiri, GoPay, OVO, ShopeePay, DANA).',
-        `Pilih ACTION: "Connectivity" > "Open Website / HTTP" > Masukkan URL:\n${template}`,
+        `Pilih ACTION: "Connectivity" > "Open Website / HTTP" > Masukkan URL:\\n${template}`,
         'Simpan Macro dengan nama "OmniWealth Auto-Sync". Selesai!',
       ],
     };
@@ -381,7 +404,13 @@ class NotificationSyncServiceImpl {
 
   /**
    * Validates inbound deep link URLs to prevent unauthorized transaction spoofing / CSRF
+   * Anti-replay protection: a fresh unique `nonce` + `ts` timestamp are enforced when provided.
+   * Known insecure default tokens are always rejected.
    */
+  private readonly DEEPLINK_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
+  private readonly INSECURE_DEFAULT_TOKENS = ['omni_sec_8f2a99', 'omni_sec_default', ''];
+  private seenNonces: Set<string> = new Set();
+
   validateDeepLink(
     queryParams: Record<string, any> | undefined | null,
     config: AutoSyncNotificationConfig
@@ -390,16 +419,47 @@ class NotificationSyncServiceImpl {
       return { isValid: false, reason: 'Sync notifikasi dinonaktifkan oleh pengguna' };
     }
 
-    if (config.syncSecretToken) {
-      const incomingToken = queryParams?.token as string | undefined;
-      if (!incomingToken || incomingToken !== config.syncSecretToken) {
-        return { isValid: false, reason: 'Kunci rahasia sinkronisasi (token) tidak cocok atau hilang' };
-      }
+    if (!config.syncSecretToken || this.INSECURE_DEFAULT_TOKENS.includes(config.syncSecretToken)) {
+      return { isValid: false, reason: 'Token sinkronisasi belum diinisialisasi dengan aman. Buka menu Auto-Sync dan buat token baru.' };
+    }
+
+    const incomingToken = queryParams?.token as string | undefined;
+    if (!incomingToken || incomingToken !== config.syncSecretToken) {
+      return { isValid: false, reason: 'Kunci rahasia sinkronisasi (token) tidak cocok atau hilang' };
     }
 
     const text = queryParams?.text as string | undefined;
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
       return { isValid: false, reason: 'Isi teks notifikasi kosong' };
+    }
+
+    // Anti-replay: timestamp window (only enforced if provided)
+    const tsRaw = queryParams?.ts;
+    if (tsRaw !== undefined && tsRaw !== null) {
+      const ts = Number(tsRaw);
+      if (!Number.isFinite(ts)) {
+        return { isValid: false, reason: 'Parameter waktu (ts) tidak valid' };
+      }
+      if (Math.abs(Date.now() - ts) > this.DEEPLINK_MAX_AGE_MS) {
+        return { isValid: false, reason: 'Deep link sudah kedaluwarsa (lebih dari 5 menit)' };
+      }
+    }
+
+    // Anti-replay: unique nonce enforcement (only enforced if provided)
+    const nonce = queryParams?.nonce as string | undefined;
+    if (nonce !== undefined && nonce !== null) {
+      if (typeof nonce !== 'string' || nonce.length < 8 || nonce.length > 128) {
+        return { isValid: false, reason: 'Parameter nonce tidak valid' };
+      }
+      if (this.seenNonces.has(nonce)) {
+        return { isValid: false, reason: 'Deep link ini sudah pernah diproses (anti-replay)' };
+      }
+      this.seenNonces.add(nonce);
+      // Cap memory usage
+      if (this.seenNonces.size > 500) {
+        const first = this.seenNonces.values().next().value;
+        if (first) this.seenNonces.delete(first);
+      }
     }
 
     return { isValid: true };

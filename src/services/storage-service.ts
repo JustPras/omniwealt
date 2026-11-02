@@ -22,6 +22,9 @@ import {
   DEMO_TRANSACTIONS,
   DEMO_LIABILITIES,
 } from '../constants/initial-data';
+import { SecureStorageService } from './secure-storage-service';
+import { secureRandomHex } from '../utils/crypto';
+import { encryptPayload, decryptPayload } from '../utils/crypto';
 
 export interface CachedMarketQuote {
   price: number;
@@ -50,11 +53,19 @@ const STORAGE_KEYS = {
   NOTIFICATION_LOGS: '@omniwealth_notif_logs_v3',
 };
 
+// Sensitive values are stored in hardware-backed secure storage (Keychain/Keystore)
+const SECURE_KEYS = {
+  SYNC_SECRET_TOKEN: 'omniwealth_sync_secret_token_v1',
+};
+
 export function generateSyncToken(): string {
   const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
-  let token = 'omni_';
-  for (let i = 0; i < 8; i++) {
-    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  // 16 bytes from CSPRNG => ~24 chars, base32-style alphabet (vowels removed)
+  const randomHex = secureRandomHex(16);
+  let token = 'omni_sync_';
+  for (let i = 0; i < 24; i++) {
+    const byte = parseInt(randomHex.substring(i * 2, i * 2 + 2), 16);
+    token += chars.charAt(byte % chars.length);
   }
   return token;
 }
@@ -65,7 +76,7 @@ const DEFAULT_NOTIFICATION_CONFIG: AutoSyncNotificationConfig = {
   monitoredApps: ['bca', 'mandiri', 'bri', 'bni', 'jago', 'gopay', 'ovo', 'dana', 'shopeepay'],
   clipboardDetection: false,
   internalTransferMatching: true,
-  syncSecretToken: 'omni_sec_8f2a99',
+  syncSecretToken: '',
 };
 
 const DEFAULT_MARKET_CACHE: MarketCacheData = {
@@ -74,15 +85,43 @@ const DEFAULT_MARKET_CACHE: MarketCacheData = {
   cryptos: {},
 };
 
+// ---------------------------------------------------------------------------
+// Encrypted persist helpers for financial data in AsyncStorage.
+// Transparent migration: legacy plaintext values still parse; new writes are
+// always encrypted with the hardware-backed master key.
+// ---------------------------------------------------------------------------
+let cachedMasterKey: string | null = null;
+
+async function resolveMasterKey(): Promise<string> {
+  if (cachedMasterKey) return cachedMasterKey;
+  cachedMasterKey = await SecureStorageService.getOrCreateMasterKey();
+  return cachedMasterKey;
+}
+
+async function setEncryptedItem(key: string, value: string): Promise<void> {
+  const masterKey = await resolveMasterKey();
+  const encrypted = encryptPayload(value, masterKey);
+  await AsyncStorage.setItem(key, encrypted);
+}
+
+async function getDecryptedItem(key: string): Promise<string | null> {
+  const raw = await AsyncStorage.getItem(key);
+  if (raw === null) return null;
+  // Legacy plaintext values are parsed as-is; encrypted values are decrypted.
+  if (!raw.startsWith('enc:v1:')) return raw;
+  const masterKey = await resolveMasterKey();
+  return decryptPayload(raw, masterKey);
+}
+
 export const StorageService = {
   async getAccounts(): Promise<Account[]> {
     try {
-      const data = await AsyncStorage.getItem(STORAGE_KEYS.ACCOUNTS);
+      const data = await getDecryptedItem(STORAGE_KEYS.ACCOUNTS);
       if (data) {
         return JSON.parse(data);
       }
       // First run for new user: 0 data
-      await AsyncStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(INITIAL_ACCOUNTS));
+      await setEncryptedItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(INITIAL_ACCOUNTS));
       return INITIAL_ACCOUNTS;
     } catch {
       return INITIAL_ACCOUNTS;
@@ -91,7 +130,7 @@ export const StorageService = {
 
   async saveAccounts(accounts: Account[]): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(accounts));
+      await setEncryptedItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(accounts));
     } catch (e) {
       console.warn('Failed to save accounts to storage:', e);
     }
@@ -99,11 +138,11 @@ export const StorageService = {
 
   async getStocks(): Promise<StockAsset[]> {
     try {
-      const data = await AsyncStorage.getItem(STORAGE_KEYS.STOCKS);
+      const data = await getDecryptedItem(STORAGE_KEYS.STOCKS);
       if (data) {
         return JSON.parse(data);
       }
-      await AsyncStorage.setItem(STORAGE_KEYS.STOCKS, JSON.stringify(INITIAL_STOCKS));
+      await setEncryptedItem(STORAGE_KEYS.STOCKS, JSON.stringify(INITIAL_STOCKS));
       return INITIAL_STOCKS;
     } catch {
       return INITIAL_STOCKS;
@@ -112,7 +151,7 @@ export const StorageService = {
 
   async saveStocks(stocks: StockAsset[]): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.STOCKS, JSON.stringify(stocks));
+      await setEncryptedItem(STORAGE_KEYS.STOCKS, JSON.stringify(stocks));
     } catch (e) {
       console.warn('Failed to save stocks to storage:', e);
     }
@@ -120,11 +159,11 @@ export const StorageService = {
 
   async getCryptos(): Promise<CryptoAsset[]> {
     try {
-      const data = await AsyncStorage.getItem(STORAGE_KEYS.CRYPTOS);
+      const data = await getDecryptedItem(STORAGE_KEYS.CRYPTOS);
       if (data) {
         return JSON.parse(data);
       }
-      await AsyncStorage.setItem(STORAGE_KEYS.CRYPTOS, JSON.stringify(INITIAL_CRYPTOS));
+      await setEncryptedItem(STORAGE_KEYS.CRYPTOS, JSON.stringify(INITIAL_CRYPTOS));
       return INITIAL_CRYPTOS;
     } catch {
       return INITIAL_CRYPTOS;
@@ -133,7 +172,7 @@ export const StorageService = {
 
   async saveCryptos(cryptos: CryptoAsset[]): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.CRYPTOS, JSON.stringify(cryptos));
+      await setEncryptedItem(STORAGE_KEYS.CRYPTOS, JSON.stringify(cryptos));
     } catch (e) {
       console.warn('Failed to save cryptos to storage:', e);
     }
@@ -141,7 +180,7 @@ export const StorageService = {
 
   async getCryptoWallets(): Promise<CryptoWallet[]> {
     try {
-      const data = await AsyncStorage.getItem(STORAGE_KEYS.CRYPTO_WALLETS);
+      const data = await getDecryptedItem(STORAGE_KEYS.CRYPTO_WALLETS);
       if (data) {
         return JSON.parse(data);
       }
@@ -153,7 +192,7 @@ export const StorageService = {
 
   async saveCryptoWallets(wallets: CryptoWallet[]): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.CRYPTO_WALLETS, JSON.stringify(wallets));
+      await setEncryptedItem(STORAGE_KEYS.CRYPTO_WALLETS, JSON.stringify(wallets));
     } catch (e) {
       console.warn('Failed to save crypto wallets to storage:', e);
     }
@@ -161,11 +200,11 @@ export const StorageService = {
 
   async getTransactions(): Promise<Transaction[]> {
     try {
-      const data = await AsyncStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
+      const data = await getDecryptedItem(STORAGE_KEYS.TRANSACTIONS);
       if (data) {
         return JSON.parse(data);
       }
-      await AsyncStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(INITIAL_TRANSACTIONS));
+      await setEncryptedItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(INITIAL_TRANSACTIONS));
       return INITIAL_TRANSACTIONS;
     } catch {
       return INITIAL_TRANSACTIONS;
@@ -174,7 +213,7 @@ export const StorageService = {
 
   async saveTransactions(transactions: Transaction[]): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
+      await setEncryptedItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
     } catch (e) {
       console.warn('Failed to save transactions to storage:', e);
     }
@@ -182,11 +221,11 @@ export const StorageService = {
 
   async getLiabilities(): Promise<Liability[]> {
     try {
-      const data = await AsyncStorage.getItem(STORAGE_KEYS.LIABILITIES);
+      const data = await getDecryptedItem(STORAGE_KEYS.LIABILITIES);
       if (data) {
         return JSON.parse(data);
       }
-      await AsyncStorage.setItem(STORAGE_KEYS.LIABILITIES, JSON.stringify(INITIAL_LIABILITIES));
+      await setEncryptedItem(STORAGE_KEYS.LIABILITIES, JSON.stringify(INITIAL_LIABILITIES));
       return INITIAL_LIABILITIES;
     } catch {
       return INITIAL_LIABILITIES;
@@ -195,7 +234,7 @@ export const StorageService = {
 
   async saveLiabilities(liabilities: Liability[]): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.LIABILITIES, JSON.stringify(liabilities));
+      await setEncryptedItem(STORAGE_KEYS.LIABILITIES, JSON.stringify(liabilities));
     } catch (e) {
       console.warn('Failed to save liabilities to storage:', e);
     }
@@ -410,28 +449,58 @@ export const StorageService = {
   async getNotificationConfig(): Promise<AutoSyncNotificationConfig> {
     try {
       const data = await AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATION_CONFIG);
+      const MAX_TOKEN_LEN = 64;
+
+      // Known insecure hardcoded legacy tokens that must be replaced
+      const INSECURE_LEGACY_TOKENS = ['omni_sec_8f2a99', 'omni_sec_default'];
+
+      const isInsecureToken = (token?: string) =>
+        !token || INSECURE_LEGACY_TOKENS.includes(token) || token.length > MAX_TOKEN_LEN;
+
+      let merged: AutoSyncNotificationConfig;
       if (data) {
         const parsed = JSON.parse(data);
-        if (!parsed.syncSecretToken) {
-          parsed.syncSecretToken = generateSyncToken();
-          await AsyncStorage.setItem(STORAGE_KEYS.NOTIFICATION_CONFIG, JSON.stringify(parsed));
-        }
-        return { ...DEFAULT_NOTIFICATION_CONFIG, ...parsed };
+        merged = { ...DEFAULT_NOTIFICATION_CONFIG, ...parsed };
+      } else {
+        merged = { ...DEFAULT_NOTIFICATION_CONFIG };
       }
-      const initial = { ...DEFAULT_NOTIFICATION_CONFIG, syncSecretToken: generateSyncToken() };
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.NOTIFICATION_CONFIG,
-        JSON.stringify(initial)
-      );
-      return initial;
+
+      // Read the secret token from secure storage (never persisted plaintext in AsyncStorage)
+      const secureToken = await SecureStorageService.getItem(SECURE_KEYS.SYNC_SECRET_TOKEN);
+      if (secureToken && !isInsecureToken(secureToken)) {
+        merged.syncSecretToken = secureToken;
+      } else {
+        merged.syncSecretToken = generateSyncToken();
+        await SecureStorageService.setItem(SECURE_KEYS.SYNC_SECRET_TOKEN, merged.syncSecretToken);
+      }
+
+      // Strip the token before writing config to plaintext storage
+      const sanitizedConfig = { ...merged };
+      delete (sanitizedConfig as any).syncSecretToken;
+      await AsyncStorage.setItem(STORAGE_KEYS.NOTIFICATION_CONFIG, JSON.stringify(sanitizedConfig));
+
+      return merged;
     } catch {
-      return DEFAULT_NOTIFICATION_CONFIG;
+      // Never fall back to a hardcoded token on storage failure — regenerate on next launch.
+      const freshToken = generateSyncToken();
+      try {
+        await SecureStorageService.setItem(SECURE_KEYS.SYNC_SECRET_TOKEN, freshToken);
+      } catch {}
+      return { ...DEFAULT_NOTIFICATION_CONFIG, syncSecretToken: freshToken };
     }
   },
 
   async saveNotificationConfig(config: AutoSyncNotificationConfig): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.NOTIFICATION_CONFIG, JSON.stringify(config));
+      if (config.syncSecretToken) {
+        // Persist secret token to hardware-backed secure storage
+        await SecureStorageService.setItem(SECURE_KEYS.SYNC_SECRET_TOKEN, config.syncSecretToken);
+      }
+
+      // Strip the token before writing the rest of the config to plaintext storage
+      const sanitizedConfig = { ...config };
+      delete (sanitizedConfig as any).syncSecretToken;
+      await AsyncStorage.setItem(STORAGE_KEYS.NOTIFICATION_CONFIG, JSON.stringify(sanitizedConfig));
     } catch (e) {
       console.warn('Failed to save notification config:', e);
     }
@@ -487,12 +556,12 @@ export const StorageService = {
    */
   async clearAllData(): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify([]));
-      await AsyncStorage.setItem(STORAGE_KEYS.STOCKS, JSON.stringify([]));
-      await AsyncStorage.setItem(STORAGE_KEYS.CRYPTOS, JSON.stringify([]));
-      await AsyncStorage.setItem(STORAGE_KEYS.CRYPTO_WALLETS, JSON.stringify([]));
-      await AsyncStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
-      await AsyncStorage.setItem(STORAGE_KEYS.LIABILITIES, JSON.stringify([]));
+      await setEncryptedItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify([]));
+      await setEncryptedItem(STORAGE_KEYS.STOCKS, JSON.stringify([]));
+      await setEncryptedItem(STORAGE_KEYS.CRYPTOS, JSON.stringify([]));
+      await setEncryptedItem(STORAGE_KEYS.CRYPTO_WALLETS, JSON.stringify([]));
+      await setEncryptedItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
+      await setEncryptedItem(STORAGE_KEYS.LIABILITIES, JSON.stringify([]));
       await this.clearMarketCache();
     } catch (e) {
       console.warn('Failed to clear data:', e);
@@ -511,11 +580,11 @@ export const StorageService = {
    */
   async loadDemoData(): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(DEMO_ACCOUNTS));
-      await AsyncStorage.setItem(STORAGE_KEYS.STOCKS, JSON.stringify(DEMO_STOCKS));
-      await AsyncStorage.setItem(STORAGE_KEYS.CRYPTOS, JSON.stringify(DEMO_CRYPTOS));
-      await AsyncStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(DEMO_TRANSACTIONS));
-      await AsyncStorage.setItem(STORAGE_KEYS.LIABILITIES, JSON.stringify(DEMO_LIABILITIES));
+      await setEncryptedItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(DEMO_ACCOUNTS));
+      await setEncryptedItem(STORAGE_KEYS.STOCKS, JSON.stringify(DEMO_STOCKS));
+      await setEncryptedItem(STORAGE_KEYS.CRYPTOS, JSON.stringify(DEMO_CRYPTOS));
+      await setEncryptedItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(DEMO_TRANSACTIONS));
+      await setEncryptedItem(STORAGE_KEYS.LIABILITIES, JSON.stringify(DEMO_LIABILITIES));
     } catch (e) {
       console.warn('Failed to load demo data:', e);
     }

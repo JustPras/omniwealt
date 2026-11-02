@@ -22,7 +22,7 @@ export interface ExtractedWalletAddress {
 // Chain and Token configurations
 interface EvmChainConfig {
   name: string;
-  rpcUrl: string;
+  rpcUrls: string[];
   nativeToken: {
     symbol: string;
     name: string;
@@ -41,7 +41,11 @@ interface EvmChainConfig {
 const EVM_CHAINS: EvmChainConfig[] = [
   {
     name: 'Ethereum',
-    rpcUrl: 'https://ethereum-rpc.publicnode.com',
+    rpcUrls: [
+      'https://ethereum-rpc.publicnode.com',
+      'https://cloudflare-eth.com',
+      'https://rpc.ankr.com/eth',
+    ],
     nativeToken: {
       symbol: 'ETH',
       name: 'Ethereum',
@@ -95,7 +99,11 @@ const EVM_CHAINS: EvmChainConfig[] = [
   },
   {
     name: 'BNB Smart Chain',
-    rpcUrl: 'https://bsc-rpc.publicnode.com',
+    rpcUrls: [
+      'https://bsc-rpc.publicnode.com',
+      'https://binance.llamarpc.com',
+      'https://rpc.ankr.com/bsc',
+    ],
     nativeToken: {
       symbol: 'BNB',
       name: 'BNB',
@@ -121,7 +129,11 @@ const EVM_CHAINS: EvmChainConfig[] = [
   },
   {
     name: 'Polygon',
-    rpcUrl: 'https://polygon-bor-rpc.publicnode.com',
+    rpcUrls: [
+      'https://polygon-bor-rpc.publicnode.com',
+      'https://polygon-rpc.com',
+      'https://rpc.ankr.com/polygon',
+    ],
     nativeToken: {
       symbol: 'POL',
       name: 'Polygon',
@@ -147,7 +159,11 @@ const EVM_CHAINS: EvmChainConfig[] = [
   },
   {
     name: 'Arbitrum One',
-    rpcUrl: 'https://arbitrum-one-rpc.publicnode.com',
+    rpcUrls: [
+      'https://arbitrum-one-rpc.publicnode.com',
+      'https://arb1.arbitrum.io/rpc',
+      'https://rpc.ankr.com/arbitrum',
+    ],
     nativeToken: {
       symbol: 'ETH',
       name: 'Ethereum (Arbitrum)',
@@ -180,7 +196,11 @@ const EVM_CHAINS: EvmChainConfig[] = [
   },
   {
     name: 'Base',
-    rpcUrl: 'https://base-rpc.publicnode.com',
+    rpcUrls: [
+      'https://base-rpc.publicnode.com',
+      'https://mainnet.base.org',
+      'https://base.llamarpc.com',
+    ],
     nativeToken: {
       symbol: 'ETH',
       name: 'Ethereum (Base)',
@@ -219,40 +239,57 @@ const DEFAULT_CRYPTO_FALLBACKS: Record<string, number> = {
 };
 
 /**
- * Executes a JSON-RPC request with a strict timeout
+ * Executes a JSON-RPC request with multi-node automatic fallback.
+ * If the primary node times out or errors (rate-limit / DNS / network),
+ * the request immediately falls back to the secondary mirrors.
  */
-async function rpcCall<T = any>(rpcUrl: string, method: string, params: any[], timeoutMs: number = 4500): Promise<T> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+async function rpcCall<T = any>(
+  rpcUrlOrUrls: string | string[],
+  method: string,
+  params: any[],
+  timeoutMs: number = 3800
+): Promise<T> {
+  const urls = Array.isArray(rpcUrlOrUrls) ? rpcUrlOrUrls : [rpcUrlOrUrls];
+  let lastError: any = null;
 
-  try {
-    const res = await fetch(rpcUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: Math.floor(Math.random() * 100000),
-        method,
-        params,
-      }),
-      signal: controller.signal,
-    });
+  for (const url of urls) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-    if (!res.ok) {
-      throw new Error(`RPC HTTP error: ${res.status}`);
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: Math.floor(Math.random() * 100000),
+          method,
+          params,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!res.ok) {
+        throw new Error(`RPC HTTP ${res.status} on ${url}`);
+      }
+
+      const data = await res.json();
+      if (data.error) {
+        throw new Error(data.error.message || `RPC Error on ${url}`);
+      }
+
+      return data.result as T;
+    } catch (err) {
+      lastError = err;
+      // Continue to next mirror
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    const data = await res.json();
-    if (data.error) {
-      throw new Error(data.error.message || 'RPC Error');
-    }
-
-    return data.result as T;
-  } finally {
-    clearTimeout(timeoutId);
   }
+
+  throw lastError || new Error(`All RPC mirrors failed for method: ${method}`);
 }
 
 export const CryptoWalletService = {
@@ -352,7 +389,7 @@ export const CryptoWalletService = {
       EVM_CHAINS.map(async (chain) => {
         try {
           // 1. Fetch Native Gas Token Balance (ETH, BNB, POL)
-          const nativeBalanceHex = await rpcCall<string>(chain.rpcUrl, 'eth_getBalance', [cleanAddress, 'latest']);
+          const nativeBalanceHex = await rpcCall<string>(chain.rpcUrls, 'eth_getBalance', [cleanAddress, 'latest']);
           if (nativeBalanceHex && nativeBalanceHex !== '0x0') {
             const rawWei = BigInt(nativeBalanceHex);
             const nativeBalance = Number(rawWei) / 10 ** chain.nativeToken.decimals;
@@ -377,7 +414,7 @@ export const CryptoWalletService = {
         await Promise.allSettled(
           chain.tokens.map(async (tok) => {
             try {
-              const resHex = await rpcCall<string>(chain.rpcUrl, 'eth_call', [
+              const resHex = await rpcCall<string>(chain.rpcUrls, 'eth_call', [
                 {
                   to: tok.contractAddress,
                   data: balanceOfData,
@@ -423,11 +460,15 @@ export const CryptoWalletService = {
   async scanSolana(address: string): Promise<{ chains: string[]; tokens: CryptoWalletToken[] }> {
     const cleanAddress = address.trim();
     const tokensFound: CryptoWalletToken[] = [];
-    const rpcUrl = 'https://api.mainnet-beta.solana.com';
+    const SOLANA_RPC_URLS = [
+      'https://api.mainnet-beta.solana.com',
+      'https://solana-rpc.publicnode.com',
+      'https://rpc.ankr.com/solana',
+    ];
 
     try {
       // 1. Fetch Native SOL Balance
-      const balanceData = await rpcCall<{ value: number }>(rpcUrl, 'getBalance', [cleanAddress]);
+      const balanceData = await rpcCall<{ value: number }>(SOLANA_RPC_URLS, 'getBalance', [cleanAddress]);
       if (balanceData && typeof balanceData.value === 'number') {
         const solBalance = balanceData.value / 1e9;
         if (solBalance > 0.00001) {
@@ -464,7 +505,7 @@ export const CryptoWalletService = {
             };
           };
         }>;
-      }>(rpcUrl, 'getTokenAccountsByOwner', [
+      }>(SOLANA_RPC_URLS, 'getTokenAccountsByOwner', [
         cleanAddress,
         { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' },
         { encoding: 'jsonParsed' },
@@ -524,22 +565,27 @@ export const CryptoWalletService = {
   },
 
   /**
-   * Scan Bitcoin balance via blockchain.info
+   * Scan Bitcoin balance with multi-endpoint fallback
    */
   async scanBitcoin(address: string): Promise<{ chains: string[]; tokens: CryptoWalletToken[] }> {
     const cleanAddress = address.trim();
     const tokensFound: CryptoWalletToken[] = [];
 
-    try {
+    const fetchWithTimeout = async (url: string, ms: number) => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), ms);
+      try {
+        const res = await fetch(url, { signal: controller.signal });
+        return res.ok ? res : null;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    };
 
-      const res = await fetch(`https://blockchain.info/balance?active=${cleanAddress}`, {
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-
-      if (res.ok) {
+    try {
+      // 1. Primary: blockchain.info balance API
+      const res = await fetchWithTimeout(`https://blockchain.info/balance?active=${cleanAddress}`, 5000);
+      if (res) {
         const json = await res.json();
         const data = json[cleanAddress];
         if (data && typeof data.final_balance === 'number') {
@@ -558,7 +604,34 @@ export const CryptoWalletService = {
         }
       }
     } catch (e) {
-      console.warn('Bitcoin scan failed:', e);
+      // Silently fall through to secondary endpoint
+    }
+
+    if (tokensFound.length === 0) {
+      // 2. Secondary: Blockstream Esplora (chain_stats funded_txo_sum - spent_txo_sum)
+      try {
+        const res2 = await fetchWithTimeout(`https://blockstream.info/api/address/${cleanAddress}`, 5000);
+        if (res2) {
+          const json2 = await res2.json();
+          const funded = json2?.chain_stats?.funded_txo_sum || 0;
+          const spent = json2?.chain_stats?.spent_txo_sum || 0;
+          const sats = funded - spent;
+          const btcBalance = sats / 100000000;
+          if (btcBalance > 0) {
+            tokensFound.push({
+              chain: 'Bitcoin',
+              symbol: 'BTC',
+              name: 'Bitcoin',
+              balance: btcBalance,
+              priceIdr: 0,
+              valueIdr: 0,
+              coingeckoId: 'bitcoin',
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('Bitcoin fallback (blockstream.info) failed:', e);
+      }
     }
 
     return {

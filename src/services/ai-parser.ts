@@ -1,5 +1,5 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { BankMutationResult, BrokerExtractionResult, BrokerHoldingItem } from '../types';
+import { GeminiProxyService } from './gemini-proxy-service';
 
 export const AIParserService = {
   /**
@@ -8,12 +8,9 @@ export const AIParserService = {
   async parseBankMutation(rawText: string, sourceAppHint?: string): Promise<BankMutationResult> {
     const text = rawText.trim();
 
-    // 1. Check if Gemini API Key is available
-    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-    if (apiKey) {
+    // 1. Check if Gemini service is available (Proxy or Direct)
+    if (GeminiProxyService.isConfigured()) {
       try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
         const prompt = `
 Extract transaction details from this Indonesian banking/e-wallet notification text.
 Format JSON only with properties:
@@ -26,8 +23,7 @@ Format JSON only with properties:
 
 Notification: "${text}"
 `;
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
+        const responseText = await GeminiProxyService.generateContent({ prompt });
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
@@ -270,8 +266,7 @@ Notification: "${text}"
    * Parse Broker Document from File (PDF or Image)
    */
   async parseDocumentFile(file: { uri: string; name: string; mimeType?: string }): Promise<BrokerExtractionResult> {
-    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-    if (!apiKey) {
+    if (!GeminiProxyService.isConfigured()) {
       throw new Error(
         `Berkas "${file.name}" membutuhkan ekstraksi teks. Silakan buka file PDF Anda di pembaca PDF, salin (copy) teks tabel portofolio saham, lalu tempel di kolom teks di bawah.`
       );
@@ -291,8 +286,6 @@ Notification: "${text}"
         reader.readAsDataURL(blob);
       });
 
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
       const prompt = `Extract all Indonesian stock portfolio holdings or trade confirmation transactions from this document.
 Respond strictly in JSON format matching this schema:
 {
@@ -334,17 +327,13 @@ Respond strictly in JSON format matching this schema:
 }
 CRITICAL: Do NOT invent or hallucinate tickers like BBCA if they do not exist in the document. Only extract what is present in the file. If no stocks are found, return empty arrays.`;
 
-      const result = await model.generateContent([
+      const responseText = await GeminiProxyService.generateContent({
         prompt,
-        {
-          inlineData: {
-            data: base64Data,
-            mimeType: file.mimeType || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg'),
-          },
+        inlineData: {
+          data: base64Data,
+          mimeType: file.mimeType || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/jpeg'),
         },
-      ]);
-
-      const responseText = result.response.text();
+      });
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed: BrokerExtractionResult = JSON.parse(jsonMatch[0]);
@@ -382,12 +371,9 @@ CRITICAL: Do NOT invent or hallucinate tickers like BBCA if they do not exist in
     const text = documentText.trim();
     const today = new Date().toISOString().split('T')[0];
 
-    // 1. Check Gemini Flash
-    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-    if (apiKey) {
+    // 1. Check Gemini (Proxy or Direct)
+    if (GeminiProxyService.isConfigured()) {
       try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
         const prompt = `
 Extract stock trade confirmation or monthly statement of account from this document text.
 Output JSON only with format:
@@ -433,8 +419,8 @@ Output JSON only with format:
 Document:
 "${text}"
 `;
-        const res = await model.generateContent(prompt);
-        const jsonMatch = res.response.text().match(/\{[\s\S]*\}/);
+        const resText = await GeminiProxyService.generateContent({ prompt });
+        const jsonMatch = resText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
           return parsed;

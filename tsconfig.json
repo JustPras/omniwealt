@@ -17,6 +17,7 @@
   "exclude": [
     "node_modules",
     "_backup_ui_*",
-    "dist-tests"
+    "dist-tests",
+    "supabase/functions"
   ]
 }

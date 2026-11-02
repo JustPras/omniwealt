@@ -127,3 +127,48 @@ test('4. Ekstraksi Multi-Alamat Sekaligus dari Teks Bebas (Smart Batch Extract)'
   const btcList = extracted.filter((e) => e.networkType === 'BITCOIN');
   assert.strictEqual(btcList.length, 2);
 });
+
+test('5. Multi-RPC Failover: Permintaan Berhasil Saat Node Utama Error', async () => {
+  // Simulasi fetch interceptor: node primary gagal 500, node secondary berhasil 200
+  const originalFetch = globalThis.fetch;
+  let attempts: string[] = [];
+
+  (globalThis as any).fetch = async (url: string | URL | Request, init?: RequestInit) => {
+    const urlStr = url.toString();
+    attempts.push(urlStr);
+
+    if (urlStr.includes('ethereum-rpc.publicnode.com')) {
+      // Primary rate limited (HTTP 429)
+      return new Response('Rate limited', { status: 429 });
+    }
+
+    if (urlStr.includes('cloudflare-eth.com')) {
+      // Secondary fallback node: return 1 ETH (0xde0b6b3a7640000 wei)
+      return new Response(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          result: '0xde0b6b3a7640000',
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Default 0 for others to finish quickly
+    return new Response(
+      JSON.stringify({ jsonrpc: '2.0', id: 1, result: '0x0' }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  };
+
+  try {
+    const res = await CryptoWalletService.scanEvm('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045');
+    assert.ok(res.tokens.length > 0, 'Harus berhasil mendeteksi token meski primary down');
+    const ethToken = res.tokens.find((t) => t.symbol === 'ETH' && t.chain === 'Ethereum');
+    assert.ok(ethToken, 'Harus mendeteksi token ETH dari secondary mirror');
+    assert.strictEqual(ethToken!.balance, 1, 'Balance harus 1 ETH dari node secondary');
+    assert.ok(attempts.some((u) => u.includes('cloudflare-eth.com')), 'Harus mencoba cloudflare-eth.com');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

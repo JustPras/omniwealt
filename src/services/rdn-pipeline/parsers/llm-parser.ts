@@ -1,6 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { RawParsedRow } from '../normalizer';
 import { RDNInstitution, RDNStatementType } from '../../../types/rdn-pipeline';
+import { GeminiProxyService } from '../../gemini-proxy-service';
 
 export interface LLMParseResult {
   institution: RDNInstitution;
@@ -19,15 +19,11 @@ export class LLMParser {
     inferredInstitution: RDNInstitution,
     inferredType: RDNStatementType
   ): Promise<LLMParseResult> {
-    const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error('Gemini API key is not configured for LLM parsing fallback.');
+    if (!GeminiProxyService.isConfigured()) {
+      throw new Error('Gemini service is not configured (neither Edge Function Proxy nor Direct Key).');
     }
 
     try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
       const prompt = `
 Extract all financial transactions from this Indonesian broker or RDN account statement text.
 Output MUST be strict JSON only matching this schema:
@@ -60,8 +56,7 @@ ${text.slice(0, 8000)}
 """
 `;
 
-      const result = await model.generateContent(prompt);
-      const responseText = result.response.text();
+      const responseText = await GeminiProxyService.generateContent({ prompt });
       const match = responseText.match(/\{[\s\S]*\}/);
       if (!match) {
         throw new Error('LLM did not return a valid JSON object.');

@@ -2,7 +2,7 @@
 ### *Personal Multi-Asset Wealth & True Net Worth Intelligence*
 
 [![Build Native Android APK](https://github.com/JustPras/omniwealt/actions/workflows/build-native-apk.yml/badge.svg)](https://github.com/JustPras/omniwealt/actions/workflows/build-native-apk.yml)
-[![Tests Passing](https://img.shields.io/badge/Unit%20Tests-42%2F42%20Passed-10B981.svg)](https://github.com/JustPras/omniwealt)
+[![Tests Passing](https://img.shields.io/badge/Unit%20Tests-50%2F50%20Passed-10B981.svg)](https://github.com/JustPras/omniwealt)
 [![Security Audited](https://img.shields.io/badge/Security-0%20Leaks%20%7C%20Audited-10B981.svg)](README.md#-%EF%B8%8F-keamanan--privasi-data)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Web-0284C7.svg)](https://github.com/JustPras/omniwealt)
 [![React Native](https://img.shields.io/badge/React%20Native-0.76.9-61DAFB.svg?logo=react&logoColor=white)](https://reactnative.dev/)
@@ -83,9 +83,11 @@ Indikator animasi loading OmniWealth dirancang dengan transisi kurva matematika 
 
 > [!IMPORTANT]
 > Proyek ini menerapkan prinsip **Zero Telemetry** dan **Local-First Privacy**:
-> - **100% Bebas Hardcoded Keys:** Seluruh integrasi API (Google Gemini & Supabase) diatur murni via environment variable (`process.env.EXPO_PUBLIC_*`).
-> - **Penyimpanan Terenkripsi Lokal:** Riwayat mutasi, dokumen statement, lot saham, dan portofolio Anda tersimpan di penyimpanan internal perangkat (`AsyncStorage`). Tidak ada data finansial yang dikirim ke server pihak ketiga.
-> - **Audit Keamanan Berkelanjutan:** Repositori telah diaudit secara menyeluruh terhadap kebocoran kredensial, token JWT, maupun data pribadi (PII).
+> - **Zero Client Secrets (Serverless Gemini Proxy):** Kunci API Gemini tidak pernah dikemas ke bundle klien (bebas `EXPO_PUBLIC_GEMINI_API_KEY`), seluruh inferensi AI di-proxy secara aman via Supabase Edge Function (`supabase/functions/gemini-proxy`).
+> - **Enkripsi Finansial At-Rest (CTR + Encrypt-then-MAC):** Seluruh data akun kas, saham, kripto, mutasi transaksi, dan liabilitas dienkripsi secara lokal sebelum disimpan ke `AsyncStorage` menggunakan keystream HMAC-SHA256 & CSPRNG IV.
+> - **Hardware-Backed Master Key:** Kunci enkripsi master dan token sinkronisasi mutasi disimpan secara terisolasi di hardware enclave (`expo-secure-store`: iOS Keychain / Android KeyStore), tidak dapat dibaca dari filesystem biasa.
+> - **Proteksi Anti-Replay & Anti-Injection Deep Link:** Sinkronisasi mutasi otomatis via MacroDroid/Tasker memvalidasi token rahasia acak, *single-use nonce*, dan batas kedaluwarsa waktu (*max timestamp age* 5 menit).
+> - **Multi-RPC Failover Jaringan Web3:** Penarikan saldo EVM, Solana, dan Bitcoin memakai kluster *multi-mirror public nodes* dengan *auto-failover* otomatis jika satu node mengalami rate-limit atau timeout.
 > - **Privacy Shield Satu Sentuhan:** Sensor privasi instan pada header bar menyamarkan seluruh nominal angka menjadi `Rp ••••••••` saat membuka aplikasi di ruang publik.
 
 ---
@@ -112,8 +114,12 @@ omniwealth-v2/
 │   │   └── initial-data.ts        # Synthetic demo data fixtures
 │   ├── services/
 │   │   ├── ai-parser.ts           # Gemini Flash OCR + Deterministic Regex Engine
+│   │   ├── gemini-proxy-service.ts # Client pemanggil Edge Function Gemini (tanpa API key di klien)
+│   │   ├── secure-storage-service.ts # Enkripsi kunci & token via Keychain/KeyStore (expo-secure-store)
+│   │   ├── notification-sync-service.ts # Deep-Link sync + proteksi anti-replay/nonce validation
+│   │   ├── crypto-wallet-service.ts # Multi-chain wallet scanner (EV Multi-RPC failover)
 │   │   ├── market-service.ts      # Live ticker & fallback engine
-│   │   ├── storage-service.ts     # Offline-first AsyncStorage engine
+│   │   ├── storage-service.ts     # Offline-first encrypted AsyncStorage engine
 │   │   └── rdn-pipeline/          # PDF extraction, reconciliation & warrant handlers
 │   ├── store/
 │   │   └── wealth-context.tsx     # State Manager, True Net Worth Math & Hydration
@@ -130,9 +136,10 @@ omniwealth-v2/
 │   ├── adaptive-icon.png          # Android Adaptive Icon (1024×1024)
 │   └── favicon.png                # Web Favicon (192×192)
 │
-├── supabase/                      # Optional Database DDL Schemas & Migrations
+├── supabase/                      # Edge Functions & DDL Schemas
+│   └── functions/gemini-proxy/    # Server-side Gemini API proxy (tanpa key di klien)
 ├── DESIGN_SYSTEM.md               # Spesifikasi lengkap Warm Titanium & Champagne Liquid Glass
-├── tests/                         # Node.js Built-in Test Suite (42 Automated Tests)
+├── tests/                         # Node.js Built-in Test Suite (50 Automated Tests)
 └── .github/workflows/             # CI/CD GitHub Actions Build APK
 ```
 
@@ -140,13 +147,13 @@ omniwealth-v2/
 - **Engine:** Hermes JavaScript Engine + New Architecture
 - **Routing:** Expo Router v4
 - **Styling & Blur:** Custom Liquid Glass Engine + `expo-blur`
-- **Offline Storage:** `@react-native-async-storage/async-storage`
+- **Offline Storage:** `@react-native-async-storage/async-storage` + `expo-secure-store` (Hardware Enclave KeyStore/Keychain)
 
 ---
 
 ## 🧪 Rangkaian Pengujian Otomatis (Unit Testing)
 
-OmniWealth dilengkapi **42 unit test bawaan Node.js** (`node:test` & `node:assert`) tanpa ketergantungan framework berat:
+OmniWealth dilengkapi **50 unit test bawaan Node.js** (`node:test` & `node:assert`) tanpa ketergantungan framework berat:
 
 ```bash
 npm test
@@ -160,19 +167,20 @@ TAP version 13
 # Subtest: 4. Deteksi Selisih Matematis pada Statement Rusak (NEEDS_REVIEW) - ok
 # Subtest: 5. Deduplikasi Cerdas Notifikasi Buku Kas - ok
 # Subtest: 6. Validasi Alamat Publik Multi-Chain (EVM, Solana, Bitcoin) - ok
-# Subtest: 7. Perhitungan True Net Worth (Assets - Liabilities) - ok
-# Subtest: 8. Rasio Utilisasi Kredit & Due Date Alerts - ok
-# Subtest: 9. Deteksi Transfer Internal Dua Arah (Two-Legged Match) - ok
-# Subtest: 10. Ekstraksi Notifikasi QRIS, BI-FAST, E-Wallet, & Top Up RDN - ok
-# Subtest: 11. Dekompresi PDF Binary Streams FlateDecode - ok
-# Subtest: 12. Rekalibrasi Average Buy Price Saham, Warrant, & Right Issue - ok
+# Subtest: 7. Multi-RPC Failover: Permintaan Berhasil Saat Node Utama Error - ok
+# Subtest: 8. Perhitungan True Net Worth (Assets - Liabilities) - ok
+# Subtest: 9. Rasio Utilisasi Kredit & Due Date Alerts - ok
+# Subtest: 10. Deteksi Transfer Internal Dua Arah (Two-Legged Match) - ok
+# Subtest: 11. Validasi Keamanan Deep Link Anti-Replay Nonce & Token - ok
+# Subtest: 12. Dekompresi PDF Binary Streams FlateDecode - ok
+# Subtest: 13. Rekalibrasi Average Buy Price Saham, Warrant, & Right Issue - ok
+# Subtest: 14. Enkripsi/Dekripsi Data Finansial (HMAC-SHA256 CTR + Tamper Detection) - ok
 ...
-# Subtest: 42. Atomic Commit & Recalculate Portfolio Holdings untuk Warrant dan Right Issue - ok
-1..42
-# tests 42
-# pass 42
+# Subtest: 50. StorageService Mengenkripsi Data Akun Finansial di AsyncStorage - ok
+1..50
+# tests 50
+# pass 50
 # fail 0
-# duration_ms 2329.93
 ```
 
 ---

@@ -138,4 +138,39 @@ test('10. Validasi Keamanan Deep Link Secret Token & Proteksi Unauthorized Injec
   const disabledConfig = { ...config, enabled: false };
   const resDisabled = NotificationSyncService.validateDeepLink(validUrl, disabledConfig);
   assert.strictEqual(resDisabled.isValid, false, 'Ketika fitur dimatikan, semua deep link harus ditolak');
+
+  // Skenario E: Token Default Hardcoded Lama Selalu Ditolak
+  const legacyConfig = { ...config, syncSecretToken: 'omni_sec_8f2a99' };
+  const legacyUrl = { token: 'omni_sec_8f2a99', text: 'M-Transfer BERHASIL Rp 500.000', app: 'bca' };
+  const resLegacy = NotificationSyncService.validateDeepLink(legacyUrl, legacyConfig);
+  assert.strictEqual(resLegacy.isValid, false, 'Token default lama harus ditolak');
+
+  // Skenario F: Deep Link Kedaluwarsa (ts terlalu lama) Ditolak
+  const staleUrl = {
+    token: 'omni_sec_test123',
+    text: 'M-Transfer BERHASIL Rp 75.000',
+    app: 'bca',
+    ts: Date.now() - 10 * 60 * 1000, // 10 menit lalu
+  };
+  const resStale = NotificationSyncService.validateDeepLink(staleUrl, config);
+  assert.strictEqual(resStale.isValid, false, 'Deep link kedaluwarsa (>5 menit) harus ditolak');
+
+  // Skenario G: Replay Attack Nonce Duplikat Ditolak
+  const freshTs = Date.now().toString();
+  const nonceUrl1 = { token: 'omni_sec_test123', text: 'M-Transfer BERHASIL Rp 90.000', app: 'bca', ts: freshTs, nonce: 'n_abc123456789' };
+  const nonceUrl2 = { ...nonceUrl1 }; // replay persis
+  const resNonce1 = NotificationSyncService.validateDeepLink(nonceUrl1, config);
+  const resNonce2 = NotificationSyncService.validateDeepLink(nonceUrl2, config);
+  assert.strictEqual(resNonce1.isValid, true, 'Nonce pertama harus diterima');
+  assert.strictEqual(resNonce2.isValid, false, 'Replay nonce yang sama harus ditolak');
+});
+
+test('11. Generator Nonce Menghasilkan Nilai Unik & URL-Safe', () => {
+  const a = NotificationSyncService.getDeepLinkUrl('Teks', 'com.bca', 'omni_sec_test123');
+  const b = NotificationSyncService.getDeepLinkUrl('Teks', 'com.bca', 'omni_sec_test123');
+
+  assert.ok(a.startsWith('omniwealth://notification?'), 'Harus scheme omniwealth://notification');
+  assert.ok(a.includes('ts='), 'Harus mengandung ts (timestamp)');
+  assert.ok(a.includes('nonce='), 'Harus mengandung nonce (anti-replay)');
+  assert.notStrictEqual(a, b, 'Dua deep link yang digenerate berturut-turut harus berbeda karena nonce unik');
 });

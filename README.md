@@ -130,10 +130,9 @@ omniwealth-v2/
 │   └── utils/                     # Format Rupiah/USD, lot math, haptics feedback
 │
 ├── assets/
-│   ├── brand-kit/                 # Master SVG (Dark/Light/Pure Gold), Favicon suite & Lockup
-│   ├── motion/                    # logo_motion.html (Fluid Circular Arc Draw-on choreography)
 │   ├── icon.png                   # Universal App Icon (1024×1024)
 │   ├── adaptive-icon.png          # Android Adaptive Icon (1024×1024)
+│   ├── splash.png                 # Android Splash Screen Image
 │   └── favicon.png                # Web Favicon (192×192)
 │
 ├── supabase/                      # Edge Functions & DDL Schemas
